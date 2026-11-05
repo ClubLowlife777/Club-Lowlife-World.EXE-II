@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CLUB LOWLIFE // THE UNDERGROUND UNIVERSE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#07080b] text-white antialiased flex flex-col justify-between select-none">
+  <div id="crtOverlay" class="crt-overlay"></div>
+  <div class="crt-vignette"></div>
+
+  <!-- PERSISTENT TOP HUD -->
+  <header class="absolute top-0 left-0 right-0 z-30 px-3 py-2 flex flex-wrap items-center justify-between bg-black/90 border-b border-[#262c3d]/60 backdrop-blur-md gap-2">
+    <div class="flex items-center gap-2">
+      <div id="dimensionStatusDot" class="w-2.5 h-2.5 rounded-full bg-[#00f0ff] animate-ping"></div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="font-cyber font-bold tracking-widest text-xs sm:text-sm text-white">CLUB LOWLIFE</span>
+          <span id="dimensionBadge" class="text-[9px] sm:text-[10px] bg-[#161922] border border-[#00f0ff]/40 text-[#00f0ff] px-1.5 py-0.5 rounded font-cyber">DIMENSION: UNDERGROUND</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="text-[8px] font-mono text-neutral-400">HP:</span>
+          <div class="w-20 sm:w-28 bg-neutral-900 h-2 rounded-full overflow-hidden border border-neutral-700">
+            <div id="playerHpBar" class="bg-gradient-to-r from-red-500 to-green-400 h-full w-full transition-all duration-200"></div>
+          </div>
+          <span id="playerHpText" class="text-[9px] font-mono text-green-400 font-bold">100/100</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Audio Player HUD Bar -->
+    <div class="flex items-center gap-1.5 bg-[#0e1117]/90 px-2 py-1 rounded-lg border border-[#262c3d] text-xs">
+      <button id="bgmToggleBtn" class="p-1 text-[#00f0ff] hover:text-white transition" title="Play / Pause Audio">
+        <svg id="bgmPlayIcon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="flex flex-col max-w-[95px] sm:max-w-none truncate">
+        <span class="text-[8px] text-neutral-400 font-mono uppercase leading-tight">BROADCAST:</span>
+        <span id="activeTrackName" class="text-[10px] sm:text-[11px] font-bold text-white leading-tight truncate">"DANCING"</span>
+      </div>
+      <select id="trackVersionSelect" class="bg-black text-[9px] sm:text-[10px] text-[#00f0ff] border border-neutral-700 rounded px-1 py-0.5 font-mono focus:outline-none">
+        <option value="original">ORIGINAL</option>
+        <option value="spedup">SPED (+15%)</option>
+        <option value="slowed">SLOW (-15%)</option>
+      </select>
+    </div>
+
+    <!-- Stats & Navigation Badges -->
+    <div class="flex items-center gap-1.5">
+      <div class="px-2 py-1 bg-black/70 border border-yellow-500/50 rounded text-xs text-yellow-400 font-mono flex items-center gap-1" title="Sound Tokens">
+        <span>🪙</span>
+        <b id="casinoTokensCount">100</b>
+      </div>
+      <div class="px-2 py-1 bg-black/70 border border-amber-500/60 rounded text-xs text-amber-400 font-mono flex items-center gap-1" title="Battle Cassettes">
+        <span>📼</span>
+        <b id="rareBattleTapeCount">0/50</b>
+      </div>
+      <button id="quickWarpBtn" class="px-2 py-1 bg-gradient-to-r from-pink-600 to-cyan-500 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
+        WARP
+      </button>
+      <button id="openLinksModalBtn" class="px-2 py-1 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-xs rounded transition">
+        LINKS
+      </button>
+      <button id="openSkinsBtn" class="px-2 py-1 bg-[#0e1117] hover:bg-neutral-800 border border-[#262c3d] rounded text-xs text-white" title="Locker">
+        🧥
+      </button>
+    </div>
+  </header>
+
+  <!-- GAME CANVAS CONTAINER -->
+  <main class="relative w-full h-full flex items-center justify-center bg-black overflow-hidden">
+    <canvas id="gameCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+    
+    <!-- Proximity Interaction Banner -->
+    <div id="interactionPrompt" class="hidden pointer-events-auto absolute bottom-28 sm:bottom-12 z-30 px-4 py-2 bg-black/90 border border-[#a855f7] text-[#a855f7] rounded-md shadow-[0_0_20px_rgba(168,85,247,0.5)] flex items-center gap-2 font-mono text-xs sm:text-sm backdrop-blur">
+      <span class="w-2.5 h-2.5 rounded-full bg-[#a855f7] prompt-pulse"></span>
+      <span id="promptText" class="font-bold text-white tracking-wide">TAP ACTION</span>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastMessage" class="pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3 absolute top-16 z-30 px-4 py-2 bg-black/95 border border-[#00f0ff] rounded text-xs text-white font-mono shadow-[0_0_15px_rgba(0,240,255,0.3)] max-w-sm text-center">
+      Notification Alert
+    </div>
+  </main>
+
+  <!-- MOBILE TOUCH CONTROLS -->
+  <div id="touchControls" class="sm:hidden pointer-events-none absolute inset-x-0 bottom-6 z-30 px-5 flex items-end justify-between">
+    <div id="joystickZone" class="pointer-events-auto relative w-28 h-28 rounded-full bg-black/50 border border-[#262c3d]/80 backdrop-blur-md flex items-center justify-center">
+      <div id="joystickKnob" class="w-12 h-12 rounded-full bg-gradient-to-br from-[#00f0ff] to-blue-700 border-2 border-white transform translate-x-0 translate-y-0"></div>
+    </div>
+    <div class="pointer-events-auto flex items-end gap-2">
+      <button id="btnShoot" class="relative w-14 h-14 p-2 rounded-full bg-black/70 border-2 border-[#00f0ff] text-[#00f0ff] active:scale-95 font-cyber font-bold text-[10px] flex flex-col items-center justify-center">
+        <span>FIRE</span>
+        <span class="text-[8px] font-mono text-neutral-400">[J]</span>
+        <div id="btnShootChargeFill" class="absolute inset-0 rounded-full bg-[#00f0ff]/30 opacity-0 pointer-events-none"></div>
+      </button>
+      <button id="btnSlash" class="relative w-16 h-16 p-2 rounded-full bg-black/70 border-2 border-[#ff003c] text-[#ff003c] active:scale-95 font-cyber font-bold text-xs flex flex-col items-center justify-center">
+        <span>SLASH</span>
+        <span class="text-[8px] font-mono text-neutral-400">[K]</span>
+        <div id="btnSlashChargeRing" class="absolute inset-0 rounded-full border-2 border-purple-500 opacity-0 pointer-events-none"></div>
+      </button>
+      <button id="btnAction" class="btn-action-idle w-14 h-14 p-2 rounded-full border-2 font-cyber font-bold text-[10px] flex flex-col items-center justify-center backdrop-blur active:scale-95">
+        <span id="btnActionLabel">ACTION</span>
+        <span class="text-[8px] font-mono text-neutral-300">[E]</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- OVERLAY MODALS -->
+  <div id="gatedModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-[#ffb300] rounded-xl p-5 text-center font-mono">
+      <div class="w-16 h-16 mx-auto mb-3 bg-[#ffb300]/10 border-2 border-[#ffb300] rounded-full flex items-center justify-center text-3xl">🌌</div>
+      <h3 class="text-base font-cyber font-bold text-white tracking-widest uppercase">EXTRACTION GATEWAY</h3>
+      <p class="text-xs text-neutral-400 mt-1">REQUIRES 50 RARE SYNDICATE BATTLE CASSETTES</p>
+      <div class="my-4 p-3 bg-black/80 border border-neutral-700 rounded">
+        <div class="flex justify-between text-xs text-neutral-300 mb-1">
+          <span>PROGRESSION:</span>
+          <b id="gatedTapeProgress" class="text-[#ffb300]">0 / 50 TAPES</b>
+        </div>
+        <div class="w-full bg-neutral-900 h-3 rounded-full overflow-hidden border border-neutral-800">
+          <div id="gatedProgressBar" class="bg-gradient-to-r from-yellow-500 to-pink-500 h-full w-0 transition-all duration-500"></div>
+        </div>
+      </div>
+      <div id="gatedStatusMessage" class="text-xs font-mono text-red-400 mb-4">ACCESS RESTRICTED</div>
+      <div class="flex gap-2">
+        <button id="gatedProceedBtn" onclick="State.attemptGateWarp()" class="flex-1 py-2 bg-neutral-800 text-neutral-500 font-cyber font-bold text-xs rounded cursor-not-allowed">WARP TO HORIZON</button>
+        <button onclick="State.closeModals()" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPC DIALOGUE MODAL -->
+  <div id="npcModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-[#0e1117] border border-[#00f0ff]/60 rounded-xl p-5 shadow-[0_0_30px_rgba(0,240,255,0.2)] font-mono">
+      <div class="flex items-center gap-3 border-b border-neutral-800 pb-3 mb-3">
+        <div id="npcAvatarIcon" class="w-10 h-10 rounded-full bg-[#161922] border border-[#00f0ff] flex items-center justify-center text-xl">👤</div>
+        <div>
+          <h4 id="npcName" class="font-cyber font-bold text-white text-sm">NPC_NAME</h4>
+          <span id="npcRole" class="text-[10px] text-[#00f0ff]">SYNDICATE_OPERATIVE</span>
+        </div>
+      </div>
+      <p id="npcDialogueText" class="text-xs text-neutral-200 leading-relaxed min-h-[48px]">Dialogue goes here...</p>
+      <div class="mt-4 flex justify-end">
+        <button onclick="State.closeModals()" class="px-4 py-1.5 bg-[#00f0ff] text-black font-cyber font-bold text-xs rounded hover:bg-white transition">DISMISS [ESC]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCOGRAPHY MODAL -->
+  <div id="discoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-lg bg-[#0e1117] border border-[#262c3d] rounded-xl p-5 flex flex-col">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-3 mb-3">
+        <h2 class="text-sm font-cyber font-bold text-white uppercase tracking-wider">DISCOGRAPHY VAULT</h2>
+        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white p-1">✕</button>
+      </div>
+      <div class="p-4 bg-black/60 border border-[#00f0ff]/60 rounded-lg flex flex-col sm:flex-row gap-3 items-start font-mono text-xs">
+        <div class="w-12 h-12 bg-[#00f0ff]/10 border border-[#00f0ff] rounded flex-shrink-0 flex items-center justify-center text-xl">💿</div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold font-cyber text-white">"DANCING" (SINGLE)</h3>
+            <span class="text-[9px] text-[#00f0ff] border border-[#00f0ff]/40 px-1 py-0.5 rounded">OUT NOW</span>
+          </div>
+          <p class="text-neutral-400 text-[11px] mt-1">Dystopian bounce fusion from the Casshern timeline[cite: 2].</p>
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            <a href="https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-[#1DB954] text-black font-cyber font-bold text-[10px] rounded">SPOTIFY</a>
+            <a href="https://music.apple.com/album/dancing/6824158392" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-white text-black font-cyber font-bold text-[10px] rounded">APPLE MUSIC</a>
+            <button onclick="AudioEngine.setTrackBgm('original')" class="px-2 py-1 bg-neutral-800 text-[#00f0ff] font-cyber text-[10px] rounded">▶ PLAY IN WORLD</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIRECTORY LINKS MODAL -->
+  <div id="linksModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-sm bg-[#0e1117] border border-neutral-700 rounded-xl p-5 font-cyber text-xs space-y-2">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
+        <h2 class="font-bold text-white tracking-widest uppercase">SYNDICATE DIRECTORY</h2>
+        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+      </div>
+      <a href="https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-[#00f0ff]/40 text-white hover:border-[#00f0ff]">SPOTIFY STREAM</a>
+      <a href="https://music.apple.com/album/dancing/6824158392" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-[#00f0ff]/40 text-white hover:border-[#00f0ff]">APPLE MUSIC</a>
+      <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-purple-500/40 text-white hover:border-purple-400">ALL STREAMING PLATFORMS</a>
+      <a href="https://www.instagram.com/omglowlife" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-pink-500/40 text-white hover:border-pink-400">INSTAGRAM SYNDICATE</a>
+    </div>
+  </div>
+
+  <!-- TRUNK MERCH MODAL -->
+  <div id="merchModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-5 font-mono text-xs">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
+        <h3 class="font-cyber font-bold text-white uppercase">TRUNK POP // MERCH STASH</h3>
+        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+      </div>
+      <div class="p-2.5 bg-black/70 border border-[#00f0ff]/40 rounded mb-3 flex items-center justify-between">
+        <span class="text-neutral-400">CODE:</span>
+        <span class="text-[#00f0ff] font-bold">WASTELAND15 (15% OFF)</span>
+      </div>
+      <a href="https://clublowlife.com" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-center rounded transition">
+        ENTER MERCH STORE
+      </a>
+    </div>
+  </div>
+
+  <!-- PHYSICAL CASSETTE CLAIM MODAL -->
+  <div id="cassetteClaimModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-[#ffb300] rounded-xl p-5 text-center font-mono">
+      <div class="w-14 h-14 mx-auto mb-2 bg-[#ffb300]/10 border-2 border-[#ffb300] rounded-full flex items-center justify-center text-3xl">📼</div>
+      <h3 class="font-cyber font-bold text-white uppercase tracking-wider text-sm">PHYSICAL CASSETTE AIR-DROP</h3>
+      <p class="text-xs text-neutral-400 mt-1">THE 6 LUCKY WINNERS GIVEAWAY CLAIM PORTAL</p>
+      <div class="my-3 p-3 bg-black/80 border border-neutral-700 rounded text-left text-xs text-neutral-300">
+        <p><b class="text-[#ffb300]">Includes:</b> "DANCING" + Retro Cade Evolved extended album[cite: 5].</p>
+      </div>
+      <a href="https://forms.gle/TsE7MAHSD1erDca59" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 bg-[#ffb300] text-black font-cyber font-bold text-xs rounded transition hover:bg-yellow-300 mb-2">
+        OPEN SHIPPING CLAIM FORM
+      </a>
+      <button onclick="State.closeModals()" class="w-full py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
+    </div>
+  </div>
+
+  <!-- AVATAR LOCKER MODAL -->
+  <div id="skinsModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3">
+    <div class="relative w-full max-w-sm bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 flex flex-col font-mono text-xs">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
+        <h3 class="font-cyber font-bold text-white">AVATAR LOCKER</h3>
+        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+      </div>
+      <div id="skinsList" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- ARCADE CONTAINER MODAL -->
+  <div id="arcadeModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+    <div class="relative w-full max-w-2xl bg-neutral-950 border-2 border-[#00f0ff] rounded-xl p-3 sm:p-4 flex flex-col items-center">
+      <div class="w-full flex items-center justify-between border-b border-neutral-800 pb-2 mb-2 font-cyber">
+        <span id="arcadeTitle" class="text-xs sm:text-sm font-bold text-[#00f0ff]">ARCADE MACHINE</span>
+        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white px-2 py-0.5 text-sm">EXIT [ESC]</button>
+      </div>
+      <canvas id="arcadeCanvas" class="w-full max-w-[600px] aspect-[4/3] bg-black border border-neutral-800 block"></canvas>
+      <div class="w-full mt-2 text-center font-mono text-[11px] text-neutral-400" id="arcadeControlsHint">
+        CONTROLS: [A/D] MOVE, [SPACE/J] ACTION
+      </div>
+    </div>
+  </div>
+
+  <!-- CASINO SLOTS MODAL -->
+  <div id="casinoModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-yellow-500 rounded-xl p-5 text-center font-mono">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-4 font-cyber">
+        <span class="text-sm font-bold text-yellow-400">RETROCADE CYBER SLOTS</span>
+        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+      </div>
+      <div class="flex justify-center items-center gap-3 my-5 py-4 bg-black/90 border-2 border-yellow-500/40 rounded-lg text-4xl">
+        <div id="slotReel1" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">📼</div>
+        <div id="slotReel2" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">7️⃣</div>
+        <div id="slotReel3" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">💿</div>
+      </div>
+      <div id="slotPayoutMsg" class="text-xs text-yellow-300 min-h-[20px] mb-4">INSERT 5 TOKENS TO SPIN</div>
+      <div class="flex gap-2">
+        <button id="slotSpinBtn" onclick="CasinoGame.spin()" class="flex-1 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:opacity-90 text-black font-cyber font-bold text-xs rounded">
+          SPIN (5 TOKENS)
+        </button>
+        <button onclick="State.closeModals()" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">EXIT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORE SCRIPTS SEQUENTIAL LOADER -->
+  <script src="js/state.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/world/dimensions.js"></script>
+  <script src="js/world/entities.js"></script>
+  <script src="js/world/combat.js"></script>
+  <script src="js/arcade/voidInvaders.js"></script>
+  <script src="js/arcade/gridRunner.js"></script>
+  <script src="js/arcade/lowlifeLeap.js"></script>
+  <script src="js/arcade/casino.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
