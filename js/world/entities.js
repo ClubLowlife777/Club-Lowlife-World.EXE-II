@@ -47,8 +47,8 @@ const Entities = {
   hostileNpcs: [],
   lootPickups: [],
 
-  init() {
-    // Restore persistent player coordinates & dimension from saved profile
+ init() {
+    // 1. Restore persistent player coordinates & dimension from saved profile
     if (State.userProfile && State.userProfile.lastPosition) {
       this.player.x = State.userProfile.lastPosition.x || 350;
       this.player.y = State.userProfile.lastPosition.y || 750;
@@ -58,6 +58,13 @@ const Entities = {
       const cfg = State.DIMENSIONS[State.currentDimension];
       const badge = document.getElementById('dimensionBadge');
       if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
+    }
+
+    // 2. Restore opened chests so looted chests remain opened across reloads
+    if (Dimensions.wastelandChests && State.userProfile.chestsOpened) {
+      Dimensions.wastelandChests.forEach(c => {
+        if (State.userProfile.chestsOpened.includes(c.id)) c.opened = true;
+      });
     }
 
     this.updatePlayerHealthUI();
