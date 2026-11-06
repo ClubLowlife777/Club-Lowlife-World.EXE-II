@@ -25,11 +25,14 @@ const State = {
       title: "DANCING",
       type: "SINGLE",
       status: "OUT NOW",
-      badgeColor: "purple",
+      badgeColor: "pink",
       highlight: true,
-      description: "Flagship transition single bridging the Retrocade era into the dark dystopia. Includes alternate nightcore, slowed + reverb, and club VIP edits.",
+      description: "Transition single bridging the Retrocade era into the dark dystopia. Includes alternate nightcore, slowed + reverb, and club VIP edits.",
       links: [
-        { platform: "ALL PLATFORMS", url: "https://clublowlife.dimensions.fm/dancing", color: "purple" },
+        { platform: "SPOTIFY", url: "https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg?si=0d4c1e54e1fd4ee2", color: "emerald" },
+        { platform: "APPLE MUSIC", url: "https://music.apple.com/us/song/dancing/6824158392", color: "rose" },
+        { platform: "YOUTUBE", url: "https://music.youtube.com/playlist?list=OLAK5uy_m-WHYrOsDdXEtkUCJzW11ELfS7wifL1sc&si=6kMLhqT5LWGyFrhQ", color: "red" },
+        { platform: "OTHER PLATFORMS", url: "https://clublowlife.dimensions.fm/dancing", color: "amber" }
       ]
     },
     {
@@ -39,9 +42,10 @@ const State = {
       status: "STREAMING",
       badgeColor: "cyan",
       highlight: false,
-      description: "Extended edition featuring exclusive bonus songs on all streaming platforms.",
+      description: "Extended edition featuring exclusive bonus tracks not found on standard streaming platforms.",
       links: [
         { platform: "STREAM ALBUM", url: "https://clublowlife.dimensions.fm/retrocade-evolved", color: "cyan" },
+        { platform: "LOWLIFE CASSETTE", url: "www.clublowlife.com", color: "purple" }
       ]
     }
   ],
