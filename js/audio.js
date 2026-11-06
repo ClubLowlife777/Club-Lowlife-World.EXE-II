@@ -8,6 +8,7 @@ const AudioEngine = {
   ctx: null,
   isBgmPlaying: false,
   bgmMasterGain: null,
+  sfxMasterGain: null,
   bgmStepIndex: 0,
   bgmTimer: null,
   bgmTempo: 130,
@@ -20,9 +21,16 @@ const AudioEngine = {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (AudioCtx) {
           this.ctx = new AudioCtx();
+          
+          // Master Gain Bus for Music
           this.bgmMasterGain = this.ctx.createGain();
-          this.bgmMasterGain.gain.setValueAtTime(0.45, this.ctx.currentTime);
+          this.bgmMasterGain.gain.setValueAtTime(0.40, this.ctx.currentTime);
           this.bgmMasterGain.connect(this.ctx.destination);
+
+          // Master Gain Bus for Sound Effects
+          this.sfxMasterGain = this.ctx.createGain();
+          this.sfxMasterGain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+          this.sfxMasterGain.connect(this.ctx.destination);
         }
       }
       if (this.ctx && this.ctx.state === 'suspended') {
@@ -42,23 +50,30 @@ const AudioEngine = {
     if (this.isBgmPlaying) {
       if (icon) icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       this.startBgmLoop();
-      if (window.State && State.showToast) State.showToast("BROADCASTING: 'DANCING'");
+      if (window.State && typeof State.showToast === 'function') {
+        State.showToast("BROADCASTING: 'DANCING'");
+      }
     } else {
       if (icon) icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-      clearInterval(this.bgmTimer);
-      this.bgmTimer = null;
-      if (window.State && State.showToast) State.showToast("BROADCAST PAUSED");
+      if (this.bgmTimer) {
+        clearInterval(this.bgmTimer);
+        this.bgmTimer = null;
+      }
+      if (window.State && typeof State.showToast === 'function') {
+        State.showToast("BROADCAST PAUSED");
+      }
     }
   },
 
   startBgmLoop() {
     if (!this.ctx) return;
-    clearInterval(this.bgmTimer);
-    const intervalMs = (60 / this.bgmTempo / 4) * 1000;
+    if (this.bgmTimer) clearInterval(this.bgmTimer);
+
+    const stepIntervalMs = (60 / this.bgmTempo / 4) * 1000;
     this.bgmTimer = setInterval(() => {
       this.playBgmStep();
       this.bgmStepIndex = (this.bgmStepIndex + 1) % 16;
-    }, intervalMs);
+    }, stepIntervalMs);
   },
 
   playBgmStep() {
@@ -73,14 +88,19 @@ const AudioEngine = {
     if (bassFreq > 0) {
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
+
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(bassFreq, now);
-      g.gain.setValueAtTime(0.18, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.linearRampToValueAtTime(0.18, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
       osc.connect(g);
       g.connect(this.bgmMasterGain);
+
       osc.start(now);
-      osc.stop(now + 0.35);
+      osc.stop(now + 0.30);
     }
   },
 
@@ -89,18 +109,16 @@ const AudioEngine = {
     const sel = document.getElementById('trackVersionSelect');
     if (sel) sel.value = version;
     this.bgmTempo = version === 'spedup' ? 150 : version === 'slowed' ? 104 : 130;
-    
-    // Auto-start playback if player clicked 'PLAY IN WORLD'
+
     if (!this.isBgmPlaying) {
       this.toggleBgm();
     } else {
-      clearInterval(this.bgmTimer);
+      if (this.bgmTimer) clearInterval(this.bgmTimer);
       this.startBgmLoop();
     }
   },
 
   playSfx(type) {
-    // 1. Ensure AudioContext is instantiated and active
     if (!this.ctx) this.init();
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
@@ -111,8 +129,9 @@ const AudioEngine = {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
+
       osc.connect(g);
-      g.connect(this.ctx.destination);
+      g.connect(this.sfxMasterGain || this.ctx.destination);
 
       if (type === 'coin') {
         osc.type = 'sine';
@@ -163,14 +182,25 @@ const AudioEngine = {
         osc.start(now);
         osc.stop(now + 0.05);
       } else if (type === 'win') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523, now);
-        osc.frequency.setValueAtTime(659, now + 0.1);
-        osc.frequency.setValueAtTime(783, now + 0.2);
-        g.gain.setValueAtTime(0.25, now);
-        g.gain.linearRampToValueAtTime(0.001, now + 0.35);
-        osc.start(now);
-        osc.stop(now + 0.35);
+        // Multi-frequency celebratory chime
+        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+        notes.forEach((freq, idx) => {
+          const chordOsc = this.ctx.createOscillator();
+          const chordGain = this.ctx.createGain();
+          const noteTime = now + (idx * 0.08);
+
+          chordOsc.type = 'sine';
+          chordOsc.frequency.setValueAtTime(freq, noteTime);
+
+          chordGain.gain.setValueAtTime(0.18, noteTime);
+          chordGain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.25);
+
+          chordOsc.connect(chordGain);
+          chordGain.connect(this.sfxMasterGain || this.ctx.destination);
+
+          chordOsc.start(noteTime);
+          chordOsc.stop(noteTime + 0.26);
+        });
       }
     } catch (e) {
       console.warn("SFX synthesis error:", e);
