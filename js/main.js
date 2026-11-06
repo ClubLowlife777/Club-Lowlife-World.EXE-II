@@ -121,12 +121,14 @@ function drawUnderground() {
 
   // Obstacle Walls
   ctx.fillStyle = '#222b40';
-  Dimensions.undergroundObstacles.forEach(o => {
-    ctx.fillRect(o.x, o.y, o.width, o.height);
-    ctx.strokeStyle = '#384869';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(o.x, o.y, o.width, o.height);
-  });
+  if (typeof Dimensions !== 'undefined' && Dimensions.undergroundObstacles) {
+    Dimensions.undergroundObstacles.forEach(o => {
+      ctx.fillRect(o.x, o.y, o.width, o.height);
+      ctx.strokeStyle = '#384869';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(o.x, o.y, o.width, o.height);
+    });
+  }
 
   drawUndergroundDoorways();
 
@@ -140,7 +142,7 @@ function drawUnderground() {
   ctx.fillText("PROMO: WASTELAND15", 200, 252);
 
   // West Bay: Hologram Combat Target Dummy (Testing & Feedback)
-  if (Entities.trainingDummies) {
+  if (typeof Entities !== 'undefined' && Entities.trainingDummies) {
     Entities.trainingDummies.forEach(td => {
       ctx.save();
       ctx.fillStyle = 'rgba(2, 132, 199, 0.25)';
@@ -191,9 +193,9 @@ function drawUnderground() {
 }
 
 function drawUndergroundDoorways() {
-  const doorways = (typeof Dimensions.getActiveDoorways === 'function')
+  const doorways = (typeof Dimensions !== 'undefined' && typeof Dimensions.getActiveDoorways === 'function')
     ? Dimensions.getActiveDoorways()
-    : (Dimensions.undergroundDoorways || []);
+    : (typeof Dimensions !== 'undefined' && Dimensions.undergroundDoorways ? Dimensions.undergroundDoorways : []);
 
   doorways.forEach(door => {
     ctx.save();
@@ -249,10 +251,12 @@ function drawRetrocade() {
   ctx.fillStyle = '#1e1430'; ctx.fillRect(1750, 35, 615, 1130);
 
   ctx.fillStyle = '#3b1d5c';
-  Dimensions.retrocadeObstacles.forEach(o => {
-    ctx.fillRect(o.x, o.y, o.width, o.height);
-    ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
-  });
+  if (typeof Dimensions !== 'undefined' && Dimensions.retrocadeObstacles) {
+    Dimensions.retrocadeObstacles.forEach(o => {
+      ctx.fillRect(o.x, o.y, o.width, o.height);
+      ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
+    });
+  }
 
   ctx.save();
   ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)';
@@ -330,37 +334,45 @@ function drawWasteland() {
   for (let x = 0; x < 6400; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 4800); ctx.stroke(); }
   for (let y = 0; y < 4800; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(6400, y); ctx.stroke(); }
 
-  Dimensions.environmentalHazards.forEach(h => {
-    ctx.fillStyle = '#166534'; ctx.fillRect(h.x, h.y, h.width, h.height);
-    ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.strokeRect(h.x, h.y, h.width, h.height);
-  });
+  if (typeof Dimensions !== 'undefined' && Dimensions.environmentalHazards) {
+    Dimensions.environmentalHazards.forEach(h => {
+      ctx.fillStyle = '#166534'; ctx.fillRect(h.x, h.y, h.width, h.height);
+      ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.strokeRect(h.x, h.y, h.width, h.height);
+    });
+  }
 
-  Dimensions.worldObstacles.forEach(o => {
-    ctx.fillStyle = '#222d3d'; ctx.fillRect(o.x, o.y, o.width, o.height);
-    ctx.strokeStyle = '#384860'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
-    if (o.label) {
-      ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px "Share Tech Mono"';
-      ctx.fillText(o.label, o.x + 15, o.y + 25);
-    }
-  });
+  if (typeof Dimensions !== 'undefined' && Dimensions.worldObstacles) {
+    Dimensions.worldObstacles.forEach(o => {
+      ctx.fillStyle = '#222d3d'; ctx.fillRect(o.x, o.y, o.width, o.height);
+      ctx.strokeStyle = '#384860'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
+      if (o.label) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px "Share Tech Mono"';
+        ctx.fillText(o.label, o.x + 15, o.y + 25);
+      }
+    });
+  }
 
-  Dimensions.destructibleDoors.forEach(d => {
-    if (!d.shattered) {
-      ctx.fillStyle = '#4c0519'; ctx.fillRect(d.x, d.y, d.width, d.height);
-      ctx.strokeStyle = '#ff003c'; ctx.lineWidth = 2.5; ctx.strokeRect(d.x, d.y, d.width, d.height);
-      ctx.fillStyle = '#ff003c'; ctx.font = 'bold 9px "Share Tech Mono"';
-      ctx.fillText(`BREACH [${d.hp} HP]`, d.x + 8, d.y + 20);
-    }
-  });
+  if (typeof Dimensions !== 'undefined' && Dimensions.destructibleDoors) {
+    Dimensions.destructibleDoors.forEach(d => {
+      if (!d.shattered) {
+        ctx.fillStyle = '#4c0519'; ctx.fillRect(d.x, d.y, d.width, d.height);
+        ctx.strokeStyle = '#ff003c'; ctx.lineWidth = 2.5; ctx.strokeRect(d.x, d.y, d.width, d.height);
+        ctx.fillStyle = '#ff003c'; ctx.font = 'bold 9px "Share Tech Mono"';
+        ctx.fillText(`BREACH [${d.hp} HP]`, d.x + 8, d.y + 20);
+      }
+    });
+  }
 
   drawHoldingChamberInterior();
 
-  Dimensions.wastelandChests.forEach(c => {
-    ctx.fillStyle = c.opened ? '#334155' : (c.type === 'master_holding' ? '#701a75' : '#047857');
-    ctx.fillRect(c.x, c.y, c.width, c.height);
-    ctx.strokeStyle = c.type === 'master_holding' ? '#facc15' : '#00f0ff';
-    ctx.lineWidth = 2; ctx.strokeRect(c.x, c.y, c.width, c.height);
-  });
+  if (typeof Dimensions !== 'undefined' && Dimensions.wastelandChests) {
+    Dimensions.wastelandChests.forEach(c => {
+      ctx.fillStyle = c.opened ? '#334155' : (c.type === 'master_holding' ? '#701a75' : '#047857');
+      ctx.fillRect(c.x, c.y, c.width, c.height);
+      ctx.strokeStyle = c.type === 'master_holding' ? '#facc15' : '#00f0ff';
+      ctx.lineWidth = 2; ctx.strokeRect(c.x, c.y, c.width, c.height);
+    });
+  }
 
   drawPortal(800, 700, '#a855f7', '#ec4899', "WARP: RETROCADE");
   drawPortal(3120, 150, '#10b981', '#facc15', "NEURAL EXTRACTION GATE [50 TAPES]");
@@ -412,15 +424,17 @@ function drawHoldingChamberInterior() {
 // =========================================================================
 function drawPortalsAndEntities(dim) {
   // Friendly NPCs
-  (Entities.friendlyNpcs[dim] || []).forEach(n => {
-    const bob = n.dancePhase !== undefined ? Math.sin((Date.now() / 150) + n.dancePhase) * 3.5 : 0;
-    drawPixelCharacter(n.x, n.y + bob, n.coat, n.visor, n.pants, 'down', false, 0);
-    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
-    ctx.fillText(n.name, n.x - 12, n.y - 8);
-  });
+  if (typeof Entities !== 'undefined' && Entities.friendlyNpcs) {
+    (Entities.friendlyNpcs[dim] || []).forEach(n => {
+      const bob = n.dancePhase !== undefined ? Math.sin((Date.now() / 150) + n.dancePhase) * 3.5 : 0;
+      drawPixelCharacter(n.x, n.y + bob, n.coat, n.visor, n.pants, 'down', false, 0);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
+      ctx.fillText(n.name, n.x - 12, n.y - 8);
+    });
+  }
 
   // Wasteland Enemies
-  if (dim === 'wasteland') {
+  if (dim === 'wasteland' && typeof Entities !== 'undefined' && Entities.hostileNpcs) {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive) return;
       if (n.tier === 'boss') {
@@ -444,96 +458,109 @@ function drawPortalsAndEntities(dim) {
   }
 
   // Loot Pickups
-  Entities.lootPickups.forEach(p => {
-    ctx.fillStyle = p.type === 'coin' ? '#facc15' : '#eab308';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y + Math.sin(Date.now() / 180 + p.floatOffset) * 3, p.radius, 0, Math.PI * 2);
-    ctx.fill();
-  });
+  if (typeof Entities !== 'undefined' && Entities.lootPickups) {
+    Entities.lootPickups.forEach(p => {
+      ctx.fillStyle = p.type === 'coin' ? '#facc15' : '#eab308';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y + Math.sin(Date.now() / 180 + p.floatOffset) * 3, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
 
   // Homing Projectiles[cite: 2]
-  Combat.projectiles.forEach(p => {
-    ctx.save();
-    ctx.strokeStyle = p.color || '#00f0ff';
-    ctx.lineWidth = p.isCharged ? 5 : 2;
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
-    ctx.stroke();
+  if (typeof Combat !== 'undefined' && Combat.projectiles) {
+    Combat.projectiles.forEach(p => {
+      ctx.save();
+      ctx.strokeStyle = p.color || '#00f0ff';
+      ctx.lineWidth = p.isCharged ? 5 : 2;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
+      ctx.stroke();
 
-    ctx.fillStyle = p.color || '#00f0ff';
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius * 0.5, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  });
+      ctx.fillStyle = p.color || '#00f0ff';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius * 0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    });
+  }
 
   // Enemy Projectiles
-  Combat.enemyProjectiles.forEach(ep => {
-    ctx.fillStyle = '#ff003c';
-    ctx.beginPath(); ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2); ctx.fill();
-  });
+  if (typeof Combat !== 'undefined' && Combat.enemyProjectiles) {
+    Combat.enemyProjectiles.forEach(ep => {
+      ctx.fillStyle = '#ff003c';
+      ctx.beginPath(); ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2); ctx.fill();
+    });
+  }
 
   // Melee Slashes[cite: 2]
-  Combat.meleeSlashes.forEach(s => {
-    ctx.save();
-    ctx.strokeStyle = s.color;
+  if (typeof Combat !== 'undefined' && Combat.meleeSlashes) {
+    Combat.meleeSlashes.forEach(s => {
+      ctx.save();
+      ctx.strokeStyle = s.color;
 
-    if (s.type === 'stab_thrust') {
-      ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(s.originX, s.originY); ctx.lineTo(s.x, s.y); ctx.stroke();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
-    } else if (s.type === 'crescent_sweep') {
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      let sa = 0, ea = Math.PI;
-      if (s.dir === 'up') { sa = Math.PI * 1.1; ea = Math.PI * 1.9; }
-      else if (s.dir === 'down') { sa = Math.PI * 0.1; ea = Math.PI * 0.9; }
-      else if (s.dir === 'left') { sa = Math.PI * 0.6; ea = Math.PI * 1.4; }
-      else if (s.dir === 'right') { sa = -Math.PI * 0.4; ea = Math.PI * 0.4; }
-      ctx.arc(s.x, s.y, s.radius, sa, ea);
-      ctx.stroke();
-    } else if (s.type === 'spinning_vortex') {
-      ctx.lineWidth = 5.5;
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.stroke();
-      ctx.beginPath();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-      ctx.arc(s.x, s.y, s.radius * 0.6, 0, Math.PI * 2); ctx.stroke();
-    } else if (s.type === 'ground_slam') {
-      ctx.lineWidth = 6;
-      ctx.beginPath(); ctx.moveTo(s.originX, s.originY); ctx.lineTo(s.x, s.y); ctx.stroke();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(s.x - 20, s.y - 10); ctx.lineTo(s.x + 20, s.y + 10); ctx.stroke();
-    } else if (s.type === 'devastating_breaker') {
-      ctx.lineWidth = 8;
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.stroke();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.5, 0, Math.PI * 2); ctx.stroke();
-    }
-    ctx.restore();
-  });
+      if (s.type === 'stab_thrust') {
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(s.originX, s.originY); ctx.lineTo(s.x, s.y); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
+      } else if (s.type === 'crescent_sweep') {
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        let sa = 0, ea = Math.PI;
+        if (s.dir === 'up') { sa = Math.PI * 1.1; ea = Math.PI * 1.9; }
+        else if (s.dir === 'down') { sa = Math.PI * 0.1; ea = Math.PI * 0.9; }
+        else if (s.dir === 'left') { sa = Math.PI * 0.6; ea = Math.PI * 1.4; }
+        else if (s.dir === 'right') { sa = -Math.PI * 0.4; ea = Math.PI * 0.4; }
+        ctx.arc(s.x, s.y, s.radius, sa, ea);
+        ctx.stroke();
+      } else if (s.type === 'spinning_vortex') {
+        ctx.lineWidth = 5.5;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+        ctx.arc(s.x, s.y, s.radius * 0.6, 0, Math.PI * 2); ctx.stroke();
+      } else if (s.type === 'ground_slam') {
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(s.originX, s.originY); ctx.lineTo(s.x, s.y); ctx.stroke();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(s.x - 20, s.y - 10); ctx.lineTo(s.x + 20, s.y + 10); ctx.stroke();
+      } else if (s.type === 'devastating_breaker') {
+        ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.5, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+    });
+  }
 
   // Explosions
-  Combat.explosions.forEach(exp => {
-    ctx.save();
-    ctx.strokeStyle = exp.color;
-    ctx.lineWidth = 4 * (exp.life / 25);
-    ctx.beginPath(); ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2); ctx.stroke();
-    ctx.restore();
-  });
+  if (typeof Combat !== 'undefined' && Combat.explosions) {
+    Combat.explosions.forEach(exp => {
+      ctx.save();
+      ctx.strokeStyle = exp.color;
+      ctx.lineWidth = 4 * (exp.life / 25);
+      ctx.beginPath(); ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    });
+  }
 
   // Render Arcade Damage Numbers
-  if (Combat.renderDamageNumbers) {
+  if (typeof Combat !== 'undefined' && Combat.renderDamageNumbers) {
     Combat.renderDamageNumbers(ctx);
   }
 
   // Render Player Character & Callsign Badge[cite: 2]
-  const p = Entities.player;
-  const currentSkin = State.SKINS_DATA.find(s => s.id === State.userProfile.activeSkin) || State.SKINS_DATA[0];
-  if (p.iFrames % 4 < 2) {
-    drawPixelCharacter(p.x, p.y, currentSkin.coat, currentSkin.visor, currentSkin.pants, p.direction, p.isMoving, p.animTimer, 1.0);
-    renderPlayerCallsign(ctx, p.x, p.y, State.userProfile.handle || "UNREGISTERED");
+  if (typeof Entities !== 'undefined' && Entities.player) {
+    const p = Entities.player;
+    const skinId = State.userProfile && State.userProfile.activeSkin ? State.userProfile.activeSkin : 'enforcer';
+    const currentSkin = (State.SKINS_DATA || []).find(s => s.id === skinId) || (State.SKINS_DATA ? State.SKINS_DATA[0] : { coat: '#090b10', visor: '#00f0ff', pants: '#06080c' });
+    if ((p.iFrames || 0) % 4 < 2) {
+      drawPixelCharacter(p.x, p.y, currentSkin.coat, currentSkin.visor, currentSkin.pants, p.direction || 'down', p.isMoving || false, p.animTimer || 0, 1.0);
+      renderPlayerCallsign(ctx, p.x, p.y, State.userProfile && State.userProfile.handle ? State.userProfile.handle : "UNREGISTERED");
+    }
   }
 }
 
@@ -551,7 +578,7 @@ function renderPlayerCallsign(ctx, px, py, handle) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
 
-  const text = handle.toUpperCase();
+  const text = (handle || "").toUpperCase();
   const textWidth = ctx.measureText(text).width;
   const paddingX = 6;
   const pillHeight = 14;
@@ -598,7 +625,7 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.beginPath(); ctx.ellipse(13, 37, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
 
   // Charge auras[cite: 2]
-  if (Combat.isHoldingSlash) {
+  if (typeof Combat !== 'undefined' && Combat.isHoldingSlash) {
     const holdSec = (Date.now() - Combat.slashHoldStartTime) / 1000;
     if (holdSec >= 1.5) {
       ctx.strokeStyle = '#a855f7';
@@ -660,11 +687,11 @@ function drawPortal(px, py, color1, color2, label) {
 // 6. ENGINE TICK & LIFECYCLE
 // =========================================================================
 function gameLoop() {
-  Entities.update();
-  Combat.update();
+  if (typeof Entities !== 'undefined' && Entities.update) Entities.update();
+  if (typeof Combat !== 'undefined' && Combat.update) Combat.update();
 
   const cfg = State.DIMENSIONS[State.currentDimension];
-  if (cfg) {
+  if (cfg && typeof Entities !== 'undefined' && Entities.player) {
     const targetX = Entities.player.x - camera.width / 2;
     const targetY = Entities.player.y - camera.height / 2;
 
