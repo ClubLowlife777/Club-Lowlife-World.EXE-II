@@ -179,3 +179,4 @@ const Dimensions = {
     return this.undergroundZones;
   }
 };
+window.Dimensions = Dimensions;
