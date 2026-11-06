@@ -12,43 +12,102 @@ const Input = {
 
   init() {
     window.addEventListener('keydown', (e) => {
+      // Ignore gameplay keystrokes when typing into text inputs
       if (e.target && e.target.tagName === 'INPUT') {
         if (e.code === 'Escape' && window.State) State.closeModals();
         return;
       }
+
       if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
 
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+      // Prevent canvas page scrolling with arrows/space
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
 
-      if (['ArrowUp', 'KeyW'].includes(e.code)) this.keys.up = true;
-      if (['ArrowDown', 'KeyS'].includes(e.code)) this.keys.down = true;
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) this.keys.left = true;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) this.keys.right = true;
-      if (['ShiftLeft', 'ShiftRight'].includes(e.code)) this.keys.shift = true;
+      const code = e.code;
+      const key = (e.key || '').toLowerCase();
 
-      if (e.code === 'KeyE') this.triggerInteraction();
-      if (e.code === 'KeyJ' && !e.repeat && window.Combat) Combat.startShootInput();
-      if (e.code === 'KeyK' && !e.repeat && window.Combat) Combat.startSlashInput();
-      if (e.code === 'Escape' && window.State) State.closeModals();
+      // Directional Movement Bindings
+      if (code === 'KeyW' || code === 'ArrowUp' || key === 'w' || key === 'arrowup') this.keys.up = true;
+      if (code === 'KeyS' || code === 'ArrowDown' || key === 's' || key === 'arrowdown') this.keys.down = true;
+      if (code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'arrowleft') this.keys.left = true;
+      if (code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'arrowright') this.keys.right = true;
+      if (code === 'ShiftLeft' || code === 'ShiftRight' || key === 'shift') this.keys.shift = true;
+
+      // Combat & Action Triggers
+      if ((code === 'KeyE' || key === 'e') && !e.repeat) this.triggerInteraction();
+      if ((code === 'KeyJ' || key === 'j') && !e.repeat && window.Combat && typeof Combat.startShootInput === 'function') {
+        Combat.startShootInput();
+      }
+      if ((code === 'KeyK' || key === 'k') && !e.repeat && window.Combat && typeof Combat.startSlashInput === 'function') {
+        Combat.startSlashInput();
+      }
+      if ((code === 'Escape' || key === 'escape') && window.State) State.closeModals();
     });
 
     window.addEventListener('keyup', (e) => {
       if (e.target && e.target.tagName === 'INPUT') return;
-      if (['ArrowUp', 'KeyW'].includes(e.code)) this.keys.up = false;
-      if (['ArrowDown', 'KeyS'].includes(e.code)) this.keys.down = false;
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) this.keys.left = false;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) this.keys.right = false;
-      if (['ShiftLeft', 'ShiftRight'].includes(e.code)) this.keys.shift = false;
 
-      if (e.code === 'KeyJ' && window.Combat) Combat.releaseShootInput();
-      if (e.code === 'KeyK' && window.Combat) Combat.releaseSlashInput();
+      const code = e.code;
+      const key = (e.key || '').toLowerCase();
+
+      if (code === 'KeyW' || code === 'ArrowUp' || key === 'w' || key === 'arrowup') this.keys.up = false;
+      if (code === 'KeyS' || code === 'ArrowDown' || key === 's' || key === 'arrowdown') this.keys.down = false;
+      if (code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'arrowleft') this.keys.left = false;
+      if (code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'arrowright') this.keys.right = false;
+      if (code === 'ShiftLeft' || code === 'ShiftRight' || key === 'shift') this.keys.shift = false;
+
+      if ((code === 'KeyJ' || key === 'j') && window.Combat && typeof Combat.releaseShootInput === 'function') {
+        Combat.releaseShootInput();
+      }
+      if ((code === 'KeyK' || key === 'k') && window.Combat && typeof Combat.releaseSlashInput === 'function') {
+        Combat.releaseSlashInput();
+      }
     });
+
+    // Reset pressed keys if window loses focus
+    window.addEventListener('blur', () => this.resetKeys());
 
     this.bindTouchJoystick();
     this.bindCombatButtons();
     this.bindHudButtons();
 
     setInterval(() => this.updateProximity(), 80);
+  },
+
+  resetKeys() {
+    this.keys.up = false;
+    this.keys.down = false;
+    this.keys.left = false;
+    this.keys.right = false;
+    this.keys.shift = false;
+    if (window.Combat) {
+      if (typeof Combat.releaseShootInput === 'function') Combat.releaseShootInput();
+      if (typeof Combat.releaseSlashInput === 'function') Combat.releaseSlashInput();
+    }
+  },
+
+  // Normalized directional velocity vector used by Entities.player
+  getMovementVector() {
+    let vx = 0;
+    let vy = 0;
+
+    if (this.keys.up) vy -= 1;
+    if (this.keys.down) vy += 1;
+    if (this.keys.left) vx -= 1;
+    if (this.keys.right) vx += 1;
+
+    if (this.analogVector.active) {
+      vx = this.analogVector.x;
+      vy = this.analogVector.y;
+    } else if (vx !== 0 && vy !== 0) {
+      const invSqrt = 1 / Math.SQRT2;
+      vx *= invSqrt;
+      vy *= invSqrt;
+    }
+
+    return { x: vx, y: vy, isMoving: vx !== 0 || vy !== 0 };
   },
 
   bindTouchJoystick() {
@@ -82,12 +141,15 @@ const Input = {
       for (let t of e.changedTouches) {
         if (t.identifier === this.joystickTouchId) {
           this.joystickTouchId = null;
-          this.analogVector.x = 0; this.analogVector.y = 0; this.analogVector.active = false;
+          this.analogVector.x = 0;
+          this.analogVector.y = 0;
+          this.analogVector.active = false;
           knob.style.transform = `translate(0px, 0px)`;
           break;
         }
       }
     };
+
     window.addEventListener('touchend', endHandler, { passive: false });
     window.addEventListener('touchcancel', endHandler, { passive: false });
   },
@@ -100,15 +162,22 @@ const Input = {
     let dy = touchY - centerY;
     const radius = 46;
     const dist = Math.hypot(dx, dy);
-    if (dist > radius) { dx = (dx / dist) * radius; dy = (dy / dist) * radius; }
+
+    if (dist > radius) {
+      dx = (dx / dist) * radius;
+      dy = (dy / dist) * radius;
+    }
+
     knob.style.transform = `translate(${dx}px, ${dy}px)`;
+
     if (dist > 8) {
       this.analogVector.active = true;
       this.analogVector.x = dx / radius;
       this.analogVector.y = dy / radius;
     } else {
       this.analogVector.active = false;
-      this.analogVector.x = 0; this.analogVector.y = 0;
+      this.analogVector.x = 0;
+      this.analogVector.y = 0;
     }
   },
 
@@ -119,64 +188,93 @@ const Input = {
     const promptBanner = document.getElementById('interactionPrompt');
 
     if (bShoot) {
-      bShoot.addEventListener('touchstart', (e) => { e.preventDefault(); if (window.Combat) Combat.startShootInput(); }, { passive: false });
-      bShoot.addEventListener('touchend', (e) => { e.preventDefault(); if (window.Combat) Combat.releaseShootInput(); }, { passive: false });
-      bShoot.addEventListener('mousedown', (e) => { e.preventDefault(); if (window.Combat) Combat.startShootInput(); });
-      bShoot.addEventListener('mouseup', (e) => { e.preventDefault(); if (window.Combat) Combat.releaseShootInput(); });
+      const startShoot = (e) => { e.preventDefault(); if (window.Combat && Combat.startShootInput) Combat.startShootInput(); };
+      const stopShoot = (e) => { e.preventDefault(); if (window.Combat && Combat.releaseShootInput) Combat.releaseShootInput(); };
+
+      bShoot.addEventListener('touchstart', startShoot, { passive: false });
+      bShoot.addEventListener('touchend', stopShoot, { passive: false });
+      bShoot.addEventListener('touchcancel', stopShoot, { passive: false });
+      bShoot.addEventListener('mousedown', startShoot);
+      bShoot.addEventListener('mouseup', stopShoot);
+      bShoot.addEventListener('mouseleave', stopShoot);
     }
+
     if (bSlash) {
-      bSlash.addEventListener('touchstart', (e) => { e.preventDefault(); if (window.Combat) Combat.startSlashInput(); }, { passive: false });
-      bSlash.addEventListener('touchend', (e) => { e.preventDefault(); if (window.Combat) Combat.releaseSlashInput(); }, { passive: false });
-      bSlash.addEventListener('mousedown', (e) => { e.preventDefault(); if (window.Combat) Combat.startSlashInput(); });
-      bSlash.addEventListener('mouseup', (e) => { e.preventDefault(); if (window.Combat) Combat.releaseSlashInput(); });
+      const startSlash = (e) => { e.preventDefault(); if (window.Combat && Combat.startSlashInput) Combat.startSlashInput(); };
+      const stopSlash = (e) => { e.preventDefault(); if (window.Combat && Combat.releaseSlashInput) Combat.releaseSlashInput(); };
+
+      bSlash.addEventListener('touchstart', startSlash, { passive: false });
+      bSlash.addEventListener('touchend', stopSlash, { passive: false });
+      bSlash.addEventListener('touchcancel', stopSlash, { passive: false });
+      bSlash.addEventListener('mousedown', startSlash);
+      bSlash.addEventListener('mouseup', stopSlash);
+      bSlash.addEventListener('mouseleave', stopSlash);
     }
+
     if (bAction) {
       const handleAction = (e) => { e.preventDefault(); this.triggerInteraction(); };
       bAction.addEventListener('touchstart', handleAction, { passive: false });
       bAction.addEventListener('click', handleAction);
     }
-    if (promptBanner) promptBanner.addEventListener('click', () => this.triggerInteraction());
+
+    if (promptBanner) {
+      promptBanner.addEventListener('click', () => this.triggerInteraction());
+    }
   },
 
   bindHudButtons() {
-    // Quick Warp Engine
-    document.getElementById('quickWarpBtn')?.addEventListener('click', () => {
-      if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
-      if (!window.State) return;
-      if (State.currentDimension === 'underground') {
-        State.switchDimension('retrocade', 1200, 750);
-      } else if (State.currentDimension === 'retrocade') {
-        State.switchDimension('wasteland', 800, 800);
-      } else {
-        State.switchDimension('underground', 350, 750);
-      }
-    });
+    // Quick Warp Engine (checks both possible button IDs)
+    const warpBtn = document.getElementById('quickWarpBtn') || document.getElementById('btnWarp');
+    if (warpBtn) {
+      warpBtn.onclick = () => {
+        if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+        if (!window.State || typeof State.switchDimension !== 'function') return;
 
-    document.getElementById('bgmToggleBtn')?.addEventListener('click', () => {
-      if (window.AudioEngine && AudioEngine.toggleBgm) AudioEngine.toggleBgm();
-    });
+        if (State.currentDimension === 'underground') {
+          State.switchDimension('retrocade', 1200, 750);
+        } else if (State.currentDimension === 'retrocade') {
+          State.switchDimension('wasteland', 800, 800);
+        } else {
+          State.switchDimension('underground', 350, 750);
+        }
+      };
+    }
 
-    document.getElementById('trackVersionSelect')?.addEventListener('change', (e) => {
-      if (window.AudioEngine && AudioEngine.setTrackBgm) AudioEngine.setTrackBgm(e.target.value);
-    });
+    const bgmBtn = document.getElementById('bgmToggleBtn');
+    if (bgmBtn) {
+      bgmBtn.onclick = () => {
+        if (window.AudioEngine && AudioEngine.toggleBgm) AudioEngine.toggleBgm();
+      };
+    }
+
+    const trackSelect = document.getElementById('trackVersionSelect');
+    if (trackSelect) {
+      trackSelect.onchange = (e) => {
+        if (window.AudioEngine && AudioEngine.setTrackBgm) AudioEngine.setTrackBgm(e.target.value);
+      };
+    }
 
     // Links Modal Engine
-    document.getElementById('openLinksModalBtn')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (typeof openDiscographyModal === 'function') {
-        openDiscographyModal();
-      }
-    });
+    const linksBtn = document.getElementById('openLinksModalBtn');
+    if (linksBtn) {
+      linksBtn.onclick = (e) => {
+        e.preventDefault();
+        if (typeof openDiscographyModal === 'function') openDiscographyModal();
+      };
+    }
 
-    // Skins Locker Engine
-    document.getElementById('openSkinsBtn')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (window.State && typeof State.renderSkins === 'function') {
-        State.renderSkins();
-      }
-      const modal = document.getElementById('skinsModal');
-      if (modal) modal.classList.remove('hidden');
-    });
+    // Skins Locker Engine (resolves either modal ID)
+    const skinsBtn = document.getElementById('openSkinsBtn');
+    if (skinsBtn) {
+      skinsBtn.onclick = (e) => {
+        e.preventDefault();
+        if (window.State && typeof State.renderSkins === 'function') {
+          State.renderSkins();
+        }
+        const modal = document.getElementById('skinLockerModal') || document.getElementById('skinsModal');
+        if (modal) modal.classList.remove('hidden');
+      };
+    }
   },
 
   updateProximity() {
@@ -185,23 +283,39 @@ const Input = {
     const p = Entities.player;
     const dim = State.currentDimension;
 
-    const pBox = { x: p.x - 35, y: p.y - 35, width: p.width + 70, height: p.height + 70 };
-    const checkOverlap = (b1, b2) => (b1.x < b2.x + b2.width && b1.x + b1.width > b2.x && b1.y < b2.y + b2.height && b1.y + b1.height > b2.y);
+    const pBox = { x: p.x - 35, y: p.y - 35, width: (p.width || 32) + 70, height: (p.height || 32) + 70 };
+    const checkOverlap = (b1, b2) => (
+      b1.x < b2.x + b2.width &&
+      b1.x + b1.width > b2.x &&
+      b1.y < b2.y + b2.height &&
+      b1.y + b1.height > b2.y
+    );
 
     let nearest = null;
-    const activeZones = Dimensions.getActiveZones ? Dimensions.getActiveZones() : [];
+    const activeZones = typeof Dimensions.getActiveZones === 'function' ? Dimensions.getActiveZones() : [];
     for (let z of activeZones) {
-      if (checkOverlap(pBox, z)) { nearest = { type: 'zone', data: z, label: z.label || 'INTERACT' }; break; }
+      if (checkOverlap(pBox, z)) {
+        nearest = { type: 'zone', data: z, label: z.label || 'INTERACT' };
+        break;
+      }
     }
+
     if (!nearest) {
       const npcs = (Entities.friendlyNpcs && Entities.friendlyNpcs[dim]) ? Entities.friendlyNpcs[dim] : [];
       for (let n of npcs) {
-        if (checkOverlap(pBox, n)) { nearest = { type: 'npc', data: n, label: `TALK TO ${n.name}` }; break; }
+        if (checkOverlap(pBox, n)) {
+          nearest = { type: 'npc', data: n, label: `TALK TO ${n.name}` };
+          break;
+        }
       }
     }
+
     if (!nearest && dim === 'wasteland' && Dimensions.wastelandChests) {
       for (let c of Dimensions.wastelandChests) {
-        if (!c.opened && checkOverlap(pBox, c)) { nearest = { type: 'chest', data: c, label: `OPEN ${c.label}` }; break; }
+        if (!c.opened && checkOverlap(pBox, c)) {
+          nearest = { type: 'chest', data: c, label: `OPEN ${c.label || 'CHEST'}` };
+          break;
+        }
       }
     }
 
@@ -221,20 +335,25 @@ const Input = {
   },
 
   triggerInteraction() {
-    if (this.activeInteractable) {
-      const { type, data } = this.activeInteractable;
-      if (type === 'zone' && typeof data.action === 'function') {
-        data.action();
-      } else if (type === 'npc') {
-        const modal = document.getElementById('npcModal');
-        if (document.getElementById('npcName')) document.getElementById('npcName').innerText = data.name;
-        if (document.getElementById('npcRole')) document.getElementById('npcRole').innerText = data.role;
-        if (document.getElementById('npcDialogueText')) document.getElementById('npcDialogueText').innerText = data.dialogue;
-        if (document.getElementById('npcAvatarIcon')) document.getElementById('npcAvatarIcon').innerText = data.icon || '👤';
-        if (modal) modal.classList.remove('hidden');
-      } else if (type === 'chest' && window.Entities) {
-        Entities.openChest(data);
-      }
+    if (!this.activeInteractable) return;
+
+    const { type, data } = this.activeInteractable;
+    if (type === 'zone' && typeof data.action === 'function') {
+      data.action();
+    } else if (type === 'npc') {
+      const modal = document.getElementById('npcModal');
+      const nEl = document.getElementById('npcName');
+      const rEl = document.getElementById('npcRole');
+      const dEl = document.getElementById('npcDialogueText');
+      const iEl = document.getElementById('npcAvatarIcon');
+
+      if (nEl) nEl.innerText = data.name || 'NPC';
+      if (rEl) rEl.innerText = data.role || 'OPERATIVE';
+      if (dEl) dEl.innerText = data.dialogue || '...';
+      if (iEl) iEl.innerText = data.icon || '👤';
+      if (modal) modal.classList.remove('hidden');
+    } else if (type === 'chest' && window.Entities && typeof Entities.openChest === 'function') {
+      Entities.openChest(data);
     }
   }
 };
