@@ -518,3 +518,4 @@ const Entities = {
     }
   }
 };
+window.Entities = Entities;
