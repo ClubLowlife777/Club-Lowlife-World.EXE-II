@@ -17,7 +17,6 @@ const Entities = {
     danceTimer: 0
   },
 
-  // COMMUNAL FRIENDLY NPCS
   friendlyNpcs: {
     underground: [
       { id: 'u_mech', x: 360, y: 260, width: 26, height: 38, name: 'HYPE MECHANIC', role: 'STREET CREW', coat: '#10b981', visor: '#facc15', pants: '#064e3b', icon: '🔧', dialogue: "The trunk pop truck is unlocked in Bay 1. Grab code WASTELAND15 for 15% off official merch." },
@@ -48,7 +47,6 @@ const Entities = {
   lootPickups: [],
 
   init() {
-    // 1. Restore persistent player coordinates & dimension
     if (State.userProfile && State.userProfile.lastPosition) {
       this.player.x = State.userProfile.lastPosition.x || 350;
       this.player.y = State.userProfile.lastPosition.y || 750;
@@ -60,14 +58,12 @@ const Entities = {
       if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
     }
 
-    // 2. Restore opened chests
     if (Dimensions.wastelandChests && State.userProfile.chestsOpened) {
       Dimensions.wastelandChests.forEach(c => {
         if (State.userProfile.chestsOpened.includes(c.id)) c.opened = true;
       });
     }
 
-    // 3. Spawn Combat Training Target Dummy in Underground Tuning Bay
     this.trainingDummies = [
       {
         id: 'u_dummy',
@@ -82,12 +78,9 @@ const Entities = {
     this.updatePlayerHealthUI();
     this.spawnWastelandBosses();
 
-    // 4. Force-populate the Wasteland with 50 combatants on boot
     for (let i = 0; i < 50; i++) {
       this.spawnWastelandCombatant(true);
     }
-
-    // Ongoing periodic reinforcement spawner
     setInterval(() => this.spawnWastelandCombatant(false), 3000);
   },
 
@@ -126,7 +119,6 @@ const Entities = {
     const livingRegularAndMid = this.hostileNpcs.filter(n => n.alive && n.tier !== 'boss');
     if (livingRegularAndMid.length >= 65) return;
 
-    // 40% of spawns seeded near player entry zone (800, 800) for immediate action
     let spawnX, spawnY;
     if (Math.random() < 0.40) {
       spawnX = 700 + Math.random() * 1200;
@@ -268,7 +260,7 @@ const Entities = {
       State.addTokens(300);
       for (let i = 0; i < 10; i++) State.addRareTape();
       State.unlockSkin('static_nightmare');
-      State.showToast("GOLDEN MASTER VAULT: UNCOMPRESSED 'DANCING' AUDIO & MYTHIC SKIN UNLOCKED! 💿⚡");
+      State.showToast("GOLDEN MASTER VAULT: UNCOMPRESSED AUDIO & MYTHIC SKIN UNLOCKED! 💿⚡");
     }
     State.save();
   },
@@ -317,7 +309,6 @@ const Entities = {
 
     const activeObs = Dimensions.getActiveObstacles();
 
-    // 1. Knockback wall bounce
     if (Math.abs(p.knockbackVx) > 0.05 || Math.abs(p.knockbackVy) > 0.05) {
       const testBoxX = { x: p.x + p.knockbackVx, y: p.y, width: p.width, height: p.height };
       let hitWallX = false;
@@ -346,8 +337,7 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
-      // 2. Standard player movement
-      let currentSpeed = Input.keys.shift ? p.sprintSpeed : p.baseSpeed;
+      let currentSpeed = (window.Input && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
       if (State.currentDimension === 'wasteland') {
         Dimensions.environmentalHazards.forEach(h => {
           if (h.type === 'sludge' && p.x > h.x && p.x < h.x + h.width && p.y > h.y && p.y < h.y + h.height) {
@@ -358,9 +348,9 @@ const Entities = {
       }
 
       let dx = 0, dy = 0;
-      if (Input.analogVector && Input.analogVector.active) {
+      if (window.Input && Input.analogVector && Input.analogVector.active) {
         dx = Input.analogVector.x; dy = Input.analogVector.y;
-      } else {
+      } else if (window.Input) {
         if (Input.keys.up) dy -= 1;
         if (Input.keys.down) dy += 1;
         if (Input.keys.left) dx -= 1;
@@ -374,7 +364,7 @@ const Entities = {
         if (Math.abs(dx) > Math.abs(dy)) p.direction = dx > 0 ? 'right' : 'left';
         else p.direction = dy > 0 ? 'down' : 'up';
 
-        const moveSpeed = currentSpeed * ((Input.analogVector && Input.analogVector.active) ? Math.min(1, Math.hypot(dx, dy)) : 1);
+        const moveSpeed = currentSpeed * ((window.Input && Input.analogVector && Input.analogVector.active) ? Math.min(1, Math.hypot(dx, dy)) : 1);
         const newX = p.x + dx * moveSpeed;
         const newY = p.y + dy * moveSpeed;
 
@@ -387,7 +377,7 @@ const Entities = {
           if (Combat.checkCollision(boxY, o)) colY = true;
         }
 
-        if (State.currentDimension === 'wasteland') {
+        if (State.currentDimension === 'wasteland' && Dimensions.destructibleDoors) {
           Dimensions.destructibleDoors.forEach(d => {
             if (!d.shattered) {
               if (Combat.checkCollision(boxX, d)) colX = true;
@@ -403,7 +393,6 @@ const Entities = {
       }
     }
 
-    // 3. Emergency anti-stuck solver
     const currentBox = { x: p.x, y: p.y, width: p.width, height: p.height };
     for (let o of activeObs) {
       if (Combat.checkCollision(currentBox, o)) {
@@ -420,7 +409,6 @@ const Entities = {
       }
     }
 
-    // Dance floor tokens
     if (State.currentDimension === 'retrocade' && p.x > 980 && p.x < 1400 && p.y > 420 && p.y < 740) {
       p.danceTimer++;
       if (p.danceTimer % 150 === 0) {
@@ -456,7 +444,6 @@ const Entities = {
 
       if (n.attackCooldown > 0) n.attackCooldown--;
 
-      // Aggro Chase & Attack
       if (n.state === 'aggro') {
         n.aggroTimer--;
         if (n.aggroTimer <= 0 && dist > 600) n.state = 'peaceful';
@@ -470,7 +457,7 @@ const Entities = {
             n.attackCooldown = 55;
             if (window.AudioEngine) AudioEngine.playSfx('laser');
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
-              Combat.enemyProjectiles.push({
+              if (window.Combat) Combat.enemyProjectiles.push({
                 x: n.x + n.width / 2, y: n.y + n.height / 2,
                 vx: Math.cos(angle + spread) * 7.5, vy: Math.sin(angle + spread) * 7.5,
                 radius: 6, damage: 24, life: 60
@@ -481,7 +468,7 @@ const Entities = {
           if (dist < 260 && n.attackCooldown <= 0) {
             n.attackCooldown = 70;
             if (window.AudioEngine) AudioEngine.playSfx('laser');
-            Combat.enemyProjectiles.push({
+            if (window.Combat) Combat.enemyProjectiles.push({
               x: n.x + n.width / 2, y: n.y + n.height / 2,
               vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7,
               radius: 5, damage: 18, life: 55
@@ -498,7 +485,6 @@ const Entities = {
 
         n.x += vx; n.y += vy;
       } else {
-        // Peaceful Roaming AI: Enemies patrol naturally
         n.moveTimer--;
         if (n.moveTimer <= 0) {
           n.moveTimer = 40 + Math.floor(Math.random() * 60);
