@@ -1,6 +1,7 @@
 /**
  * CLUB LOWLIFE // CORE COMBAT & TARGETING ENGINE
  * File: js/world/combat.js
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics
  */
 
 const Combat = {
@@ -22,10 +23,10 @@ const Combat = {
   checkCollision(r1, r2) {
     return (
       r1 && r2 &&
-      r1.x < r2.x + r2.width &&
-      r1.x + r1.width > r2.x &&
-      r1.y < r2.y + r2.height &&
-      r1.y + r1.height > r2.y
+      r1.x < r2.x + (r2.width || 0) &&
+      r1.x + (r1.width || 0) > r2.x &&
+      r1.y < r2.y + (r2.height || 0) &&
+      r1.y + (r1.height || 0) > r2.y
     );
   },
 
@@ -44,28 +45,35 @@ const Combat = {
     const chargeFill = document.getElementById('btnShootChargeFill');
     if (chargeFill) chargeFill.style.opacity = '0';
 
-    const holdSeconds = (Date.now() - this.shootChargeStartTime) / 1000;
+    if (!window.Entities || !Entities.player) return;
     const p = Entities.player;
+
+    const holdSeconds = (Date.now() - this.shootChargeStartTime) / 1000;
     let vx = 0, vy = 0;
-    if (p.direction === 'up') vy = -1;
-    else if (p.direction === 'down') vy = 1;
-    else if (p.direction === 'left') vx = -1;
-    else if (p.direction === 'right') vx = 1;
+    const dir = p.direction || 'down';
+
+    if (dir === 'up') vy = -1;
+    else if (dir === 'down') vy = 1;
+    else if (dir === 'left') vx = -1;
+    else if (dir === 'right') vx = 1;
+    else vy = 1; // Default downward if unaligned
 
     if (holdSeconds >= 1.0) {
       this.shootCooldown = Date.now() + 850;
-      if (window.AudioEngine) AudioEngine.playSfx('laser');
+      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
       this.projectiles.push({
-        x: p.x + p.width / 2, y: p.y + p.height / 2,
+        x: p.x + (p.width || 26) / 2, 
+        y: p.y + (p.height || 38) / 2,
         vx: vx * 8.5, vy: vy * 8.5, speed: 8.5, radius: 14,
         isCharged: true, damage: 120, aoeRadius: 150, life: 85, color: '#00f0ff'
       });
-      if (window.State) State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
+      if (window.State && State.showToast) State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
     } else {
       this.shootCooldown = Date.now() + 180;
-      if (window.AudioEngine) AudioEngine.playSfx('laser');
+      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
       this.projectiles.push({
-        x: p.x + p.width / 2, y: p.y + p.height / 2,
+        x: p.x + (p.width || 26) / 2, 
+        y: p.y + (p.height || 38) / 2,
         vx: vx * 12.5, vy: vy * 12.5, speed: 12.5, radius: 5,
         isCharged: false, damage: 30, aoeRadius: 0, life: 60, color: '#facc15'
       });
@@ -109,6 +117,7 @@ const Combat = {
   },
 
   executeComboSlash(step) {
+    if (!window.Entities || !Entities.player) return;
     const p = Entities.player;
     let slashX = p.x + p.width / 2;
     let slashY = p.y + p.height / 2;
@@ -120,26 +129,27 @@ const Combat = {
     else if (p.direction === 'right') slashX += offset;
 
     if (step === 0) {
-      if (window.AudioEngine) AudioEngine.playSfx('slash');
+      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
       this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'stab_thrust', color: '#ff003c', radius: 36, life: 9, damage: 35 });
       this.checkMeleeHits(slashX, slashY, 48, 35, false, p.direction);
     } else if (step === 1) {
-      if (window.AudioEngine) AudioEngine.playSfx('slash');
+      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
       this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#00f0ff', radius: 48, life: 11, damage: 50 });
       this.checkMeleeHits(slashX, slashY, 56, 50, false, p.direction);
     } else if (step === 2) {
-      if (window.AudioEngine) AudioEngine.playSfx('slash');
+      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
       this.meleeSlashes.push({ x: p.x + p.width / 2, y: p.y + p.height / 2, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'spinning_vortex', color: '#ff7700', radius: 64, life: 13, damage: 75 });
       this.checkMeleeHits(p.x + p.width / 2, p.y + p.height / 2, 72, 75, false, 'radial');
     } else if (step === 3) {
-      if (window.AudioEngine) AudioEngine.playSfx('slash');
-      if (window.State) State.triggerScreenShake(7, 14);
+      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
+      if (window.State && State.triggerScreenShake) State.triggerScreenShake(7, 14);
       this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'ground_slam', color: '#facc15', radius: 76, life: 15, damage: 100 });
       this.checkMeleeHits(slashX, slashY, 82, 100, true, p.direction);
     }
   },
 
   executeMidChargeSlash() {
+    if (!window.Entities || !Entities.player) return;
     const p = Entities.player;
     let slashX = p.x + p.width / 2;
     let slashY = p.y + p.height / 2;
@@ -150,23 +160,24 @@ const Combat = {
     else if (p.direction === 'left') slashX -= offset;
     else if (p.direction === 'right') slashX += offset;
 
-    if (window.AudioEngine) AudioEngine.playSfx('slash');
+    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
     this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#ff7700', radius: 64, life: 14, damage: 115 });
     this.checkMeleeHits(slashX, slashY, 74, 115, true, p.direction);
   },
 
   executeDevastatingChargeSlash() {
+    if (!window.Entities || !Entities.player) return;
     const p = Entities.player;
     const slashX = p.x + p.width / 2;
     const slashY = p.y + p.height / 2;
 
-    if (window.AudioEngine) AudioEngine.playSfx('win');
-    if (window.State) State.triggerScreenShake(16, 28);
+    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
+    if (window.State && State.triggerScreenShake) State.triggerScreenShake(16, 28);
 
     this.meleeSlashes.push({ x: slashX, y: slashY, originX: slashX, originY: slashY, dir: p.direction, type: 'devastating_breaker', color: '#a855f7', radius: 95, life: 25, damage: 185 });
     this.explosions.push({ x: slashX, y: slashY, radius: 10, maxRadius: 220, color: '#a855f7', life: 30 });
 
-    if (window.State && State.currentDimension === 'wasteland') {
+    if (window.State && State.currentDimension === 'wasteland' && Entities.hostileNpcs) {
       Entities.hostileNpcs.forEach(n => {
         if (n.alive) {
           const dist = Math.hypot((n.x + n.width / 2) - slashX, (n.y + n.height / 2) - slashY);
@@ -190,11 +201,11 @@ const Combat = {
     }
 
     this.checkDestructibleDoors(slashX, slashY, 130, 185, true);
-    if (window.State) State.showToast("DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜");
+    if (window.State && State.showToast) State.showToast("DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜");
   },
 
   checkMeleeHits(hitX, hitY, hitRadius, damage, isCharged, knockDirMode) {
-    if (window.State && State.currentDimension === 'wasteland') {
+    if (window.State && State.currentDimension === 'wasteland' && Entities.hostileNpcs) {
       Entities.hostileNpcs.forEach(npc => {
         if (npc.alive) {
           const dist = Math.hypot((npc.x + npc.width / 2) - hitX, (npc.y + npc.height / 2) - hitY);
@@ -216,7 +227,7 @@ const Combat = {
     if (window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
       Entities.trainingDummies.forEach(dummy => {
         if (Math.hypot((dummy.x + dummy.width / 2) - hitX, (dummy.y + dummy.height / 2) - hitY) <= hitRadius) {
-          if (window.AudioEngine) AudioEngine.playSfx('stomp');
+          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
           this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 8, damage, isCharged ? '#ff7700' : '#00f0ff', isCharged);
         }
       });
@@ -230,11 +241,11 @@ const Combat = {
         if (Math.hypot((d.x + d.width / 2) - hitX, (d.y + d.height / 2) - hitY) <= hitRadius + 30) {
           if (isCharged) {
             d.hp -= damage;
-            if (window.AudioEngine) AudioEngine.playSfx('stomp');
+            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
             this.spawnDamageNumber(d.x + d.width / 2, d.y - 14, damage, '#ff003c', true);
             if (d.hp <= 0) {
               d.shattered = true;
-              if (window.AudioEngine) AudioEngine.playSfx('win');
+              if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
               if (window.State) {
                 State.triggerScreenShake(14, 24);
                 State.showToast("BREACH DESTROYED // SECRET PATH OPENED! 🚪🔓");
@@ -262,7 +273,8 @@ const Combat = {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
 
-      if (window.State && State.currentDimension === 'wasteland') {
+      // Homing Subroutine
+      if (window.State && State.currentDimension === 'wasteland' && window.Entities && Entities.hostileNpcs) {
         let bestTarget = null, bestScore = -Infinity;
         for (let n of Entities.hostileNpcs) {
           if (n.alive) {
@@ -288,11 +300,14 @@ const Combat = {
           while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
           const turnRate = p.isCharged ? 0.12 : 0.22;
           const newAngle = currentAngle + Math.max(-turnRate, Math.min(turnRate, angleDiff));
-          p.vx = Math.cos(newAngle) * p.speed; p.vy = Math.sin(newAngle) * p.speed;
+          p.vx = Math.cos(newAngle) * p.speed; 
+          p.vy = Math.sin(newAngle) * p.speed;
         }
       }
 
-      p.x += p.vx; p.y += p.vy; p.life--;
+      p.x += p.vx; 
+      p.y += p.vy; 
+      p.life--;
 
       let hit = false;
       const pBox = { x: p.x - p.radius, y: p.y - p.radius, width: p.radius * 2, height: p.radius * 2 };
@@ -305,12 +320,12 @@ const Combat = {
               if (p.isCharged) {
                 d.hp -= p.damage;
                 this.spawnDamageNumber(d.x + d.width / 2, d.y - 10, p.damage, '#00f0ff', true);
-                if (d.hp <= 0) { d.shattered = true; if(window.State) State.save(); }
+                if (d.hp <= 0) { d.shattered = true; if (window.State) State.save(); }
               }
             }
           });
         }
-        if (!hit) {
+        if (!hit && window.Entities && Entities.hostileNpcs) {
           for (let npc of Entities.hostileNpcs) {
             if (npc.alive && this.checkCollision(pBox, npc)) {
               Entities.damageNpc(npc, p.damage, p.vx > 0 ? 'right' : 'left');
@@ -321,10 +336,10 @@ const Combat = {
         }
       }
 
-      if (!hit && window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
+      if (!hit && window.State && State.currentDimension === 'underground' && window.Entities && Entities.trainingDummies) {
         for (let dummy of Entities.trainingDummies) {
           if (this.checkCollision(pBox, dummy)) {
-            if (window.AudioEngine) AudioEngine.playSfx('stomp');
+            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
             this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 10, p.damage, p.isCharged ? '#00f0ff' : '#facc15', p.isCharged);
             hit = true; break;
           }
@@ -332,7 +347,7 @@ const Combat = {
       }
 
       if (!hit && window.Dimensions) {
-        const obs = Dimensions.getActiveObstacles ? Dimensions.getActiveObstacles() : [];
+        const obs = typeof Dimensions.getActiveObstacles === 'function' ? Dimensions.getActiveObstacles() : (Dimensions.undergroundObstacles || []);
         for (let o of obs) {
           if (this.checkCollision(pBox, o)) { hit = true; break; }
         }
@@ -340,10 +355,10 @@ const Combat = {
 
       if (hit) {
         if (p.isCharged) {
-          if (window.AudioEngine) AudioEngine.playSfx('stomp');
-          if (window.State) State.triggerScreenShake(9, 16);
+          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+          if (window.State && State.triggerScreenShake) State.triggerScreenShake(9, 16);
           this.explosions.push({ x: p.x, y: p.y, radius: 10, maxRadius: p.aoeRadius, color: '#00f0ff', life: 24 });
-          if (window.State && State.currentDimension === 'wasteland') {
+          if (window.State && State.currentDimension === 'wasteland' && window.Entities && Entities.hostileNpcs) {
             Entities.hostileNpcs.forEach(n => {
               if (n.alive && Math.hypot((n.x + n.width / 2) - p.x, (n.y + n.height / 2) - p.y) <= p.aoeRadius) {
                 Entities.damageNpc(n, 85, 'down');
@@ -358,32 +373,45 @@ const Combat = {
       }
     }
 
+    // Enemy Projectiles Pass
     for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
       const ep = this.enemyProjectiles[i];
-      ep.x += ep.vx; ep.y += ep.vy; ep.life--;
-      const p = Entities.player;
-      if (Math.hypot((p.x + p.width / 2) - ep.x, (p.y + p.height / 2) - ep.y) < p.width * 0.7) {
-        Entities.damagePlayer(ep.damage, ep.vx > 0 ? 'right' : 'left');
-        this.spawnDamageNumber(p.x + p.width / 2, p.y - 14, ep.damage, '#ff003c', false);
-        this.enemyProjectiles.splice(i, 1);
-      } else if (ep.life <= 0) {
+      ep.x += ep.vx; 
+      ep.y += ep.vy; 
+      ep.life--;
+      if (window.Entities && Entities.player) {
+        const p = Entities.player;
+        if (Math.hypot((p.x + p.width / 2) - ep.x, (p.y + p.height / 2) - ep.y) < p.width * 0.7) {
+          Entities.damagePlayer(ep.damage, ep.vx > 0 ? 'right' : 'left');
+          this.spawnDamageNumber(p.x + p.width / 2, p.y - 14, ep.damage, '#ff003c', false);
+          this.enemyProjectiles.splice(i, 1);
+          continue;
+        }
+      }
+      if (ep.life <= 0) {
         this.enemyProjectiles.splice(i, 1);
       }
     }
 
+    // Melee Slashes Pass
     for (let i = this.meleeSlashes.length - 1; i >= 0; i--) {
       this.meleeSlashes[i].life--;
       if (this.meleeSlashes[i].life <= 0) this.meleeSlashes.splice(i, 1);
     }
+
+    // Explosions Pass
     for (let i = this.explosions.length - 1; i >= 0; i--) {
       const exp = this.explosions[i];
       exp.radius += (exp.maxRadius - exp.radius) * 0.28;
       exp.life--;
       if (exp.life <= 0) this.explosions.splice(i, 1);
     }
+
+    // Floating Numbers Pass
     for (let i = this.floatingNumbers.length - 1; i >= 0; i--) {
       const fn = this.floatingNumbers[i];
-      fn.y -= 0.85; fn.life--;
+      fn.y -= 0.85; 
+      fn.life--;
       if (fn.life <= 0) this.floatingNumbers.splice(i, 1);
     }
   },
