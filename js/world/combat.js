@@ -431,3 +431,4 @@ const Combat = {
     });
   }
 };
+window.Combat = Combat;
