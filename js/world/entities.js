@@ -1,3 +1,9 @@
+/**
+ * CLUB LOWLIFE // ENTITY MANAGEMENT & COMBAT AI
+ * File: js/world/entities.js
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics
+ */
+
 const Entities = {
   player: {
     x: 350, y: 750, width: 26, height: 38,
@@ -16,7 +22,7 @@ const Entities = {
     underground: [
       { id: 'u_mech', x: 360, y: 260, width: 26, height: 38, name: 'HYPE MECHANIC', role: 'STREET CREW', coat: '#10b981', visor: '#facc15', pants: '#064e3b', icon: '🔧', dialogue: "The trunk pop truck is unlocked in Bay 1. Grab code WASTELAND15 for 15% off official merch." },
       { id: 'u_tech', x: 1600, y: 150, width: 26, height: 38, name: 'ARCADE TECH', role: 'NEO-GEO REPAIR', coat: '#0284c7', visor: '#00f0ff', pants: '#0c4a6e', icon: '🕹️', dialogue: "We keep these cabinets calibrated. Grid Runner's purple drone predicts your turns—steer early!" },
-      { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is cut for massive club systems and earbuds alike[cite: 1, 2]. Take a listen in the vault." },
+      { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is cut for massive club systems and earbuds alike. Take a listen in the vault." },
       { id: 'u_drifter1', x: 250, y: 650, width: 26, height: 38, name: 'GARAGE DRIFTER', role: 'OUTLAW', coat: '#475569', visor: '#38bdf8', pants: '#1e293b', icon: '🕶️', dialogue: "The night shift underground is the only place immune to the syndicate signal." },
       { id: 'u_drifter2', x: 1900, y: 750, width: 26, height: 38, name: 'SUBWAY RUNNER', role: 'COURIER', coat: '#7c3aed', visor: '#e879f9', pants: '#4c1d95', icon: '👟', dialogue: "I deliver cassettes across dimensions. You can find rare tapes in the wasteland ruins." },
       { id: 'u_sentry', x: 2150, y: 840, width: 26, height: 38, name: 'RIFT SENTRY', role: 'GATE WATCHER', coat: '#dc2626', visor: '#ff003c', pants: '#7f1d1d', icon: '🛡️', dialogue: "Beyond this warp lies District 84 Retrocade. Keep your tokens ready." }
@@ -24,11 +30,11 @@ const Entities = {
     retrocade: [
       { id: 'r_dj', x: 1180, y: 180, width: 30, height: 40, name: 'DJ LOWLIFE', role: 'RESIDENT RECORD CUTTER', coat: '#701a75', visor: '#f472b6', pants: '#4a044e', icon: '🎧', dialogue: "Broadcast live! Groove on beat on the dance floor to extract sound tokens." },
       { id: 'r_bartender', x: 480, y: 180, width: 26, height: 38, name: 'BAR MASTER', role: 'LOUNGE HOST', coat: '#0f766e', visor: '#2dd4bf', pants: '#134e4a', icon: '🍸', dialogue: "Welcome to Nirvana Lounge. Check the interactive Music Kiosk on the north wall." },
-      { id: 'r_curator', x: 230, y: 220, width: 26, height: 38, name: 'KIOSK CURATOR', role: 'CATALOG ARCHIVIST', coat: '#c2410c', visor: '#fed7aa', pants: '#7c2d12', icon: '💿', dialogue: "Here you can audition original, sped-up, and slowed cuts of the single[cite: 4]." },
+      { id: 'r_curator', x: 230, y: 220, width: 26, height: 38, name: 'KIOSK CURATOR', role: 'CATALOG ARCHIVIST', coat: '#c2410c', visor: '#fed7aa', pants: '#7c2d12', icon: '💿', dialogue: "Here you can audition original, sped-up, and slowed cuts of the single." },
       { id: 'r_croupier', x: 2020, y: 180, width: 26, height: 38, name: 'HIGH-ROLLER CROUPIER', role: 'VIP DEALER', coat: '#a16207', visor: '#fef08a', pants: '#713f12', icon: '🎰', dialogue: "The 5-lane slots on the right are for serious players: 25 tokens per roll with massive multiplier yields." },
       // 8 Communal Club Dancers
       { id: 'd1', x: 1040, y: 460, width: 26, height: 38, name: 'NEON GROOVER', role: 'CLUBBER', coat: '#06b6d4', visor: '#ec4899', pants: '#0891b2', icon: '💃', dancePhase: 0, dialogue: "The bassline in this place is unmatched." },
-      { id: 'd2', x: 1120, y: 520, width: 26, height: 38, name: 'CYBER VIP', role: 'CLUBBER', coat: '#8b5cf6', visor: '#a855f7', pants: '#5b21b6', icon: '🕺', dancePhase: 1, dialogue: "District 84 is the peak of the Retrocade era[cite: 2]." },
+      { id: 'd2', x: 1120, y: 520, width: 26, height: 38, name: 'CYBER VIP', role: 'CLUBBER', coat: '#8b5cf6', visor: '#a855f7', pants: '#5b21b6', icon: '🕺', dancePhase: 1, dialogue: "District 84 is the peak of the Retrocade era." },
       { id: 'd3', x: 1200, y: 470, width: 26, height: 38, name: 'GLOW RUNNER', role: 'CLUBBER', coat: '#f43f5e', visor: '#00f0ff', pants: '#be123c', icon: '💃', dancePhase: 2, dialogue: "Watch your step around the DJ booth barrier wall." },
       { id: 'd4', x: 1280, y: 530, width: 26, height: 38, name: 'SYNTH KID', role: 'CLUBBER', coat: '#eab308', visor: '#ffffff', pants: '#854d0e', icon: '🕺', dancePhase: 3, dialogue: "The floor lights sync to the tempo index." },
       { id: 'd5', x: 1080, y: 620, width: 26, height: 38, name: 'ACID RAIDER', role: 'CLUBBER', coat: '#10b981', visor: '#facc15', pants: '#047857', icon: '💃', dancePhase: 4, dialogue: "Keep moving and racking up tokens." },
@@ -42,14 +48,27 @@ const Entities = {
   lootPickups: [],
 
   init() {
+    // Restore persistent player coordinates & dimension from saved profile
+    if (State.userProfile && State.userProfile.lastPosition) {
+      this.player.x = State.userProfile.lastPosition.x || 350;
+      this.player.y = State.userProfile.lastPosition.y || 750;
+    }
+    if (State.userProfile && State.userProfile.lastDimension) {
+      State.currentDimension = State.userProfile.lastDimension;
+      const cfg = State.DIMENSIONS[State.currentDimension];
+      const badge = document.getElementById('dimensionBadge');
+      if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
+    }
+
+    this.updatePlayerHealthUI();
     this.spawnWastelandBosses();
-    // Populate an active, hostile battleground
+
     for (let i = 0; i < 45; i++) this.spawnWastelandCombatant();
     setInterval(() => this.spawnWastelandCombatant(), 3500);
   },
 
   spawnWastelandBosses() {
-    // 1. High Executioner "Blade-Zero" (Holding Chamber)[cite: 2]
+    // 1. High Executioner "Blade-Zero" (Holding Chamber)
     this.hostileNpcs.push({
       id: 'boss_blade_zero', tier: 'boss', name: 'HIGH EXECUTIONER "BLADE-ZERO"',
       x: 3200, y: 4100, width: 42, height: 52,
@@ -88,7 +107,6 @@ const Entities = {
     const spawnX = 400 + Math.random() * (6400 - 800);
     const spawnY = 400 + Math.random() * (4800 - 800);
 
-    // 30% chance to spawn Mid-Tier Heavy, 70% Regular Mob
     const isMidTier = Math.random() < 0.32;
 
     if (isMidTier) {
@@ -151,8 +169,12 @@ const Entities = {
       npc.alive = false;
       this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id);
       if (npc.tier === 'boss') {
+        if (!State.userProfile.bossesDefeated.includes(npc.id)) {
+          State.userProfile.bossesDefeated.push(npc.id);
+        }
         State.showToast(`BOSS DEFEATED: ${npc.name}! 🏆`);
         State.triggerScreenShake(20, 35);
+        State.save();
       }
     }
   },
@@ -191,6 +213,9 @@ const Entities = {
 
   openChest(c) {
     c.opened = true;
+    if (!State.userProfile.chestsOpened.includes(c.id)) {
+      State.userProfile.chestsOpened.push(c.id);
+    }
     AudioEngine.playSfx('win');
     State.triggerScreenShake(6, 12);
 
@@ -214,7 +239,7 @@ const Entities = {
       State.addTokens(300);
       for (let i = 0; i < 10; i++) State.addRareTape();
       State.unlockSkin('static_nightmare');
-      State.showToast("GOLDEN MASTER VAULT: UNCOMPRESSED 'DANCING' AUDIO & MYTHIC SKIN UNLOCKED! 💿⚡[cite: 2, 4]");
+      State.showToast("GOLDEN MASTER VAULT: UNCOMPRESSED 'DANCING' AUDIO & MYTHIC SKIN UNLOCKED! 💿⚡");
     }
     State.save();
   },
@@ -242,6 +267,7 @@ const Entities = {
         p.y = State.currentDimension === 'wasteland' ? 800 : 750;
         p.hp = p.maxHp;
         this.updatePlayerHealthUI();
+        State.save();
       }, 1000);
     }
   },
@@ -265,28 +291,24 @@ const Entities = {
 
     // 1. KNOCKBACK PHYSICS WITH WALL BOUNCE REFLECTION
     if (Math.abs(p.knockbackVx) > 0.05 || Math.abs(p.knockbackVy) > 0.05) {
-      // Step X
       const testBoxX = { x: p.x + p.knockbackVx, y: p.y, width: p.width, height: p.height };
       let hitWallX = false;
       for (let o of activeObs) {
         if (Combat.checkCollision(testBoxX, o)) { hitWallX = true; break; }
       }
       if (hitWallX) {
-        // BOUNCE OFF VERTICAL WALL
         p.knockbackVx = -p.knockbackVx * 0.45;
         AudioEngine.playSfx('stomp');
       } else {
         p.x += p.knockbackVx;
       }
 
-      // Step Y
       const testBoxY = { x: p.x, y: p.y + p.knockbackVy, width: p.width, height: p.height };
       let hitWallY = false;
       for (let o of activeObs) {
         if (Combat.checkCollision(testBoxY, o)) { hitWallY = true; break; }
       }
       if (hitWallY) {
-        // BOUNCE OFF HORIZONTAL WALL
         p.knockbackVy = -p.knockbackVy * 0.45;
         AudioEngine.playSfx('stomp');
       } else {
@@ -354,7 +376,6 @@ const Entities = {
     }
 
     // 3. EMERGENCY ANTI-STUCK DE-PENETRATION
-    // If the player somehow clips inside an obstacle, smoothly push them out to the nearest open edge
     const currentBox = { x: p.x, y: p.y, width: p.width, height: p.height };
     for (let o of activeObs) {
       if (Combat.checkCollision(currentBox, o)) {
@@ -420,7 +441,6 @@ const Entities = {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
             AudioEngine.playSfx('laser');
-            // Heavy 3-Way Plasma Spread
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
               Combat.enemyProjectiles.push({
                 x: n.x + n.width / 2, y: n.y + n.height / 2,
