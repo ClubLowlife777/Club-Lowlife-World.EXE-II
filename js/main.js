@@ -471,6 +471,11 @@ function drawPortalsAndEntities(dim) {
     ctx.restore();
   });
 
+  // Render floating arcade damage numbers
+  if (Combat.renderDamageNumbers) {
+    Combat.renderDamageNumbers(ctx);
+  }
+
   // Render Player Character & Callsign Badge
   const p = Entities.player;
   const currentSkin = State.SKINS_DATA.find(s => s.id === State.userProfile.activeSkin) || State.SKINS_DATA[0];
