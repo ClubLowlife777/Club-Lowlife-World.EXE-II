@@ -1,7 +1,6 @@
 /**
  * CLUB LOWLIFE // CORE COMBAT & TARGETING ENGINE
  * File: js/world/combat.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Ray-Casting & AABB Physics
  */
 
 const Combat = {
@@ -167,7 +166,7 @@ const Combat = {
     this.meleeSlashes.push({ x: slashX, y: slashY, originX: slashX, originY: slashY, dir: p.direction, type: 'devastating_breaker', color: '#a855f7', radius: 95, life: 25, damage: 185 });
     this.explosions.push({ x: slashX, y: slashY, radius: 10, maxRadius: 220, color: '#a855f7', life: 30 });
 
-    if (State.currentDimension === 'wasteland') {
+    if (window.State && State.currentDimension === 'wasteland') {
       Entities.hostileNpcs.forEach(n => {
         if (n.alive) {
           const dist = Math.hypot((n.x + n.width / 2) - slashX, (n.y + n.height / 2) - slashY);
@@ -182,7 +181,7 @@ const Combat = {
       });
     }
 
-    if (State.currentDimension === 'underground' && Entities.trainingDummies) {
+    if (window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
       Entities.trainingDummies.forEach(d => {
         if (Math.hypot((d.x + d.width / 2) - slashX, (d.y + d.height / 2) - slashY) <= 220) {
           this.spawnDamageNumber(d.x + d.width / 2, d.y - 12, 185, '#a855f7', true);
@@ -195,7 +194,7 @@ const Combat = {
   },
 
   checkMeleeHits(hitX, hitY, hitRadius, damage, isCharged, knockDirMode) {
-    if (State.currentDimension === 'wasteland') {
+    if (window.State && State.currentDimension === 'wasteland') {
       Entities.hostileNpcs.forEach(npc => {
         if (npc.alive) {
           const dist = Math.hypot((npc.x + npc.width / 2) - hitX, (npc.y + npc.height / 2) - hitY);
@@ -214,7 +213,7 @@ const Combat = {
       this.checkDestructibleDoors(hitX, hitY, hitRadius, damage, isCharged);
     }
 
-    if (State.currentDimension === 'underground' && Entities.trainingDummies) {
+    if (window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
       Entities.trainingDummies.forEach(dummy => {
         if (Math.hypot((dummy.x + dummy.width / 2) - hitX, (dummy.y + dummy.height / 2) - hitY) <= hitRadius) {
           if (window.AudioEngine) AudioEngine.playSfx('stomp');
@@ -225,7 +224,7 @@ const Combat = {
   },
 
   checkDestructibleDoors(hitX, hitY, hitRadius, damage, isCharged) {
-    if (State.currentDimension !== 'wasteland' || !window.Dimensions || !Dimensions.destructibleDoors) return;
+    if (!window.State || State.currentDimension !== 'wasteland' || !window.Dimensions || !Dimensions.destructibleDoors) return;
     Dimensions.destructibleDoors.forEach(d => {
       if (!d.shattered) {
         if (Math.hypot((d.x + d.width / 2) - hitX, (d.y + d.height / 2) - hitY) <= hitRadius + 30) {
@@ -263,7 +262,7 @@ const Combat = {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
 
-      if (State.currentDimension === 'wasteland') {
+      if (window.State && State.currentDimension === 'wasteland') {
         let bestTarget = null, bestScore = -Infinity;
         for (let n of Entities.hostileNpcs) {
           if (n.alive) {
@@ -298,7 +297,7 @@ const Combat = {
       let hit = false;
       const pBox = { x: p.x - p.radius, y: p.y - p.radius, width: p.radius * 2, height: p.radius * 2 };
 
-      if (State.currentDimension === 'wasteland' && window.Dimensions) {
+      if (window.State && State.currentDimension === 'wasteland' && window.Dimensions) {
         if (Dimensions.destructibleDoors) {
           Dimensions.destructibleDoors.forEach(d => {
             if (!d.shattered && this.checkCollision(pBox, d)) {
@@ -322,7 +321,7 @@ const Combat = {
         }
       }
 
-      if (!hit && State.currentDimension === 'underground' && Entities.trainingDummies) {
+      if (!hit && window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
         for (let dummy of Entities.trainingDummies) {
           if (this.checkCollision(pBox, dummy)) {
             if (window.AudioEngine) AudioEngine.playSfx('stomp');
@@ -344,7 +343,7 @@ const Combat = {
           if (window.AudioEngine) AudioEngine.playSfx('stomp');
           if (window.State) State.triggerScreenShake(9, 16);
           this.explosions.push({ x: p.x, y: p.y, radius: 10, maxRadius: p.aoeRadius, color: '#00f0ff', life: 24 });
-          if (State.currentDimension === 'wasteland') {
+          if (window.State && State.currentDimension === 'wasteland') {
             Entities.hostileNpcs.forEach(n => {
               if (n.alive && Math.hypot((n.x + n.width / 2) - p.x, (n.y + n.height / 2) - p.y) <= p.aoeRadius) {
                 Entities.damageNpc(n, 85, 'down');
