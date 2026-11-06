@@ -23,16 +23,13 @@ const State = {
     {
       id: "dancing",
       title: "DANCING",
-      type: "FLAGSHIP SINGLE",
+      type: "SINGLE",
       status: "OUT NOW",
-      badgeColor: "pink",
+      badgeColor: "purple",
       highlight: true,
       description: "Flagship transition single bridging the Retrocade era into the dark dystopia. Includes alternate nightcore, slowed + reverb, and club VIP edits.",
       links: [
-        { platform: "SPOTIFY", url: "https://open.spotify.com/track/YOUR_SPOTIFY_ID", color: "emerald" },
-        { platform: "APPLE MUSIC", url: "https://music.apple.com/album/YOUR_APPLE_ID", color: "rose" },
-        { platform: "YOUTUBE", url: "https://youtube.com/watch?v=YOUR_YT_ID", color: "red" },
-        { platform: "SOUNDCLOUD", url: "https://soundcloud.com/YOUR_SOUNDCLOUD", color: "amber" }
+        { platform: "ALL PLATFORMS", url: "https://clublowlife.dimensions.fm/dancing", color: "purple" },
       ]
     },
     {
@@ -42,10 +39,9 @@ const State = {
       status: "STREAMING",
       badgeColor: "cyan",
       highlight: false,
-      description: "Extended edition featuring exclusive bonus tracks not found on standard streaming platforms.",
+      description: "Extended edition featuring exclusive bonus songs on all streaming platforms.",
       links: [
-        { platform: "STREAM ALBUM", url: "https://open.spotify.com/album/YOUR_ALBUM_ID", color: "cyan" },
-        { platform: "CASSETTE CLAIM (6 WINNERS)", url: "https://forms.gle/TsE7MAHSD1erDca59", color: "purple" }
+        { platform: "STREAM ALBUM", url: "https://clublowlife.dimensions.fm/retrocade-evolved", color: "cyan" },
       ]
     }
   ],
