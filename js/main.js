@@ -21,8 +21,8 @@ for (let i = 0; i < MAX_RAIN; i++) {
 }
 
 function resizeCanvas() {
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
+  canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
+  canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
   camera.width = canvas.width;
   camera.height = canvas.height;
 }
@@ -33,13 +33,42 @@ window.addEventListener('beforeunload', () => {
   if (window.State) State.save();
 });
 
+// Canvas mouse click attack & focus bindings
+canvas.addEventListener('mousedown', (e) => {
+  if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+
+  // Remove focus from any active text input so keys register immediately
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+    document.activeElement.blur();
+  }
+
+  // Left Click = Melee Slash, Right Click = Plasma Projectile
+  if (e.button === 0 && window.Combat) {
+    Combat.startSlashInput();
+  } else if (e.button === 2 && window.Combat) {
+    e.preventDefault();
+    Combat.startShootInput();
+  }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+  if (e.button === 0 && window.Combat) {
+    Combat.releaseSlashInput();
+  } else if (e.button === 2 && window.Combat) {
+    e.preventDefault();
+    Combat.releaseShootInput();
+  }
+});
+
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
 
   // Screen Shake Offset
   let shakeX = 0, shakeY = 0;
-  if (State.screenShake.duration > 0) {
+  if (State.screenShake && State.screenShake.duration > 0) {
     shakeX = (Math.random() - 0.5) * State.screenShake.intensity;
     shakeY = (Math.random() - 0.5) * State.screenShake.intensity;
     State.screenShake.duration--;
@@ -59,7 +88,7 @@ function draw() {
 }
 
 // =========================================================================
-// 1. UNDERGROUND NIGHT SHIFT (2400 x 1200) - INTERIORS & OPEN DOORWAYS
+// 1. UNDERGROUND NIGHT SHIFT (2400 x 1200) - INTERIORS & OPEN DOORWAYS[cite: 1]
 // =========================================================================
 function drawUnderground() {
   ctx.fillStyle = '#161d2f';
@@ -101,7 +130,7 @@ function drawUnderground() {
 
   drawUndergroundDoorways();
 
-  // West Bay: Trunk Pop Vehicle
+  // West Bay: Trunk Pop Vehicle[cite: 1]
   ctx.fillStyle = '#1e293b'; ctx.fillRect(180, 200, 150, 75);
   ctx.fillStyle = '#ff003c'; ctx.fillRect(185, 265, 20, 6); ctx.fillRect(305, 265, 20, 6);
   ctx.fillStyle = '#334155'; ctx.fillRect(210, 180, 90, 25);
@@ -109,6 +138,24 @@ function drawUnderground() {
   ctx.fillText("TRUNK POP // MERCH", 195, 235);
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("PROMO: WASTELAND15", 200, 252);
+
+  // West Bay: Hologram Combat Target Dummy (Testing & Feedback)
+  if (Entities.trainingDummies) {
+    Entities.trainingDummies.forEach(td => {
+      ctx.save();
+      ctx.fillStyle = 'rgba(2, 132, 199, 0.25)';
+      ctx.fillRect(td.x - 2, td.y - 2, td.width + 4, td.height + 4);
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(td.x, td.y, td.width, td.height);
+      ctx.fillStyle = '#00f0ff';
+      ctx.fillRect(td.x + 6, td.y + 8, td.width - 12, 6);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 8px "Share Tech Mono"';
+      ctx.fillText("TARGET DUMMY", td.x - 16, td.y - 6);
+      ctx.restore();
+    });
+  }
 
   // North Central: Mastering Console
   ctx.fillStyle = '#0f172a'; ctx.fillRect(880, 120, 160, 90);
@@ -125,7 +172,7 @@ function drawUnderground() {
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("[AUDIT DISCOGRAPHY]", 908, 198);
 
-  // East Bay: 3 Arcade Cabinets
+  // East Bay: 3 Arcade Cabinets[cite: 1]
   const arcadeTitles = ['VOID INVADERS', 'GRID RUNNER', 'LOWLIFE LEAP'];
   arcadeTitles.forEach((title, idx) => {
     const ax = 1650 + idx * 150;
@@ -189,7 +236,7 @@ function drawUndergroundDoorways() {
 }
 
 // =========================================================================
-// 2. RETROCADE / NIRVANA COMPLEX (2400 x 1200)
+// 2. RETROCADE / NIRVANA COMPLEX (2400 x 1200)[cite: 1]
 // =========================================================================
 function drawRetrocade() {
   ctx.fillStyle = '#24143a'; ctx.fillRect(0, 0, 2400, 1200);
@@ -217,7 +264,7 @@ function drawRetrocade() {
   ctx.beginPath(); ctx.moveTo(1735, 500); ctx.lineTo(1735, 660); ctx.stroke();
   ctx.restore();
 
-  // DJ Barrier Wall
+  // DJ Barrier Wall[cite: 1]
   ctx.fillStyle = 'rgba(168, 85, 247, 0.35)'; ctx.fillRect(920, 240, 560, 25);
   ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 3; ctx.strokeRect(920, 240, 560, 25);
   for (let s = 920; s < 1480; s += 20) {
@@ -227,7 +274,7 @@ function drawRetrocade() {
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("▲ ACOUSTIC SECURITY WALL ▲", 1100, 257);
 
-  // Dance Floor
+  // Dance Floor (10x8 Matrix)[cite: 1]
   const colors = ['#ec4899', '#00f0ff', '#a855f7', '#facc15'];
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 8; j++) {
@@ -248,7 +295,7 @@ function drawRetrocade() {
     ctx.fillRect(1080 + b * 15, 140 - barH, 10, barH);
   }
 
-  // West Kiosk & East Casino
+  // West Kiosk & East Casino[cite: 1]
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px "Chakra Petch"';
   ctx.fillText("NIRVANA // CLUB LOWLIFE MUSIC KIOSK", 160, 100);
   ctx.fillStyle = '#431407'; ctx.fillRect(260, 220, 160, 90);
@@ -274,7 +321,7 @@ function drawRetrocade() {
 }
 
 // =========================================================================
-// 3. THE ASHEN WASTELAND (6400 x 4800)
+// 3. THE ASHEN WASTELAND (6400 x 4800)[cite: 1]
 // =========================================================================
 function drawWasteland() {
   ctx.fillStyle = '#181f2c'; ctx.fillRect(0, 0, 6400, 4800);
@@ -361,9 +408,10 @@ function drawHoldingChamberInterior() {
 }
 
 // =========================================================================
-// 4. ENTITIES, COMBAT PARTICLES, & OVERHEAD CALLSIGN BADGE
+// 4. ENTITIES, COMBAT PARTICLES, & OVERHEAD CALLSIGN BADGE[cite: 2]
 // =========================================================================
 function drawPortalsAndEntities(dim) {
+  // Friendly NPCs
   (Entities.friendlyNpcs[dim] || []).forEach(n => {
     const bob = n.dancePhase !== undefined ? Math.sin((Date.now() / 150) + n.dancePhase) * 3.5 : 0;
     drawPixelCharacter(n.x, n.y + bob, n.coat, n.visor, n.pants, 'down', false, 0);
@@ -371,6 +419,7 @@ function drawPortalsAndEntities(dim) {
     ctx.fillText(n.name, n.x - 12, n.y - 8);
   });
 
+  // Wasteland Enemies
   if (dim === 'wasteland') {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive) return;
@@ -402,7 +451,7 @@ function drawPortalsAndEntities(dim) {
     ctx.fill();
   });
 
-  // Homing Projectiles
+  // Homing Projectiles[cite: 2]
   Combat.projectiles.forEach(p => {
     ctx.save();
     ctx.strokeStyle = p.color || '#00f0ff';
@@ -419,11 +468,13 @@ function drawPortalsAndEntities(dim) {
     ctx.restore();
   });
 
+  // Enemy Projectiles
   Combat.enemyProjectiles.forEach(ep => {
     ctx.fillStyle = '#ff003c';
     ctx.beginPath(); ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2); ctx.fill();
   });
 
+  // Melee Slashes[cite: 2]
   Combat.meleeSlashes.forEach(s => {
     ctx.save();
     ctx.strokeStyle = s.color;
@@ -463,6 +514,7 @@ function drawPortalsAndEntities(dim) {
     ctx.restore();
   });
 
+  // Explosions
   Combat.explosions.forEach(exp => {
     ctx.save();
     ctx.strokeStyle = exp.color;
@@ -471,12 +523,12 @@ function drawPortalsAndEntities(dim) {
     ctx.restore();
   });
 
-  // Render floating arcade damage numbers
+  // Render Arcade Damage Numbers
   if (Combat.renderDamageNumbers) {
     Combat.renderDamageNumbers(ctx);
   }
 
-  // Render Player Character & Callsign Badge
+  // Render Player Character & Callsign Badge[cite: 2]
   const p = Entities.player;
   const currentSkin = State.SKINS_DATA.find(s => s.id === State.userProfile.activeSkin) || State.SKINS_DATA[0];
   if (p.iFrames % 4 < 2) {
@@ -531,7 +583,7 @@ function renderPlayerCallsign(ctx, px, py, handle) {
 }
 
 // =========================================================================
-// 5. PIXEL CHARACTER RENDERING ENGINE & AURAS
+// 5. PIXEL CHARACTER RENDERING ENGINE & AURAS[cite: 2]
 // =========================================================================
 function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction, isMoving, animTimer, scale = 1.0) {
   ctx.save();
@@ -545,7 +597,7 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.beginPath(); ctx.ellipse(13, 37, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
 
-  // Charge auras
+  // Charge auras[cite: 2]
   if (Combat.isHoldingSlash) {
     const holdSec = (Date.now() - Combat.slashHoldStartTime) / 1000;
     if (holdSec >= 1.5) {
@@ -571,14 +623,14 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.fillRect(4, 34 + legOffset, 7, 4);
   ctx.fillRect(15, 34 - legOffset, 7, 4);
 
-  // Trench Duster
+  // Heavy Trench Duster[cite: 2]
   ctx.fillStyle = coatColor;
   ctx.fillRect(3, 12 + walkBob, 20, 18);
   if (direction === 'up') ctx.fillRect(4, 28 + walkBob, 18, 6);
   else if (direction === 'left') ctx.fillRect(16, 24 + walkBob, 8, 8);
   else if (direction === 'right') ctx.fillRect(2, 24 + walkBob, 8, 8);
 
-  // Tactical Mask & Visor
+  // Tactical Mask & Visor[cite: 2]
   ctx.fillStyle = '#090b10';
   ctx.beginPath(); ctx.arc(13, 7 + walkBob, 9, 0, Math.PI * 2); ctx.fill();
 
@@ -612,13 +664,15 @@ function gameLoop() {
   Combat.update();
 
   const cfg = State.DIMENSIONS[State.currentDimension];
-  const targetX = Entities.player.x - camera.width / 2;
-  const targetY = Entities.player.y - camera.height / 2;
+  if (cfg) {
+    const targetX = Entities.player.x - camera.width / 2;
+    const targetY = Entities.player.y - camera.height / 2;
 
-  camera.x += (targetX - camera.x) * 0.12;
-  camera.y += (targetY - camera.y) * 0.12;
-  camera.x = Math.max(0, Math.min(cfg.width - camera.width, camera.x));
-  camera.y = Math.max(0, Math.min(cfg.height - camera.height, camera.y));
+    camera.x += (targetX - camera.x) * 0.12;
+    camera.y += (targetY - camera.y) * 0.12;
+    camera.x = Math.max(0, Math.min(cfg.width - camera.width, camera.x));
+    camera.y = Math.max(0, Math.min(cfg.height - camera.height, camera.y));
+  }
 
   draw();
   requestAnimationFrame(gameLoop);
@@ -626,8 +680,8 @@ function gameLoop() {
 
 window.onload = function() {
   resizeCanvas();
-  State.init();
-  Input.init();
-  Entities.init();
+  if (window.State && State.init) State.init();
+  if (window.Input && Input.init) Input.init();
+  if (window.Entities && Entities.init) Entities.init();
   gameLoop();
 };
