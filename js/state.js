@@ -45,7 +45,7 @@ const State = {
       description: "Extended edition featuring exclusive bonus tracks not found on standard streaming platforms.",
       links: [
         { platform: "STREAM ALBUM", url: "https://clublowlife.dimensions.fm/retrocade-evolved", color: "cyan" },
-        { platform: "LOWLIFE CASSETTE", url: "www.clublowlife.com", color: "purple" }
+        { platform: "LOWLIFE CASSETTE", url: "https://www.clublowlife.com", color: "purple" }
       ]
     }
   ],
@@ -57,7 +57,7 @@ const State = {
     this.screenShake.duration = duration;
   },
 
- // =========================================================================
+  // =========================================================================
   // 60 PLAYABLE SKINS CATALOG
   // =========================================================================
   SKINS_DATA: [
@@ -172,7 +172,7 @@ const State = {
   },
 
   save() {
-    if (window.Entities && Entities.player) {
+    if (typeof Entities !== 'undefined' && Entities && Entities.player) {
       this.userProfile.lastDimension = this.currentDimension;
       this.userProfile.lastPosition = {
         x: Math.round(Entities.player.x),
@@ -248,8 +248,10 @@ const State = {
   switchDimension(dimKey, spawnX, spawnY) {
     this.currentDimension = dimKey;
     const cfg = this.DIMENSIONS[dimKey];
-    Entities.player.x = spawnX;
-    Entities.player.y = spawnY;
+    if (typeof Entities !== 'undefined' && Entities && Entities.player) {
+      Entities.player.x = spawnX;
+      Entities.player.y = spawnY;
+    }
     const badge = document.getElementById('dimensionBadge');
     if (badge) badge.innerText = `DIMENSION: ${cfg.name}`;
     this.save();
@@ -270,7 +272,7 @@ const State = {
 
   closeModals() {
     document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-    if (this.activeMiniGame && this.activeMiniGame.stop) {
+    if (this.activeMiniGame && typeof this.activeMiniGame.stop === 'function') {
       this.activeMiniGame.stop();
     }
     this.activeMiniGame = null;
