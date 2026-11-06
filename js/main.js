@@ -42,7 +42,6 @@ function draw() {
 
   ctx.restore();
 
-  // RENDER DYNAMIC RAIN OVERLAY IF IN WASTELAND
   if (State.currentDimension === 'wasteland') {
     drawRainOverlay();
   }
@@ -50,27 +49,24 @@ function draw() {
 
 // 1. LIGHTER UNDERGROUND NIGHT SHIFT (2400 x 1200)
 function drawUnderground() {
-  // Lighter deep slate navy base
   ctx.fillStyle = '#161d2f'; ctx.fillRect(0, 0, 2400, 1200);
 
-  // High-visibility cyan floor grid
   ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)'; ctx.lineWidth = 1;
   for (let x = 0; x < 2400; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1200); ctx.stroke(); }
   for (let y = 0; y < 1200; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke(); }
 
-  // Architectural Buildings & Walls
   ctx.fillStyle = '#222b40';
   Dimensions.undergroundObstacles.forEach(o => {
     ctx.fillRect(o.x, o.y, o.width, o.height);
     ctx.strokeStyle = '#384869'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
   });
 
-  // West Bay: Trunk Pop Vehicle[cite: 2]
+  // West Bay: Trunk Pop Vehicle
   ctx.fillStyle = '#1e293b'; ctx.fillRect(180, 200, 150, 75);
   ctx.fillStyle = '#ff003c'; ctx.fillRect(185, 265, 20, 6); ctx.fillRect(305, 265, 20, 6);
-  ctx.fillStyle = '#334155'; ctx.fillRect(210, 180, 90, 25); // Popped trunk hatch[cite: 2]
+  ctx.fillStyle = '#334155'; ctx.fillRect(210, 180, 90, 25);
   ctx.fillStyle = '#00f0ff'; ctx.font = 'bold 9px "Share Tech Mono"';
-  ctx.fillText("TRUNK POP // MERCH[cite: 2]", 195, 235);
+  ctx.fillText("TRUNK POP // MERCH", 195, 235);
 
   // North Central: Studio Mastering Suite
   ctx.fillStyle = '#1e2030'; ctx.fillRect(825, 45, 470, 300);
@@ -92,25 +88,21 @@ function drawUnderground() {
 
 // 2. LIGHTER 3-ROOM RETROCADE / NIRVANA COMPLEX (2400 x 1200)
 function drawRetrocade() {
-  // Lighter synthwave magenta/purple floor
   ctx.fillStyle = '#24143a'; ctx.fillRect(0, 0, 2400, 1200);
 
-  // Neon Grid Lines
   ctx.strokeStyle = 'rgba(236, 72, 153, 0.12)'; ctx.lineWidth = 1;
   for (let x = 0; x < 2400; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1200); ctx.stroke(); }
   for (let y = 0; y < 1200; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke(); }
 
-  // Partition Walls & Room Outlines
   ctx.fillStyle = '#3b1d5c';
   Dimensions.retrocadeObstacles.forEach(o => {
     ctx.fillRect(o.x, o.y, o.width, o.height);
     ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
   });
 
-  // VISIBLE DJ STAGE ACOUSTIC BARRIER WALL (Eliminating the invisible wall glitch)
+  // VISIBLE DJ STAGE BARRIER WALL
   ctx.fillStyle = 'rgba(168, 85, 247, 0.35)'; ctx.fillRect(920, 240, 560, 25);
   ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 3; ctx.strokeRect(920, 240, 560, 25);
-  // Hazard stripes across DJ security glass
   for (let s = 920; s < 1480; s += 20) {
     ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(s, 240); ctx.lineTo(s + 12, 265); ctx.stroke();
@@ -118,7 +110,7 @@ function drawRetrocade() {
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("▲ ACOUSTIC SECURITY WALL ▲", 1100, 257);
 
-  // CENTER ROOM: DANCE FLOOR (12x8 matrix)
+  // Dance Floor (10x8 matrix)
   const colors = ['#ec4899', '#00f0ff', '#a855f7', '#facc15'];
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 8; j++) {
@@ -129,7 +121,7 @@ function drawRetrocade() {
     }
   }
 
-  // DJ Stage Behind Visible Barrier
+  // DJ Stage & Animated Visualizer
   ctx.fillStyle = '#4c1d95'; ctx.fillRect(1060, 140, 280, 80);
   ctx.strokeStyle = '#f43f5e'; ctx.strokeRect(1060, 140, 280, 80);
   for (let b = 0; b < 16; b++) {
@@ -138,26 +130,23 @@ function drawRetrocade() {
     ctx.fillRect(1080 + b * 15, 140 - barH, 10, barH);
   }
 
-  // ROOM 2 (WEST): MUSIC KIOSK LOUNGE
+  // Room 2 (West): Music Kiosk Lounge
   ctx.fillStyle = '#1e1430'; ctx.fillRect(60, 60, 580, 1050);
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px "Chakra Petch"';
   ctx.fillText("NIRVANA // CLUB LOWLIFE MUSIC KIOSK", 160, 100);
-  // Jukebox Kiosk Station
   ctx.fillStyle = '#431407'; ctx.fillRect(260, 220, 160, 90);
   ctx.strokeStyle = '#f97316'; ctx.strokeRect(260, 220, 160, 90);
   ctx.fillStyle = '#fed7aa'; ctx.font = 'bold 10px "Share Tech Mono"';
   ctx.fillText("🎵 MUSIC STEM KIOSK", 280, 270);
 
-  // ROOM 3 (EAST): HIGH-STAKES CYBER CASINO
+  // Room 3 (East): High-Stakes Cyber Casino
   ctx.fillStyle = '#1e1430'; ctx.fillRect(1770, 60, 560, 1050);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 12px "Chakra Petch"';
   ctx.fillText("HIGH-STAKES CASINO // DISTRICT 84", 1900, 100);
-  // Slot Machine 1 (Classic 3-Reel)
   ctx.fillStyle = '#581c87'; ctx.fillRect(1880, 180, 130, 70);
   ctx.strokeStyle = '#c084fc'; ctx.strokeRect(1880, 180, 130, 70);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("🎰 3-REEL CLASSIC (5🪙)", 1888, 220);
-  // Slot Machine 2 (High-Roller 5-Lane)
   ctx.fillStyle = '#713f12'; ctx.fillRect(2120, 180, 150, 70);
   ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.strokeRect(2120, 180, 150, 70);
   ctx.fillStyle = '#fef08a'; ctx.font = 'bold 9px "Share Tech Mono"';
@@ -168,20 +157,17 @@ function drawRetrocade() {
 
 // 3. LIGHTER RAINY ASHEN WASTELAND (6400 x 4800)
 function drawWasteland() {
-  // Lighter stormy slate granite
   ctx.fillStyle = '#181f2c'; ctx.fillRect(0, 0, 6400, 4800);
 
   ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)'; ctx.lineWidth = 1;
   for (let x = 0; x < 6400; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 4800); ctx.stroke(); }
   for (let y = 0; y < 4800; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(6400, y); ctx.stroke(); }
 
-  // Toxic Chemical Sludge Pools
   Dimensions.environmentalHazards.forEach(h => {
     ctx.fillStyle = '#166534'; ctx.fillRect(h.x, h.y, h.width, h.height);
     ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.strokeRect(h.x, h.y, h.width, h.height);
   });
 
-  // Buildings & Overpasses
   Dimensions.worldObstacles.forEach(o => {
     ctx.fillStyle = '#222d3d'; ctx.fillRect(o.x, o.y, o.width, o.height);
     ctx.strokeStyle = '#384860'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
@@ -191,7 +177,6 @@ function drawWasteland() {
     }
   });
 
-  // Destructible Doors
   Dimensions.destructibleDoors.forEach(d => {
     if (!d.shattered) {
       ctx.fillStyle = '#4c0519'; ctx.fillRect(d.x, d.y, d.width, d.height);
@@ -201,10 +186,8 @@ function drawWasteland() {
     }
   });
 
-  // THE HOLDING CHAMBER SCENE[cite: 2]
   drawHoldingChamberInterior();
 
-  // Loot Chests
   Dimensions.wastelandChests.forEach(c => {
     ctx.fillStyle = c.opened ? '#334155' : (c.type === 'master_holding' ? '#701a75' : '#047857');
     ctx.fillRect(c.x, c.y, c.width, c.height);
@@ -217,7 +200,6 @@ function drawWasteland() {
   drawPortalsAndEntities('wasteland');
 }
 
-// RAIN ENGINE
 function drawRainOverlay() {
   ctx.save();
   ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
@@ -229,7 +211,6 @@ function drawRainOverlay() {
     if (r.y > canvas.height) {
       r.y = -20;
       r.x = Math.random() * canvas.width;
-      // Splash ripple
       ctx.beginPath();
       ctx.arc(r.x, canvas.height - 10, 4, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
@@ -255,10 +236,10 @@ function drawHoldingChamberInterior() {
   ctx.fillStyle = '#ec4899'; ctx.fillRect(chairX + 2, chairY + 4, 20, 16);
   ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(chairX + 12, chairY - 2, 7, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 8px "Share Tech Mono"';
-  ctx.fillText("CAPTIVE OLD SELF[cite: 2]", chairX - 16, chairY + 38);
+  ctx.fillText("CAPTIVE OLD SELF", chairX - 16, chairY + 38);
 }
 
-// PIXEL-ART RENDERING ENGINE (NPCs & ALL COMBAT TIERS)
+// RENDERING FOR CHARACTERS, HOMING TRAILS, & DISTINCT 4-HIT SLASH ANIMATIONS
 function drawPortalsAndEntities(dim) {
   // Friendly NPCs
   (Entities.friendlyNpcs[dim] || []).forEach(n => {
@@ -268,12 +249,11 @@ function drawPortalsAndEntities(dim) {
     ctx.fillText(n.name, n.x - 12, n.y - 8);
   });
 
-  // Wasteland Combatants
+  // Wasteland Enemies
   if (dim === 'wasteland') {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive) return;
       if (n.tier === 'boss') {
-        // Boss: Large, Heavy Armor & Overhead Health Gauge
         drawPixelCharacter(n.x, n.y, n.coat, n.visor, n.pants, 'down', true, 0, 1.4);
         ctx.fillStyle = '#000'; ctx.fillRect(n.x - 25, n.y - 18, n.width + 50, 7);
         ctx.fillStyle = '#ff003c'; ctx.fillRect(n.x - 25, n.y - 18, (n.width + 50) * (n.hp / n.maxHp), 7);
@@ -281,15 +261,13 @@ function drawPortalsAndEntities(dim) {
         ctx.fillStyle = '#fff'; ctx.font = 'bold 10px "Share Tech Mono"';
         ctx.fillText(n.name, n.x - 30, n.y - 22);
       } else if (n.tier === 'mid') {
-        // Mid-Tier: Bulkier with glowing shoulder pauldrons
         drawPixelCharacter(n.x, n.y, n.coat, n.visor, n.pants, 'down', true, 0, 1.15);
         ctx.fillStyle = n.visor;
-        ctx.fillRect(n.x - 3, n.y + 12, 4, 8); // Shoulder Vent L
-        ctx.fillRect(n.x + n.width - 1, n.y + 12, 4, 8); // Shoulder Vent R
+        ctx.fillRect(n.x - 3, n.y + 12, 4, 8);
+        ctx.fillRect(n.x + n.width - 1, n.y + 12, 4, 8);
         ctx.fillStyle = '#ffffff'; ctx.font = '8px "Share Tech Mono"';
         ctx.fillText(n.name, n.x - 10, n.y - 6);
       } else {
-        // Regular Scout/Scavenger
         drawPixelCharacter(n.x, n.y, n.coat, n.visor, n.pants, 'down', true, 0, 1.0);
       }
     });
@@ -301,24 +279,98 @@ function drawPortalsAndEntities(dim) {
     ctx.beginPath(); ctx.arc(p.x, p.y + Math.sin(Date.now() / 180 + p.floatOffset) * 3, p.radius, 0, Math.PI * 2); ctx.fill();
   });
 
-  // Projectiles
+  // Homing Projectiles with Glow Trail
   Combat.projectiles.forEach(p => {
+    ctx.save();
+    // Glowing homing speed tail
+    ctx.strokeStyle = p.color || '#00f0ff';
+    ctx.lineWidth = p.isCharged ? 5 : 2;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
+    ctx.stroke();
+
+    // Projectile Head
     ctx.fillStyle = p.color || '#00f0ff';
     ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius * 0.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   });
+
+  // Enemy Projectiles
   Combat.enemyProjectiles.forEach(ep => {
     ctx.fillStyle = '#ff003c';
     ctx.beginPath(); ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2); ctx.fill();
   });
 
-  // Slashes
+  // DISTINCT PROCEDURAL 4-HIT SLASH ANIMATIONS
   Combat.meleeSlashes.forEach(s => {
     ctx.save();
     ctx.strokeStyle = s.color;
-    ctx.lineWidth = s.type === 'magic_purple' ? 7 : (s.type === 'heavy_cleave' ? 5 : 3.5);
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 1.5);
-    ctx.stroke();
+
+    if (s.type === 'stab_thrust') {
+      // ANIMATION 1: Piercing Forward Needle Beam
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(s.originX, s.originY);
+      ctx.lineTo(s.x, s.y);
+      ctx.stroke();
+      // Thrust impact spark diamond
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (s.type === 'crescent_sweep') {
+      // ANIMATION 2: Wide Curved Crescent Arc
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      let sa = 0, ea = Math.PI;
+      if (s.dir === 'up') { sa = Math.PI * 1.1; ea = Math.PI * 1.9; }
+      else if (s.dir === 'down') { sa = Math.PI * 0.1; ea = Math.PI * 0.9; }
+      else if (s.dir === 'left') { sa = Math.PI * 0.6; ea = Math.PI * 1.4; }
+      else if (s.dir === 'right') { sa = -Math.PI * 0.4; ea = Math.PI * 0.4; }
+      ctx.arc(s.x, s.y, s.radius, sa, ea);
+      ctx.stroke();
+    } else if (s.type === 'spinning_vortex') {
+      // ANIMATION 3: 360-Degree Dual Vortex Disc
+      ctx.lineWidth = 5.5;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.arc(s.x, s.y, s.radius * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (s.type === 'ground_slam') {
+      // ANIMATION 4: Heavy Overhead Dimensional Fissure Cleave
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(s.originX, s.originY);
+      ctx.lineTo(s.x, s.y);
+      ctx.stroke();
+      // Expanding wedge cross-line
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(s.x - 20, s.y - 10);
+      ctx.lineTo(s.x + 20, s.y + 10);
+      ctx.stroke();
+    } else if (s.type === 'devastating_breaker') {
+      // DEVASTATING 1.5s FULL CHARGE: 360 Cosmic Purple Lightning Wave
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      // Inner pulsating core
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius * 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     ctx.restore();
   });
 
@@ -339,6 +391,7 @@ function drawPortalsAndEntities(dim) {
   }
 }
 
+// PIXEL CHARACTER ENGINE WITH CHARGE PROGRESSION AURA
 function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction, isMoving, animTimer, scale = 1.0) {
   ctx.save();
   ctx.translate(px, py);
@@ -348,17 +401,34 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   const legOffset = isMoving ? Math.sin(animTimer * 0.35) * 4 : 0;
 
   // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.beginPath(); ctx.ellipse(13, 37, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
 
-  // Cosmic Purple Charge Aura
-  if (Combat.isHoldingSlash && Combat.comboStep === 3) {
+  // CHARGE AURAS (ANYTIME CHARGE UP TO 1.5s)
+  if (Combat.isHoldingSlash) {
     const holdSec = (Date.now() - Combat.slashHoldStartTime) / 1000;
-    ctx.strokeStyle = holdSec >= 2.5 ? '#a855f7' : (holdSec >= 1.2 ? '#ff7700' : '#ff003c');
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(13, 18, 26 + Math.sin(Date.now() / 70) * 4, 0, Math.PI * 2);
-    ctx.stroke();
+    if (holdSec >= 1.5) {
+      // Radiant Cosmic Purple Aura (Fully Charged)
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(13, 18, 30 + Math.sin(Date.now() / 50) * 5, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (holdSec >= 0.7) {
+      // Molten Orange Aura
+      ctx.strokeStyle = '#ff7700';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(13, 18, 25 + Math.sin(Date.now() / 70) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (holdSec >= 0.2) {
+      // Early Cyan Aura
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(13, 18, 22, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   // Combat Boots & Legs
@@ -369,14 +439,14 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.fillRect(4, 34 + legOffset, 7, 4);
   ctx.fillRect(15, 34 - legOffset, 7, 4);
 
-  // Heavy Trench Duster[cite: 2]
+  // Heavy Trench Duster
   ctx.fillStyle = coatColor;
   ctx.fillRect(3, 12 + walkBob, 20, 18);
   if (direction === 'up') ctx.fillRect(4, 28 + walkBob, 18, 6);
   else if (direction === 'left') ctx.fillRect(16, 24 + walkBob, 8, 8);
   else if (direction === 'right') ctx.fillRect(2, 24 + walkBob, 8, 8);
 
-  // Tactical Mask & Visor[cite: 2]
+  // Tactical Mask & Visor
   ctx.fillStyle = '#090b10';
   ctx.beginPath(); ctx.arc(13, 7 + walkBob, 9, 0, Math.PI * 2); ctx.fill();
 
