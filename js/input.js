@@ -223,7 +223,7 @@ const Input = {
   },
 
   bindHudButtons() {
-    // Quick Warp Engine (checks both possible button IDs)
+    // Quick Warp Engine (supports both possible button IDs)
     const warpBtn = document.getElementById('quickWarpBtn') || document.getElementById('btnWarp');
     if (warpBtn) {
       warpBtn.onclick = () => {
@@ -263,7 +263,7 @@ const Input = {
       };
     }
 
-    // Skins Locker Engine (resolves either modal ID)
+    // Skins Locker Engine (supports both modal IDs)
     const skinsBtn = document.getElementById('openSkinsBtn');
     if (skinsBtn) {
       skinsBtn.onclick = (e) => {
@@ -357,3 +357,11 @@ const Input = {
     }
   }
 };
+
+// Explicit Global Attachment across browser execution scopes
+window.Input = Input;
+
+// Auto-boot Input if loaded asynchronously after window load
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  Input.init();
+}
