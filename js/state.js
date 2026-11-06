@@ -12,8 +12,8 @@ const State = {
   // Dimension viewport & camera bounding boundaries (Synchronized to Dossier specs)
   DIMENSIONS: {
     underground: { name: "UNDERGROUND NIGHT SHIFT", width: 2400, height: 1200 },
-    retrocade: { name: "DISTRICT 84 // RETROCADE", width: 2400, height: 1200 },
-    wasteland: { name: "THE ASHEN WASTELAND", width: 6400, height: 4800 }
+    retrocade: { name: "NIRVANA (RETROCADE)", width: 2400, height: 1200 },
+    wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800 }
   },
 
   // =========================================================================
@@ -57,7 +57,7 @@ const State = {
     this.screenShake.duration = duration;
   },
 
-  // =========================================================================
+ // =========================================================================
   // 60 PLAYABLE SKINS CATALOG
   // =========================================================================
   SKINS_DATA: [
@@ -135,13 +135,15 @@ const State = {
   ],
 
   userProfile: {
-    handle: "Enforcer_Guest",
+    handle: "",
     activeSkin: "enforcer",
     unlockedSkins: ["enforcer"],
     collectedRareTapes: 0,
     casinoTokens: 100,
     bossesDefeated: [],
-    chestsOpened: []
+    chestsOpened: [],
+    lastDimension: "underground",
+    lastPosition: { x: 350, y: 750 }
   },
 
   init() {
@@ -150,17 +152,50 @@ const State = {
       if (saved) {
         const parsed = JSON.parse(saved);
         this.userProfile = { ...this.userProfile, ...parsed };
+        if (this.userProfile.lastDimension) {
+          this.currentDimension = this.userProfile.lastDimension;
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Storage access restricted. Progress will be session-only.", e);
+    }
+
     this.updateHud();
     this.renderSkins();
+
+    // First-time boot: prompt for username registration if empty
+    if (!this.userProfile.handle || this.userProfile.handle.trim() === "") {
+      setTimeout(() => {
+        if (typeof openUsernameModal === 'function') openUsernameModal();
+      }, 500);
+    }
   },
 
   save() {
-    try { 
-      localStorage.setItem('club_lowlife_save', JSON.stringify(this.userProfile)); 
-    } catch (e) {}
+    if (window.Entities && Entities.player) {
+      this.userProfile.lastDimension = this.currentDimension;
+      this.userProfile.lastPosition = {
+        x: Math.round(Entities.player.x),
+        y: Math.round(Entities.player.y)
+      };
+    }
+
+    try {
+      localStorage.setItem('club_lowlife_save', JSON.stringify(this.userProfile));
+    } catch (e) {
+      console.error("Save write failed:", e);
+    }
+
     this.updateHud();
+  },
+
+  setHandle(rawHandle) {
+    const clean = (rawHandle || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 16);
+    if (!clean) return false;
+    this.userProfile.handle = clean;
+    this.save();
+    this.showToast(`IDENTITY CONFIRMED: ${clean.toUpperCase()} 🪪`);
+    return true;
   },
 
   spendTokens(amount) {
@@ -198,6 +233,9 @@ const State = {
     const tEl = document.getElementById('rareBattleTapeCount');
     if (tEl) tEl.innerText = `${this.userProfile.collectedRareTapes}/${this.RARE_TAPES_THRESHOLD}`;
 
+    const handleBadge = document.getElementById('hudCallsign');
+    if (handleBadge) handleBadge.innerText = this.userProfile.handle ? this.userProfile.handle.toUpperCase() : "UNREGISTERED";
+
     const gatedProgressText = document.getElementById('gatedTapeProgress');
     if (gatedProgressText) gatedProgressText.innerText = `${this.userProfile.collectedRareTapes} / ${this.RARE_TAPES_THRESHOLD} TAPES`;
     const gatedBar = document.getElementById('gatedProgressBar');
@@ -214,6 +252,7 @@ const State = {
     Entities.player.y = spawnY;
     const badge = document.getElementById('dimensionBadge');
     if (badge) badge.innerText = `DIMENSION: ${cfg.name}`;
+    this.save();
     this.showToast(`WARPED TO ${cfg.name}! 🌀`);
   },
 
