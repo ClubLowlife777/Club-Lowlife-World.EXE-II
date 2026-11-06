@@ -65,13 +65,13 @@
         <span>📼</span>
         <b id="rareBattleTapeCount">0/50</b>
       </div>
-      <button id="btnWarp" class="px-2 py-1 bg-gradient-to-r from-pink-600 to-cyan-500 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
+      <button id="btnWarp" onclick="if(window.State && typeof State.switchDimension === 'function') { State.switchDimension(State.currentDimension === 'underground' ? 'retrocade' : State.currentDimension === 'retrocade' ? 'wasteland' : 'underground', 350, 750); }" class="px-2 py-1 bg-gradient-to-r from-pink-600 to-cyan-500 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
         WARP
       </button>
       <button id="openLinksModalBtn" onclick="openDiscographyModal()" class="px-2 py-1 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-xs rounded transition">
         LINKS
       </button>
-      <button id="openSkinsBtn" onclick="document.getElementById('skinLockerModal').classList.remove('hidden'); if(window.State) State.renderSkins();" class="px-2 py-1 bg-[#0e1117] hover:bg-neutral-800 border border-[#262c3d] rounded text-xs text-white transition" title="Locker">
+      <button id="openSkinsBtn" onclick="const sm = document.getElementById('skinLockerModal') || document.getElementById('skinsModal'); if(sm) sm.classList.remove('hidden'); if(window.State && typeof State.renderSkins === 'function') State.renderSkins();" class="px-2 py-1 bg-[#0e1117] hover:bg-neutral-800 border border-[#262c3d] rounded text-xs text-white transition" title="Locker">
         SKINS 🧥
       </button>
     </div>
@@ -305,10 +305,10 @@
   <!-- CORE SCRIPTS SEQUENTIAL LOADER -->
   <script src="js/state.js"></script>
   <script src="js/audio.js"></script>
-  <script src="js/input.js"></script>
   <script src="js/world/dimensions.js"></script>
-  <script src="js/world/entities.js"></script>
   <script src="js/world/combat.js"></script>
+  <script src="js/world/entities.js"></script>
+  <script src="js/input.js"></script>
   <script src="js/arcade/voidInvaders.js"></script>
   <script src="js/arcade/gridRunner.js"></script>
   <script src="js/arcade/lowlifeLeap.js"></script>
@@ -340,7 +340,7 @@
       const input = document.getElementById('usernameInput');
       const error = document.getElementById('usernameError');
       if (!input || !error) return;
-      const success = State.setHandle(input.value);
+      const success = window.State && State.setHandle ? State.setHandle(input.value) : false;
 
       if (success) {
         error.classList.add('hidden');
@@ -350,7 +350,7 @@
       }
     }
 
-    // Allow Enter key submission in the callsight registration input
+    // Allow Enter key submission in the callsign registration input
     document.addEventListener('DOMContentLoaded', () => {
       const input = document.getElementById('usernameInput');
       if (input) {
@@ -379,7 +379,7 @@
         pink:    "bg-pink-500/20 border-pink-500 text-pink-300",
         cyan:    "bg-cyan-500/20 border-cyan-500 text-cyan-300",
         amber:   "bg-amber-500/20 border-amber-500 text-amber-300",
-        purple: "bg-purple-500/20 border-purple-500 text-purple-300"
+        purple:  "bg-purple-500/20 border-purple-500 text-purple-300"
       };
 
       container.innerHTML = State.releases.map(item => {
