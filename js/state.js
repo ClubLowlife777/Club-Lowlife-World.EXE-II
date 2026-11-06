@@ -322,3 +322,4 @@ const State = {
     }
   }
 };
+window.State = State;
