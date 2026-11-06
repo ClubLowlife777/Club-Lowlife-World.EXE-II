@@ -1,7 +1,6 @@
 /**
  * CLUB LOWLIFE // ENTITY MANAGEMENT & COMBAT AI
  * File: js/world/entities.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Physics
  */
 
 const Entities = {
@@ -140,17 +139,11 @@ const Entities = {
       ];
       const template = midTypes[Math.floor(Math.random() * midTypes.length)];
       this.hostileNpcs.push({
-        id: Math.random().toString(36).substr(2, 9),
-        tier: 'mid',
-        name: template.name,
-        type: template.type,
-        x: spawnX, y: spawnY, width: 32, height: 44,
-        hp: template.hp, maxHp: template.hp, speed: template.speed,
+        id: Math.random().toString(36).substr(2, 9), tier: 'mid', name: template.name, type: template.type,
+        x: spawnX, y: spawnY, width: 32, height: 44, hp: template.hp, maxHp: template.hp, speed: template.speed,
         coat: template.coat, visor: template.visor, pants: template.pants,
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-        knockbackVx: 0, knockbackVy: 0,
-        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)],
-        moveTimer: 30 + Math.floor(Math.random() * 40)
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
+        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 30 + Math.floor(Math.random() * 40)
       });
     } else {
       const regTypes = [
@@ -160,17 +153,11 @@ const Entities = {
       ];
       const template = regTypes[Math.floor(Math.random() * regTypes.length)];
       this.hostileNpcs.push({
-        id: Math.random().toString(36).substr(2, 9),
-        tier: 'regular',
-        name: template.name,
-        type: template.type,
-        x: spawnX, y: spawnY, width: 24, height: 36,
-        hp: template.hp, maxHp: template.hp, speed: template.speed,
+        id: Math.random().toString(36).substr(2, 9), tier: 'regular', name: template.name, type: template.type,
+        x: spawnX, y: spawnY, width: 24, height: 36, hp: template.hp, maxHp: template.hp, speed: template.speed,
         coat: template.coat, visor: template.visor, pants: template.pants,
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-        knockbackVx: 0, knockbackVy: 0,
-        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)],
-        moveTimer: 25 + Math.floor(Math.random() * 45)
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
+        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 25 + Math.floor(Math.random() * 45)
       });
     }
   },
@@ -206,18 +193,12 @@ const Entities = {
   spawnLoot(lx, ly, tier, bossId) {
     const tokenCount = tier === 'boss' ? 25 : tier === 'mid' ? 8 : 3;
     for (let i = 0; i < tokenCount; i++) {
-      this.lootPickups.push({
-        x: lx + (Math.random() * 40 - 20), y: ly + (Math.random() * 40 - 20),
-        type: 'coin', value: 5, radius: 6, floatOffset: Math.random() * Math.PI * 2
-      });
+      this.lootPickups.push({ x: lx + (Math.random() * 40 - 20), y: ly + (Math.random() * 40 - 20), type: 'coin', value: 5, radius: 6, floatOffset: Math.random() * Math.PI * 2 });
     }
 
     if (tier === 'boss') {
       for (let t = 0; t < 6; t++) {
-        this.lootPickups.push({
-          x: lx + (Math.random() * 50 - 25), y: ly + (Math.random() * 50 - 25),
-          type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2
-        });
+        this.lootPickups.push({ x: lx + (Math.random() * 50 - 25), y: ly + (Math.random() * 50 - 25), type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
       }
       if (window.State) {
         if (bossId === 'boss_blade_zero') State.unlockSkin('blade_zero');
@@ -225,15 +206,9 @@ const Entities = {
         else if (bossId === 'boss_drone_queen') State.unlockSkin('drone_whisperer');
       }
     } else if (tier === 'mid') {
-      if (Math.random() < 0.65) {
-        this.lootPickups.push({
-          x: lx, y: ly, type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2
-        });
-      }
+      if (Math.random() < 0.65) this.lootPickups.push({ x: lx, y: ly, type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
     } else if (Math.random() < 0.25) {
-      this.lootPickups.push({
-        x: lx, y: ly, type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2
-      });
+      this.lootPickups.push({ x: lx, y: ly, type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
     }
   },
 
@@ -249,18 +224,15 @@ const Entities = {
     if (window.State) State.triggerScreenShake(6, 12);
 
     if (c.type === 'supply' && window.State) {
-      State.addTokens(35);
-      State.addRareTape();
+      State.addTokens(35); State.addRareTape();
       State.showToast("SUPPLY CRATE: +35 TOKENS, +1 RARE CASSETTE! 📦");
     } else if (c.type === 'biohazard' && window.State) {
-      State.addTokens(75);
-      State.addRareTape(); State.addRareTape();
+      State.addTokens(75); State.addRareTape(); State.addRareTape();
       this.player.hp = this.player.maxHp;
       this.updatePlayerHealthUI();
       State.showToast("HAZMAT CACHE: +75 TOKENS, +2 TAPES, FULL HEAL! 🧪");
     } else if (c.type === 'vault' && window.State) {
-      State.addTokens(150);
-      State.addRareTape(); State.addRareTape(); State.addRareTape();
+      State.addTokens(150); State.addRareTape(); State.addRareTape(); State.addRareTape();
       State.unlockSkin(c.skinReward || 'drifter');
       State.showToast("OBSOLETE VAULT: +150 TOKENS, +3 TAPES & NEW SKIN! 💎");
     } else if (c.type === 'master_holding' && window.State) {
@@ -345,9 +317,9 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
-      let currentSpeed = (window.Input && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
+      let currentSpeed = (window.Input && Input.keys && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
       
-      if (window.State && State.currentDimension === 'wasteland' && window.Dimensions) {
+      if (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.environmentalHazards) {
         Dimensions.environmentalHazards.forEach(h => {
           if (h.type === 'sludge' && p.x > h.x && p.x < h.x + h.width && p.y > h.y && p.y < h.y + h.height) {
             currentSpeed *= 0.55;
@@ -359,7 +331,7 @@ const Entities = {
       let dx = 0, dy = 0;
       if (window.Input && Input.analogVector && Input.analogVector.active) {
         dx = Input.analogVector.x; dy = Input.analogVector.y;
-      } else if (window.Input) {
+      } else if (window.Input && Input.keys) {
         if (Input.keys.up) dy -= 1;
         if (Input.keys.down) dy += 1;
         if (Input.keys.left) dx -= 1;
