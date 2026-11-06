@@ -28,6 +28,11 @@ function resizeCanvas() {
 }
 window.addEventListener('resize', resizeCanvas);
 
+// Auto-save on page refresh or tab close
+window.addEventListener('beforeunload', () => {
+  if (window.State) State.save();
+});
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
@@ -57,7 +62,6 @@ function draw() {
 // 1. UNDERGROUND NIGHT SHIFT (2400 x 1200) - INTERIORS & OPEN DOORWAYS
 // =========================================================================
 function drawUnderground() {
-  // Main Concourse Floor & Grid
   ctx.fillStyle = '#161d2f';
   ctx.fillRect(0, 0, 2400, 1200);
 
@@ -70,24 +74,13 @@ function drawUnderground() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke();
   }
 
-  // --- Distinct Room Interior Floor Shading ---
-  // Tuning Garage & Trunk Bay (West Interior)
-  ctx.fillStyle = '#121929';
-  ctx.fillRect(35, 35, 600, 415);
+  // Interior Floor Tinting
+  ctx.fillStyle = '#121929'; ctx.fillRect(35, 35, 600, 415);
+  ctx.fillStyle = '#171a2a'; ctx.fillRect(800, 35, 500, 320);
+  ctx.fillStyle = '#1b1730'; ctx.fillRect(1450, 35, 915, 445);
+  ctx.fillStyle = '#131824'; ctx.fillRect(1450, 505, 915, 660);
 
-  // Studio Mastering Suite (North Central Interior)
-  ctx.fillStyle = '#171a2a';
-  ctx.fillRect(800, 35, 500, 320);
-
-  // Arcade Hall (East Interior)
-  ctx.fillStyle = '#1b1730';
-  ctx.fillRect(1450, 35, 915, 445);
-
-  // Generator Alley (East Maintenance Corridor)
-  ctx.fillStyle = '#131824';
-  ctx.fillRect(1450, 505, 915, 660);
-
-  // Room Header Signage
+  // Headers
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 11px "Chakra Petch"';
   ctx.fillText("TUNING BAY 01 // MERCH EXTRACTION", 60, 65);
@@ -97,7 +90,7 @@ function drawUnderground() {
   ctx.fillStyle = '#64748b';
   ctx.fillText("SUBTERRANEAN GENERATOR ANNEX", 1780, 535);
 
-  // --- Segmented Obstacle Walls ---
+  // Obstacle Walls
   ctx.fillStyle = '#222b40';
   Dimensions.undergroundObstacles.forEach(o => {
     ctx.fillRect(o.x, o.y, o.width, o.height);
@@ -106,10 +99,9 @@ function drawUnderground() {
     ctx.strokeRect(o.x, o.y, o.width, o.height);
   });
 
-  // --- Doorway Thresholds & Floor Guides ---
   drawUndergroundDoorways();
 
-  // --- West Bay Interior: Trunk Pop Vehicle ---
+  // West Bay: Trunk Pop Vehicle
   ctx.fillStyle = '#1e293b'; ctx.fillRect(180, 200, 150, 75);
   ctx.fillStyle = '#ff003c'; ctx.fillRect(185, 265, 20, 6); ctx.fillRect(305, 265, 20, 6);
   ctx.fillStyle = '#334155'; ctx.fillRect(210, 180, 90, 25);
@@ -118,7 +110,7 @@ function drawUnderground() {
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("PROMO: WASTELAND15", 200, 252);
 
-  // --- North Central Interior: Mastering Suite Desk & Visualizer Console ---
+  // North Central: Mastering Console
   ctx.fillStyle = '#0f172a'; ctx.fillRect(880, 120, 160, 90);
   ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 1.5; ctx.strokeRect(880, 120, 160, 90);
   ctx.fillStyle = '#0284c7'; ctx.fillRect(895, 130, 55, 30); ctx.fillRect(965, 130, 55, 30);
@@ -133,7 +125,7 @@ function drawUnderground() {
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("[AUDIT DISCOGRAPHY]", 908, 198);
 
-  // --- East Bay Interior: 3 Neo-Geo Arcade Cabinets ---
+  // East Bay: 3 Arcade Cabinets
   const arcadeTitles = ['VOID INVADERS', 'GRID RUNNER', 'LOWLIFE LEAP'];
   arcadeTitles.forEach((title, idx) => {
     const ax = 1650 + idx * 150;
@@ -146,16 +138,11 @@ function drawUnderground() {
     ctx.fillText("INSERT 5🪙", ax + 14, 186);
   });
 
-  // Warp Portal to District 84
   drawPortal(2200, 900, '#00f0ff', '#ec4899', "WARP: RETROCADE DISTRICT 84");
 
   drawPortalsAndEntities('underground');
 }
 
-/**
- * Renders glowing entry pads and hazard guidance centerlines across all
- * carved building doorways in the Underground Night Shift map.
- */
 function drawUndergroundDoorways() {
   const doorways = (typeof Dimensions.getActiveDoorways === 'function')
     ? Dimensions.getActiveDoorways()
@@ -163,17 +150,13 @@ function drawUndergroundDoorways() {
 
   doorways.forEach(door => {
     ctx.save();
-
-    // 1. Ambient Traversable Floor Glow Pad
     ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
     ctx.fillRect(door.x - 3, door.y - 3, door.width + 6, door.height + 6);
 
-    // 2. Cyan Perimeter Trim
     ctx.strokeStyle = '#00f0ff';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(door.x, door.y, door.width, door.height);
 
-    // 3. Dashed Guidance Centerline
     ctx.strokeStyle = 'rgba(0, 240, 255, 0.55)';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 4]);
@@ -187,7 +170,6 @@ function drawUndergroundDoorways() {
     }
     ctx.stroke();
 
-    // 4. Floor Clearance Text
     if (door.label) {
       ctx.setLineDash([]);
       ctx.fillStyle = 'rgba(0, 240, 255, 0.75)';
@@ -202,13 +184,12 @@ function drawUndergroundDoorways() {
         ctx.restore();
       }
     }
-
     ctx.restore();
   });
 }
 
 // =========================================================================
-// 2. LIGHTER 3-ROOM RETROCADE / NIRVANA COMPLEX (2400 x 1200)
+// 2. RETROCADE / NIRVANA COMPLEX (2400 x 1200)
 // =========================================================================
 function drawRetrocade() {
   ctx.fillStyle = '#24143a'; ctx.fillRect(0, 0, 2400, 1200);
@@ -217,32 +198,26 @@ function drawRetrocade() {
   for (let x = 0; x < 2400; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1200); ctx.stroke(); }
   for (let y = 0; y < 1200; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke(); }
 
-  // Room 1 (West: Lounge Floor)
   ctx.fillStyle = '#1e1430'; ctx.fillRect(35, 35, 645, 1130);
-  // Room 3 (East: Casino Floor)
   ctx.fillStyle = '#1e1430'; ctx.fillRect(1750, 35, 615, 1130);
 
-  // Obstacle walls
   ctx.fillStyle = '#3b1d5c';
   Dimensions.retrocadeObstacles.forEach(o => {
     ctx.fillRect(o.x, o.y, o.width, o.height);
     ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
   });
 
-  // Retrocade Inter-Room Doorway Thresholds (Y=500 to Y=660)
   ctx.save();
   ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)';
   ctx.lineWidth = 2;
   ctx.setLineDash([4, 4]);
-  // West doorway threshold
   ctx.strokeRect(680, 500, 30, 160);
   ctx.beginPath(); ctx.moveTo(695, 500); ctx.lineTo(695, 660); ctx.stroke();
-  // East doorway threshold
   ctx.strokeRect(1720, 500, 30, 160);
   ctx.beginPath(); ctx.moveTo(1735, 500); ctx.lineTo(1735, 660); ctx.stroke();
   ctx.restore();
 
-  // DJ STAGE ACOUSTIC BARRIER WALL
+  // DJ Barrier Wall
   ctx.fillStyle = 'rgba(168, 85, 247, 0.35)'; ctx.fillRect(920, 240, 560, 25);
   ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 3; ctx.strokeRect(920, 240, 560, 25);
   for (let s = 920; s < 1480; s += 20) {
@@ -252,7 +227,7 @@ function drawRetrocade() {
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("▲ ACOUSTIC SECURITY WALL ▲", 1100, 257);
 
-  // Dance Floor (10x8 matrix)
+  // Dance Floor
   const colors = ['#ec4899', '#00f0ff', '#a855f7', '#facc15'];
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 8; j++) {
@@ -263,7 +238,7 @@ function drawRetrocade() {
     }
   }
 
-  // DJ Stage & Animated Visualizer
+  // DJ Visualizer
   ctx.fillStyle = '#4c1d95'; ctx.fillRect(1060, 140, 280, 80);
   ctx.strokeStyle = '#f43f5e'; ctx.strokeRect(1060, 140, 280, 80);
   for (let b = 0; b < 16; b++) {
@@ -273,7 +248,7 @@ function drawRetrocade() {
     ctx.fillRect(1080 + b * 15, 140 - barH, 10, barH);
   }
 
-  // Room 1 (West): Music Kiosk Lounge
+  // West Kiosk & East Casino
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px "Chakra Petch"';
   ctx.fillText("NIRVANA // CLUB LOWLIFE MUSIC KIOSK", 160, 100);
   ctx.fillStyle = '#431407'; ctx.fillRect(260, 220, 160, 90);
@@ -281,7 +256,6 @@ function drawRetrocade() {
   ctx.fillStyle = '#fed7aa'; ctx.font = 'bold 10px "Share Tech Mono"';
   ctx.fillText("🎵 MUSIC STEM KIOSK", 280, 270);
 
-  // Room 3 (East): High-Stakes Cyber Casino
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 12px "Chakra Petch"';
   ctx.fillText("HIGH-STAKES CASINO // DISTRICT 84", 1900, 100);
   ctx.fillStyle = '#581c87'; ctx.fillRect(1880, 180, 130, 70);
@@ -293,7 +267,6 @@ function drawRetrocade() {
   ctx.fillStyle = '#fef08a'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("💎 5-LANE HIGH ROLLER (25🪙)", 2125, 220);
 
-  // Warp Portals back to Underground & to Wasteland
   drawPortal(800, 1050, '#00f0ff', '#3b82f6', "WARP: UNDERGROUND");
   drawPortal(1520, 1050, '#10b981', '#f43f5e', "WARP: ASHEN WASTELAND");
 
@@ -301,7 +274,7 @@ function drawRetrocade() {
 }
 
 // =========================================================================
-// 3. LIGHTER RAINY ASHEN WASTELAND (6400 x 4800)
+// 3. THE ASHEN WASTELAND (6400 x 4800)
 // =========================================================================
 function drawWasteland() {
   ctx.fillStyle = '#181f2c'; ctx.fillRect(0, 0, 6400, 4800);
@@ -310,13 +283,11 @@ function drawWasteland() {
   for (let x = 0; x < 6400; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 4800); ctx.stroke(); }
   for (let y = 0; y < 4800; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(6400, y); ctx.stroke(); }
 
-  // Environmental Chemical Sludge Hazards
   Dimensions.environmentalHazards.forEach(h => {
     ctx.fillStyle = '#166534'; ctx.fillRect(h.x, h.y, h.width, h.height);
     ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.strokeRect(h.x, h.y, h.width, h.height);
   });
 
-  // World Obstacles & Plateaus
   Dimensions.worldObstacles.forEach(o => {
     ctx.fillStyle = '#222d3d'; ctx.fillRect(o.x, o.y, o.width, o.height);
     ctx.strokeStyle = '#384860'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
@@ -326,7 +297,6 @@ function drawWasteland() {
     }
   });
 
-  // Destructible Drainage Breach Doors
   Dimensions.destructibleDoors.forEach(d => {
     if (!d.shattered) {
       ctx.fillStyle = '#4c0519'; ctx.fillRect(d.x, d.y, d.width, d.height);
@@ -338,7 +308,6 @@ function drawWasteland() {
 
   drawHoldingChamberInterior();
 
-  // Wasteland Chests
   Dimensions.wastelandChests.forEach(c => {
     ctx.fillStyle = c.opened ? '#334155' : (c.type === 'master_holding' ? '#701a75' : '#047857');
     ctx.fillRect(c.x, c.y, c.width, c.height);
@@ -346,7 +315,6 @@ function drawWasteland() {
     ctx.lineWidth = 2; ctx.strokeRect(c.x, c.y, c.width, c.height);
   });
 
-  // Extraction Gate & Warp Portals
   drawPortal(800, 700, '#a855f7', '#ec4899', "WARP: RETROCADE");
   drawPortal(3120, 150, '#10b981', '#facc15', "NEURAL EXTRACTION GATE [50 TAPES]");
 
@@ -393,10 +361,9 @@ function drawHoldingChamberInterior() {
 }
 
 // =========================================================================
-// 4. ENTITIES, COMBAT PARTICLES, & PROCEDURAL SLASH ANIMATIONS
+// 4. ENTITIES, COMBAT PARTICLES, & OVERHEAD CALLSIGN BADGE
 // =========================================================================
 function drawPortalsAndEntities(dim) {
-  // Friendly NPCs
   (Entities.friendlyNpcs[dim] || []).forEach(n => {
     const bob = n.dancePhase !== undefined ? Math.sin((Date.now() / 150) + n.dancePhase) * 3.5 : 0;
     drawPixelCharacter(n.x, n.y + bob, n.coat, n.visor, n.pants, 'down', false, 0);
@@ -404,7 +371,6 @@ function drawPortalsAndEntities(dim) {
     ctx.fillText(n.name, n.x - 12, n.y - 8);
   });
 
-  // Wasteland Enemies
   if (dim === 'wasteland') {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive) return;
@@ -436,7 +402,7 @@ function drawPortalsAndEntities(dim) {
     ctx.fill();
   });
 
-  // Homing Projectiles with Glow Trail
+  // Homing Projectiles
   Combat.projectiles.forEach(p => {
     ctx.save();
     ctx.strokeStyle = p.color || '#00f0ff';
@@ -453,28 +419,21 @@ function drawPortalsAndEntities(dim) {
     ctx.restore();
   });
 
-  // Enemy Projectiles
   Combat.enemyProjectiles.forEach(ep => {
     ctx.fillStyle = '#ff003c';
     ctx.beginPath(); ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2); ctx.fill();
   });
 
-  // DISTINCT PROCEDURAL 4-HIT SLASH ANIMATIONS
   Combat.meleeSlashes.forEach(s => {
     ctx.save();
     ctx.strokeStyle = s.color;
 
     if (s.type === 'stab_thrust') {
-      // ANIMATION 1: Piercing Forward Needle Beam
       ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(s.originX, s.originY);
-      ctx.lineTo(s.x, s.y);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s.originX, s.originY); ctx.lineTo(s.x, s.y); ctx.stroke();
       ctx.fillStyle = '#ffffff';
       ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
     } else if (s.type === 'crescent_sweep') {
-      // ANIMATION 2: Wide Curved Crescent Arc
       ctx.lineWidth = 5;
       ctx.beginPath();
       let sa = 0, ea = Math.PI;
@@ -485,35 +444,25 @@ function drawPortalsAndEntities(dim) {
       ctx.arc(s.x, s.y, s.radius, sa, ea);
       ctx.stroke();
     } else if (s.type === 'spinning_vortex') {
-      // ANIMATION 3: 360-Degree Dual Vortex Disc
       ctx.lineWidth = 5.5;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath();
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
       ctx.arc(s.x, s.y, s.radius * 0.6, 0, Math.PI * 2); ctx.stroke();
     } else if (s.type === 'ground_slam') {
-      // ANIMATION 4: Heavy Overhead Dimensional Fissure Cleave
       ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(s.originX, s.originY);
-      ctx.lineTo(s.x, s.y);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s.originX, s.originY); ctx.lineTo(s.x, s.y); ctx.stroke();
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(s.x - 20, s.y - 10); ctx.lineTo(s.x + 20, s.y + 10);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s.x - 20, s.y - 10); ctx.lineTo(s.x + 20, s.y + 10); ctx.stroke();
     } else if (s.type === 'devastating_breaker') {
-      // DEVASTATING 1.5s FULL CHARGE: 360 Cosmic Purple Lightning Wave
       ctx.lineWidth = 8;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.stroke();
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * 0.5, 0, Math.PI * 2); ctx.stroke();
     }
-
     ctx.restore();
   });
 
-  // Explosions
   Combat.explosions.forEach(exp => {
     ctx.save();
     ctx.strokeStyle = exp.color;
@@ -522,12 +471,58 @@ function drawPortalsAndEntities(dim) {
     ctx.restore();
   });
 
-  // Player Character
+  // Render Player Character & Callsign Badge
   const p = Entities.player;
   const currentSkin = State.SKINS_DATA.find(s => s.id === State.userProfile.activeSkin) || State.SKINS_DATA[0];
   if (p.iFrames % 4 < 2) {
     drawPixelCharacter(p.x, p.y, currentSkin.coat, currentSkin.visor, currentSkin.pants, p.direction, p.isMoving, p.animTimer, 1.0);
+    renderPlayerCallsign(ctx, p.x, p.y, State.userProfile.handle || "UNREGISTERED");
   }
+}
+
+/**
+ * Draws the username callsign badge and indicator arrow
+ * floating directly above the player's head.
+ */
+function renderPlayerCallsign(ctx, px, py, handle) {
+  ctx.save();
+
+  const headCenterX = px + 13;
+  const tagY = py - 10;
+
+  ctx.font = 'bold 9px "Share Tech Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+
+  const text = handle.toUpperCase();
+  const textWidth = ctx.measureText(text).width;
+  const paddingX = 6;
+  const pillHeight = 14;
+  const pillY = tagY - pillHeight - 2;
+
+  // Background pill
+  ctx.fillStyle = 'rgba(7, 8, 11, 0.85)';
+  ctx.fillRect(headCenterX - (textWidth / 2) - paddingX, pillY, textWidth + (paddingX * 2), pillHeight);
+
+  // Tactical Cyan border
+  ctx.strokeStyle = '#00f0ff';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(headCenterX - (textWidth / 2) - paddingX, pillY, textWidth + (paddingX * 2), pillHeight);
+
+  // Downward-pointing indicator arrow
+  ctx.fillStyle = '#00f0ff';
+  ctx.beginPath();
+  ctx.moveTo(headCenterX - 3, pillY + pillHeight);
+  ctx.lineTo(headCenterX + 3, pillY + pillHeight);
+  ctx.lineTo(headCenterX, pillY + pillHeight + 3);
+  ctx.closePath();
+  ctx.fill();
+
+  // Callsign text
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(text, headCenterX, tagY - 2);
+
+  ctx.restore();
 }
 
 // =========================================================================
@@ -545,34 +540,25 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.beginPath(); ctx.ellipse(13, 37, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
 
-  // CHARGE AURAS (ANYTIME CHARGE UP TO 1.5s)
+  // Charge auras
   if (Combat.isHoldingSlash) {
     const holdSec = (Date.now() - Combat.slashHoldStartTime) / 1000;
     if (holdSec >= 1.5) {
-      // Radiant Cosmic Purple Aura (Fully Charged)
       ctx.strokeStyle = '#a855f7';
       ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.arc(13, 18, 30 + Math.sin(Date.now() / 50) * 5, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(13, 18, 30 + Math.sin(Date.now() / 50) * 5, 0, Math.PI * 2); ctx.stroke();
     } else if (holdSec >= 0.7) {
-      // Molten Orange Aura
       ctx.strokeStyle = '#ff7700';
       ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(13, 18, 25 + Math.sin(Date.now() / 70) * 4, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(13, 18, 25 + Math.sin(Date.now() / 70) * 4, 0, Math.PI * 2); ctx.stroke();
     } else if (holdSec >= 0.2) {
-      // Early Cyan Aura
       ctx.strokeStyle = '#00f0ff';
       ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(13, 18, 22, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(13, 18, 22, 0, Math.PI * 2); ctx.stroke();
     }
   }
 
-  // Combat Boots & Legs
+  // Legs & Boots
   ctx.fillStyle = pantsColor;
   ctx.fillRect(5, 26 + legOffset, 6, 11 - legOffset);
   ctx.fillRect(15, 26 - legOffset, 6, 11 + legOffset);
@@ -580,7 +566,7 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.fillRect(4, 34 + legOffset, 7, 4);
   ctx.fillRect(15, 34 - legOffset, 7, 4);
 
-  // Heavy Trench Duster
+  // Trench Duster
   ctx.fillStyle = coatColor;
   ctx.fillRect(3, 12 + walkBob, 20, 18);
   if (direction === 'up') ctx.fillRect(4, 28 + walkBob, 18, 6);
@@ -607,7 +593,7 @@ function drawPortal(px, py, color1, color2, label) {
   ctx.strokeStyle = color1; ctx.lineWidth = 3.5;
   ctx.beginPath(); ctx.arc(0, 0, 30 + Math.sin(time) * 4, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = color2; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(0, 0, 20 + Math.cos(time) * 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 20 + Math.cos(time) * 4, 0, Math.PI * 2); ctx.stroke();
   ctx.restore();
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText(label, px - 15, py + 95);
