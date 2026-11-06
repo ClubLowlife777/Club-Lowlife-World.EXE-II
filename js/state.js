@@ -1,13 +1,54 @@
+/**
+ * CLUB LOWLIFE // GLOBAL STATE & CATALOG
+ * File: js/state.js
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics
+ */
+
 const State = {
   RARE_TAPES_THRESHOLD: 100,
   currentDimension: 'underground',
   activeMiniGame: null,
 
+  // Dimension viewport & camera bounding boundaries (Synchronized to Dossier specs)
   DIMENSIONS: {
-    underground: { name: "UNDERGROUND NIGHT SHIFT", width: 1600, height: 1000 },
-    retrocade: { name: "NIRVANA", width: 1600, height: 1000 },
-    wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800 }
+    underground: { name: "UNDERGROUND NIGHT SHIFT", width: 2400, height: 1200 },
+    retrocade: { name: "DISTRICT 84 // RETROCADE", width: 2400, height: 1200 },
+    wasteland: { name: "THE ASHEN WASTELAND", width: 6400, height: 4800 }
   },
+
+  // =========================================================================
+  // CENTRALIZED RELEASES & LINK-IN-BIO CATALOG
+  // =========================================================================
+  releases: [
+    {
+      id: "dancing",
+      title: "DANCING",
+      type: "FLAGSHIP SINGLE",
+      status: "OUT NOW",
+      badgeColor: "pink",
+      highlight: true,
+      description: "Flagship transition single bridging the Retrocade era into the dark dystopia. Includes alternate nightcore, slowed + reverb, and club VIP edits.",
+      links: [
+        { platform: "SPOTIFY", url: "https://open.spotify.com/track/YOUR_SPOTIFY_ID", color: "emerald" },
+        { platform: "APPLE MUSIC", url: "https://music.apple.com/album/YOUR_APPLE_ID", color: "rose" },
+        { platform: "YOUTUBE", url: "https://youtube.com/watch?v=YOUR_YT_ID", color: "red" },
+        { platform: "SOUNDCLOUD", url: "https://soundcloud.com/YOUR_SOUNDCLOUD", color: "amber" }
+      ]
+    },
+    {
+      id: "retrocade_evolved",
+      title: "RETROCADE EVOLVED",
+      type: "DELUXE ALBUM",
+      status: "STREAMING",
+      badgeColor: "cyan",
+      highlight: false,
+      description: "Extended edition featuring exclusive bonus tracks not found on standard streaming platforms.",
+      links: [
+        { platform: "STREAM ALBUM", url: "https://open.spotify.com/album/YOUR_ALBUM_ID", color: "cyan" },
+        { platform: "CASSETTE CLAIM (6 WINNERS)", url: "https://forms.gle/TsE7MAHSD1erDca59", color: "purple" }
+      ]
+    }
+  ],
 
   screenShake: { intensity: 0, duration: 0 },
 
@@ -16,7 +57,9 @@ const State = {
     this.screenShake.duration = duration;
   },
 
-  // 60 Playable Skins Catalog
+  // =========================================================================
+  // 60 PLAYABLE SKINS CATALOG
+  // =========================================================================
   SKINS_DATA: [
     // 01-10: Founders & Street Enforcers
     { id: 'enforcer', name: 'THE NEW ERA ENFORCER', desc: 'Default tactical duster with neon cyan visor.', rarity: 'common', coat: '#090b10', trim: '#161d2a', visor: '#00f0ff', pants: '#06080c' },
@@ -81,11 +124,11 @@ const State = {
     // 51-60: Secret, Mythic & Link-in-Bio Exclusives
     { id: 'spotify_streamer', name: 'SPOTIFY STREAMER', desc: 'Unlocked by streaming DANCING. Mint-green frequency aura.', rarity: 'legendary', coat: '#052e16', trim: '#10b981', visor: '#1db954', pants: '#022c22' },
     { id: 'apple_lossless', name: 'APPLE LOSSLESS MASTER', desc: 'Minimalist white titanium shell with spatial audio rings.', rarity: 'legendary', coat: '#f1f5f9', trim: '#ffffff', visor: '#ff003c', pants: '#0f172a' },
-    { id: 'redbull_rebel', name: 'REDBULL SETLIST REBEL', desc: 'Rally-style bomber jacket sporting the Chicago underground patch[cite: 5].', rarity: 'rare', coat: '#1e3a8a', trim: '#dc2626', visor: '#facc15', pants: '#172554' },
-    { id: 'bonfire_chronicler', name: 'BONFIRE CHRONICLER', desc: 'Wool-lined parka with live embers trailing your footprints[cite: 5].', rarity: 'rare', coat: '#7c2d12', trim: '#ea580c', visor: '#f97316', pants: '#431407' },
+    { id: 'redbull_rebel', name: 'REDBULL SETLIST REBEL', desc: 'Rally-style bomber jacket sporting the Chicago underground patch.', rarity: 'rare', coat: '#1e3a8a', trim: '#dc2626', visor: '#facc15', pants: '#172554' },
+    { id: 'bonfire_chronicler', name: 'BONFIRE CHRONICLER', desc: 'Wool-lined parka with live embers trailing your footprints.', rarity: 'rare', coat: '#7c2d12', trim: '#ea580c', visor: '#f97316', pants: '#431407' },
     { id: 'sound_designer', name: 'THE SOUND DESIGNER', desc: 'Active 10-band graphic equalizer animated on back of trench.', rarity: 'epic', coat: '#0f172a', trim: '#00f0ff', visor: '#a855f7', pants: '#020617' },
     { id: 'fl_alchemist', name: 'FL STUDIO ALCHEMIST', desc: 'Orange mixer cap with physical volume faders on arm sleeves.', rarity: 'rare', coat: '#9a3412', trim: '#ea580c', visor: '#fb923c', pants: '#431407' },
-    { id: 'tape_winner', name: 'THE 6-WINNER CLAIMANT', desc: 'Unlocked via Google Form claim. Pure gold cassette aura[cite: 4].', rarity: 'mythic', coat: '#713f12', trim: '#facc15', visor: '#ffffff', pants: '#451a03' },
+    { id: 'tape_winner', name: 'THE 6-WINNER CLAIMANT', desc: 'Unlocked via Google Form claim. Pure gold cassette aura.', rarity: 'mythic', coat: '#713f12', trim: '#facc15', visor: '#ffffff', pants: '#451a03' },
     { id: 'static_nightmare', name: 'STATIC NIGHTMARE', desc: 'Grainy black-and-white silhouette torn from the CRT monitor.', rarity: 'mythic', coat: '#18181b', trim: '#71717a', visor: '#ffffff', pants: '#09090b' },
     { id: 'horizon_celestial', name: 'HORIZON CELESTIAL', desc: 'Prismatic duster shimmering with distant dimension stars.', rarity: 'mythic', coat: '#312e81', trim: '#ec4899', visor: '#00f0ff', pants: '#1e1b4b' },
     { id: 'the_creator', name: 'THE CREATOR // OMG LOWLIFE', desc: 'The signature crown, open trench, and master sound processor.', rarity: 'mythic', coat: '#000000', trim: '#facc15', visor: '#00f0ff', pants: '#09090b' }
@@ -114,7 +157,9 @@ const State = {
   },
 
   save() {
-    try { localStorage.setItem('club_lowlife_save', JSON.stringify(this.userProfile)); } catch (e) {}
+    try { 
+      localStorage.setItem('club_lowlife_save', JSON.stringify(this.userProfile)); 
+    } catch (e) {}
     this.updateHud();
   },
 
@@ -178,7 +223,10 @@ const State = {
     t.innerText = msg;
     t.style.opacity = '1';
     t.style.transform = 'translateY(0)';
-    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(12px)'; }, 2400);
+    setTimeout(() => { 
+      t.style.opacity = '0'; 
+      t.style.transform = 'translateY(12px)'; 
+    }, 2400);
   },
 
   closeModals() {
