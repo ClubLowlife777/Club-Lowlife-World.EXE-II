@@ -47,18 +47,20 @@ const Entities = {
   lootPickups: [],
 
   init() {
-    if (State.userProfile && State.userProfile.lastPosition) {
-      this.player.x = State.userProfile.lastPosition.x || 350;
-      this.player.y = State.userProfile.lastPosition.y || 750;
-    }
-    if (State.userProfile && State.userProfile.lastDimension) {
-      State.currentDimension = State.userProfile.lastDimension;
-      const cfg = State.DIMENSIONS[State.currentDimension];
-      const badge = document.getElementById('dimensionBadge');
-      if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
+    if (window.State && State.userProfile) {
+      if (State.userProfile.lastPosition) {
+        this.player.x = State.userProfile.lastPosition.x || 350;
+        this.player.y = State.userProfile.lastPosition.y || 750;
+      }
+      if (State.userProfile.lastDimension) {
+        State.currentDimension = State.userProfile.lastDimension;
+        const cfg = State.DIMENSIONS[State.currentDimension];
+        const badge = document.getElementById('dimensionBadge');
+        if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
+      }
     }
 
-    if (Dimensions.wastelandChests && State.userProfile.chestsOpened) {
+    if (window.Dimensions && Dimensions.wastelandChests && window.State && State.userProfile && State.userProfile.chestsOpened) {
       Dimensions.wastelandChests.forEach(c => {
         if (State.userProfile.chestsOpened.includes(c.id)) c.opened = true;
       });
@@ -114,7 +116,7 @@ const Entities = {
   },
 
   spawnWastelandCombatant(force = false) {
-    if (!force && State.currentDimension !== 'wasteland') return;
+    if (!force && (!window.State || State.currentDimension !== 'wasteland')) return;
 
     const livingRegularAndMid = this.hostileNpcs.filter(n => n.alive && n.tier !== 'boss');
     if (livingRegularAndMid.length >= 65) return;
@@ -189,7 +191,8 @@ const Entities = {
     if (npc.hp <= 0) {
       npc.alive = false;
       this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id);
-      if (npc.tier === 'boss') {
+      if (npc.tier === 'boss' && window.State) {
+        State.userProfile.bossesDefeated = State.userProfile.bossesDefeated || [];
         if (!State.userProfile.bossesDefeated.includes(npc.id)) {
           State.userProfile.bossesDefeated.push(npc.id);
         }
@@ -216,9 +219,11 @@ const Entities = {
           type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2
         });
       }
-      if (bossId === 'boss_blade_zero') State.unlockSkin('blade_zero');
-      else if (bossId === 'boss_chem_enforcer') State.unlockSkin('chem_enforcer');
-      else if (bossId === 'boss_drone_queen') State.unlockSkin('drone_whisperer');
+      if (window.State) {
+        if (bossId === 'boss_blade_zero') State.unlockSkin('blade_zero');
+        else if (bossId === 'boss_chem_enforcer') State.unlockSkin('chem_enforcer');
+        else if (bossId === 'boss_drone_queen') State.unlockSkin('drone_whisperer');
+      }
     } else if (tier === 'mid') {
       if (Math.random() < 0.65) {
         this.lootPickups.push({
@@ -234,35 +239,37 @@ const Entities = {
 
   openChest(c) {
     c.opened = true;
-    if (!State.userProfile.chestsOpened.includes(c.id)) {
-      State.userProfile.chestsOpened.push(c.id);
+    if (window.State) {
+      State.userProfile.chestsOpened = State.userProfile.chestsOpened || [];
+      if (!State.userProfile.chestsOpened.includes(c.id)) {
+        State.userProfile.chestsOpened.push(c.id);
+      }
     }
     if (window.AudioEngine) AudioEngine.playSfx('win');
-    State.triggerScreenShake(6, 12);
+    if (window.State) State.triggerScreenShake(6, 12);
 
-    if (c.type === 'supply') {
+    if (c.type === 'supply' && window.State) {
       State.addTokens(35);
       State.addRareTape();
       State.showToast("SUPPLY CRATE: +35 TOKENS, +1 RARE CASSETTE! 📦");
-    } else if (c.type === 'biohazard') {
+    } else if (c.type === 'biohazard' && window.State) {
       State.addTokens(75);
-      State.addRareTape();
-      State.addRareTape();
+      State.addRareTape(); State.addRareTape();
       this.player.hp = this.player.maxHp;
       this.updatePlayerHealthUI();
       State.showToast("HAZMAT CACHE: +75 TOKENS, +2 TAPES, FULL HEAL! 🧪");
-    } else if (c.type === 'vault') {
+    } else if (c.type === 'vault' && window.State) {
       State.addTokens(150);
       State.addRareTape(); State.addRareTape(); State.addRareTape();
       State.unlockSkin(c.skinReward || 'drifter');
       State.showToast("OBSOLETE VAULT: +150 TOKENS, +3 TAPES & NEW SKIN! 💎");
-    } else if (c.type === 'master_holding') {
+    } else if (c.type === 'master_holding' && window.State) {
       State.addTokens(300);
       for (let i = 0; i < 10; i++) State.addRareTape();
       State.unlockSkin('static_nightmare');
       State.showToast("GOLDEN MASTER VAULT: UNCOMPRESSED AUDIO & MYTHIC SKIN UNLOCKED! 💿⚡");
     }
-    State.save();
+    if (window.State) State.save();
   },
 
   damagePlayer(amount, knockDir) {
@@ -271,7 +278,7 @@ const Entities = {
     p.hp = Math.max(0, p.hp - amount);
     p.iFrames = 30;
     if (window.AudioEngine) AudioEngine.playSfx('stomp');
-    State.triggerScreenShake(8, 14);
+    if (window.State) State.triggerScreenShake(8, 14);
 
     const force = 11;
     if (knockDir === 'up') p.knockbackVy = -force;
@@ -281,7 +288,7 @@ const Entities = {
 
     this.updatePlayerHealthUI();
 
-    if (p.hp <= 0) {
+    if (p.hp <= 0 && window.State) {
       State.showToast("NEURAL LINK CRITICAL // RESPAWNING...");
       setTimeout(() => {
         p.x = State.currentDimension === 'wasteland' ? 800 : 350;
@@ -307,13 +314,14 @@ const Entities = {
     const p = this.player;
     if (p.iFrames > 0) p.iFrames--;
 
-    const activeObs = Dimensions.getActiveObstacles();
+    const activeObs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
+      ? Dimensions.getActiveObstacles() : [];
 
     if (Math.abs(p.knockbackVx) > 0.05 || Math.abs(p.knockbackVy) > 0.05) {
       const testBoxX = { x: p.x + p.knockbackVx, y: p.y, width: p.width, height: p.height };
       let hitWallX = false;
       for (let o of activeObs) {
-        if (Combat.checkCollision(testBoxX, o)) { hitWallX = true; break; }
+        if (window.Combat && Combat.checkCollision(testBoxX, o)) { hitWallX = true; break; }
       }
       if (hitWallX) {
         p.knockbackVx = -p.knockbackVx * 0.45;
@@ -325,7 +333,7 @@ const Entities = {
       const testBoxY = { x: p.x, y: p.y + p.knockbackVy, width: p.width, height: p.height };
       let hitWallY = false;
       for (let o of activeObs) {
-        if (Combat.checkCollision(testBoxY, o)) { hitWallY = true; break; }
+        if (window.Combat && Combat.checkCollision(testBoxY, o)) { hitWallY = true; break; }
       }
       if (hitWallY) {
         p.knockbackVy = -p.knockbackVy * 0.45;
@@ -338,7 +346,8 @@ const Entities = {
       p.knockbackVy *= 0.84;
     } else {
       let currentSpeed = (window.Input && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
-      if (State.currentDimension === 'wasteland') {
+      
+      if (window.State && State.currentDimension === 'wasteland' && window.Dimensions) {
         Dimensions.environmentalHazards.forEach(h => {
           if (h.type === 'sludge' && p.x > h.x && p.x < h.x + h.width && p.y > h.y && p.y < h.y + h.height) {
             currentSpeed *= 0.55;
@@ -373,15 +382,15 @@ const Entities = {
 
         let colX = false, colY = false;
         for (let o of activeObs) {
-          if (Combat.checkCollision(boxX, o)) colX = true;
-          if (Combat.checkCollision(boxY, o)) colY = true;
+          if (window.Combat && Combat.checkCollision(boxX, o)) colX = true;
+          if (window.Combat && Combat.checkCollision(boxY, o)) colY = true;
         }
 
-        if (State.currentDimension === 'wasteland' && Dimensions.destructibleDoors) {
+        if (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.destructibleDoors) {
           Dimensions.destructibleDoors.forEach(d => {
             if (!d.shattered) {
-              if (Combat.checkCollision(boxX, d)) colX = true;
-              if (Combat.checkCollision(boxY, d)) colY = true;
+              if (window.Combat && Combat.checkCollision(boxX, d)) colX = true;
+              if (window.Combat && Combat.checkCollision(boxY, d)) colY = true;
             }
           });
         }
@@ -395,7 +404,7 @@ const Entities = {
 
     const currentBox = { x: p.x, y: p.y, width: p.width, height: p.height };
     for (let o of activeObs) {
-      if (Combat.checkCollision(currentBox, o)) {
+      if (window.Combat && Combat.checkCollision(currentBox, o)) {
         const distLeft = (p.x + p.width) - o.x;
         const distRight = (o.x + o.width) - p.x;
         const distTop = (p.y + p.height) - o.y;
@@ -409,7 +418,7 @@ const Entities = {
       }
     }
 
-    if (State.currentDimension === 'retrocade' && p.x > 980 && p.x < 1400 && p.y > 420 && p.y < 740) {
+    if (window.State && State.currentDimension === 'retrocade' && p.x > 980 && p.x < 1400 && p.y > 420 && p.y < 740) {
       p.danceTimer++;
       if (p.danceTimer % 150 === 0) {
         State.addTokens(1);
@@ -423,7 +432,7 @@ const Entities = {
   },
 
   updateHostileAI() {
-    if (State.currentDimension !== 'wasteland') return;
+    if (!window.State || State.currentDimension !== 'wasteland') return;
     const p = this.player;
 
     this.hostileNpcs.forEach(n => {
@@ -457,22 +466,26 @@ const Entities = {
             n.attackCooldown = 55;
             if (window.AudioEngine) AudioEngine.playSfx('laser');
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
-              if (window.Combat) Combat.enemyProjectiles.push({
-                x: n.x + n.width / 2, y: n.y + n.height / 2,
-                vx: Math.cos(angle + spread) * 7.5, vy: Math.sin(angle + spread) * 7.5,
-                radius: 6, damage: 24, life: 60
-              });
+              if (window.Combat) {
+                Combat.enemyProjectiles.push({
+                  x: n.x + n.width / 2, y: n.y + n.height / 2,
+                  vx: Math.cos(angle + spread) * 7.5, vy: Math.sin(angle + spread) * 7.5,
+                  radius: 6, damage: 24, life: 60
+                });
+              }
             }
           }
         } else if (n.tier === 'mid') {
           if (dist < 260 && n.attackCooldown <= 0) {
             n.attackCooldown = 70;
             if (window.AudioEngine) AudioEngine.playSfx('laser');
-            if (window.Combat) Combat.enemyProjectiles.push({
-              x: n.x + n.width / 2, y: n.y + n.height / 2,
-              vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7,
-              radius: 5, damage: 18, life: 55
-            });
+            if (window.Combat) {
+              Combat.enemyProjectiles.push({
+                x: n.x + n.width / 2, y: n.y + n.height / 2,
+                vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7,
+                radius: 5, damage: 18, life: 55
+              });
+            }
           }
         }
 
@@ -512,13 +525,15 @@ const Entities = {
       }
       if (dist < 24) {
         if (item.type === 'coin') {
-          State.addTokens(item.value);
+          if (window.State) State.addTokens(item.value);
           if (window.AudioEngine) AudioEngine.playSfx('coin');
-          State.showToast(`+${item.value} SOUND TOKENS! 🪙`);
+          if (window.State) State.showToast(`+${item.value} SOUND TOKENS! 🪙`);
         } else if (item.type === 'rare_tape') {
-          State.addRareTape();
+          if (window.State) {
+            State.addRareTape();
+            State.showToast(`RARE BATTLE CASSETTE ACQUIRED! (${State.userProfile.collectedRareTapes}/${State.RARE_TAPES_THRESHOLD}) 📼`);
+          }
           if (window.AudioEngine) AudioEngine.playSfx('win');
-          State.showToast(`RARE BATTLE CASSETTE ACQUIRED! (${State.userProfile.collectedRareTapes}/${State.RARE_TAPES_THRESHOLD}) 📼`);
         }
         this.lootPickups.splice(i, 1);
       }
