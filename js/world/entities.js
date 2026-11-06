@@ -1,6 +1,7 @@
 /**
  * CLUB LOWLIFE // ENTITY MANAGEMENT & COMBAT AI
  * File: js/world/entities.js
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics
  */
 
 const Entities = {
@@ -53,7 +54,7 @@ const Entities = {
       }
       if (State.userProfile.lastDimension) {
         State.currentDimension = State.userProfile.lastDimension;
-        const cfg = State.DIMENSIONS[State.currentDimension];
+        const cfg = State.DIMENSIONS ? State.DIMENSIONS[State.currentDimension] : null;
         const badge = document.getElementById('dimensionBadge');
         if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
       }
@@ -79,13 +80,15 @@ const Entities = {
     this.updatePlayerHealthUI();
     this.spawnWastelandBosses();
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 40; i++) {
       this.spawnWastelandCombatant(true);
     }
     setInterval(() => this.spawnWastelandCombatant(false), 3000);
   },
 
   spawnWastelandBosses() {
+    this.hostileNpcs = [];
+
     this.hostileNpcs.push({
       id: 'boss_blade_zero', tier: 'boss', name: 'HIGH EXECUTIONER "BLADE-ZERO"',
       x: 3200, y: 4100, width: 42, height: 52,
@@ -118,7 +121,7 @@ const Entities = {
     if (!force && (!window.State || State.currentDimension !== 'wasteland')) return;
 
     const livingRegularAndMid = this.hostileNpcs.filter(n => n.alive && n.tier !== 'boss');
-    if (livingRegularAndMid.length >= 65) return;
+    if (livingRegularAndMid.length >= 60) return;
 
     let spawnX, spawnY;
     if (Math.random() < 0.40) {
@@ -165,7 +168,7 @@ const Entities = {
   damageNpc(npc, amount, knockDir) {
     if (!npc.alive) return;
     npc.hp -= amount;
-    if (window.AudioEngine) AudioEngine.playSfx('stomp');
+    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
     npc.state = 'aggro';
     npc.aggroTimer = 350;
 
@@ -175,7 +178,7 @@ const Entities = {
     else if (knockDir === 'left') npc.knockbackVx = -force;
     else if (knockDir === 'right') npc.knockbackVx = force;
 
-    if (npc.hp <= 0) {
+    if (npc.hp <= 0 && npc.hp !== 99999) {
       npc.alive = false;
       this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id);
       if (npc.tier === 'boss' && window.State) {
@@ -220,7 +223,7 @@ const Entities = {
         State.userProfile.chestsOpened.push(c.id);
       }
     }
-    if (window.AudioEngine) AudioEngine.playSfx('win');
+    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
     if (window.State) State.triggerScreenShake(6, 12);
 
     if (c.type === 'supply' && window.State) {
@@ -249,7 +252,7 @@ const Entities = {
     if (p.iFrames > 0) return;
     p.hp = Math.max(0, p.hp - amount);
     p.iFrames = 30;
-    if (window.AudioEngine) AudioEngine.playSfx('stomp');
+    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
     if (window.State) State.triggerScreenShake(8, 14);
 
     const force = 11;
@@ -287,8 +290,10 @@ const Entities = {
     if (p.iFrames > 0) p.iFrames--;
 
     const activeObs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
-      ? Dimensions.getActiveObstacles() : [];
+      ? Dimensions.getActiveObstacles() 
+      : [];
 
+    // 1. Knockback Resolution
     if (Math.abs(p.knockbackVx) > 0.05 || Math.abs(p.knockbackVy) > 0.05) {
       const testBoxX = { x: p.x + p.knockbackVx, y: p.y, width: p.width, height: p.height };
       let hitWallX = false;
@@ -297,7 +302,7 @@ const Entities = {
       }
       if (hitWallX) {
         p.knockbackVx = -p.knockbackVx * 0.45;
-        if (window.AudioEngine) AudioEngine.playSfx('stomp');
+        if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
       } else {
         p.x += p.knockbackVx;
       }
@@ -309,7 +314,7 @@ const Entities = {
       }
       if (hitWallY) {
         p.knockbackVy = -p.knockbackVy * 0.45;
-        if (window.AudioEngine) AudioEngine.playSfx('stomp');
+        if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
       } else {
         p.y += p.knockbackVy;
       }
@@ -317,6 +322,7 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
+      // 2. Standard Input Velocity
       let currentSpeed = (window.Input && Input.keys && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
       
       if (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.environmentalHazards) {
@@ -329,8 +335,13 @@ const Entities = {
       }
 
       let dx = 0, dy = 0;
-      if (window.Input && Input.analogVector && Input.analogVector.active) {
-        dx = Input.analogVector.x; dy = Input.analogVector.y;
+      if (window.Input && typeof Input.getMovementVector === 'function') {
+        const vec = Input.getMovementVector();
+        dx = vec.x;
+        dy = vec.y;
+      } else if (window.Input && Input.analogVector && Input.analogVector.active) {
+        dx = Input.analogVector.x; 
+        dy = Input.analogVector.y;
       } else if (window.Input && Input.keys) {
         if (Input.keys.up) dy -= 1;
         if (Input.keys.down) dy += 1;
@@ -339,7 +350,7 @@ const Entities = {
         if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
       }
 
-      if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
+      if (Math.abs(dx) > 0.02 || Math.abs(dy) > 0.02) {
         p.isMoving = true;
         p.animTimer++;
         if (Math.abs(dx) > Math.abs(dy)) p.direction = dx > 0 ? 'right' : 'left';
@@ -374,27 +385,19 @@ const Entities = {
       }
     }
 
-    const currentBox = { x: p.x, y: p.y, width: p.width, height: p.height };
-    for (let o of activeObs) {
-      if (window.Combat && Combat.checkCollision(currentBox, o)) {
-        const distLeft = (p.x + p.width) - o.x;
-        const distRight = (o.x + o.width) - p.x;
-        const distTop = (p.y + p.height) - o.y;
-        const distBottom = (o.y + o.height) - p.y;
-        const minDist = Math.min(distLeft, distRight, distTop, distBottom);
-
-        if (minDist === distLeft) p.x = o.x - p.width - 2;
-        else if (minDist === distRight) p.x = o.x + o.width + 2;
-        else if (minDist === distTop) p.y = o.y - p.height - 2;
-        else if (minDist === distBottom) p.y = o.y + o.height + 2;
-      }
+    // 3. Keep Player Within Dimension Boundaries
+    const cfg = (window.State && State.DIMENSIONS) ? State.DIMENSIONS[State.currentDimension] : null;
+    if (cfg) {
+      p.x = Math.max(10, Math.min(cfg.width - p.width - 10, p.x));
+      p.y = Math.max(10, Math.min(cfg.height - p.height - 10, p.y));
     }
 
+    // 4. Retrocade Dance Floor Passive Yield
     if (window.State && State.currentDimension === 'retrocade' && p.x > 980 && p.x < 1400 && p.y > 420 && p.y < 740) {
       p.danceTimer++;
       if (p.danceTimer % 150 === 0) {
         State.addTokens(1);
-        if (window.AudioEngine) AudioEngine.playSfx('coin');
+        if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('coin');
         State.showToast("DANCE FLOOR GROOVE: +1 TOKEN! 💃");
       }
     }
@@ -418,8 +421,10 @@ const Entities = {
       }
 
       if (Math.abs(n.knockbackVx) > 0.1 || Math.abs(n.knockbackVy) > 0.1) {
-        n.x += n.knockbackVx; n.y += n.knockbackVy;
-        n.knockbackVx *= 0.82; n.knockbackVy *= 0.82;
+        n.x += n.knockbackVx; 
+        n.y += n.knockbackVy;
+        n.knockbackVx *= 0.82; 
+        n.knockbackVy *= 0.82;
         return;
       }
 
@@ -436,9 +441,9 @@ const Entities = {
         if (n.tier === 'boss') {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
-            if (window.AudioEngine) AudioEngine.playSfx('laser');
+            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
-              if (window.Combat) {
+              if (window.Combat && Combat.enemyProjectiles) {
                 Combat.enemyProjectiles.push({
                   x: n.x + n.width / 2, y: n.y + n.height / 2,
                   vx: Math.cos(angle + spread) * 7.5, vy: Math.sin(angle + spread) * 7.5,
@@ -450,8 +455,8 @@ const Entities = {
         } else if (n.tier === 'mid') {
           if (dist < 260 && n.attackCooldown <= 0) {
             n.attackCooldown = 70;
-            if (window.AudioEngine) AudioEngine.playSfx('laser');
-            if (window.Combat) {
+            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
+            if (window.Combat && Combat.enemyProjectiles) {
               Combat.enemyProjectiles.push({
                 x: n.x + n.width / 2, y: n.y + n.height / 2,
                 vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7,
@@ -463,12 +468,13 @@ const Entities = {
 
         if (dist < 42 && n.attackCooldown <= 0) {
           n.attackCooldown = 48;
-          if (window.AudioEngine) AudioEngine.playSfx('slash');
+          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
           const dmg = n.tier === 'boss' ? 28 : n.tier === 'mid' ? 19 : 12;
           this.damagePlayer(dmg, Math.cos(angle) > 0 ? 'right' : 'left');
         }
 
-        n.x += vx; n.y += vy;
+        n.x += vx; 
+        n.y += vy;
       } else {
         n.moveTimer--;
         if (n.moveTimer <= 0) {
@@ -498,14 +504,14 @@ const Entities = {
       if (dist < 24) {
         if (item.type === 'coin') {
           if (window.State) State.addTokens(item.value);
-          if (window.AudioEngine) AudioEngine.playSfx('coin');
+          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('coin');
           if (window.State) State.showToast(`+${item.value} SOUND TOKENS! 🪙`);
         } else if (item.type === 'rare_tape') {
           if (window.State) {
             State.addRareTape();
             State.showToast(`RARE BATTLE CASSETTE ACQUIRED! (${State.userProfile.collectedRareTapes}/${State.RARE_TAPES_THRESHOLD}) 📼`);
           }
-          if (window.AudioEngine) AudioEngine.playSfx('win');
+          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
         }
         this.lootPickups.splice(i, 1);
       }
