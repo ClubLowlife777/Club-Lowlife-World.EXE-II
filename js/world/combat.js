@@ -25,11 +25,9 @@ const Combat = {
 
   activeInteractable: null,
 
-  /**
-   * Fast Axis-Aligned Bounding Box (AABB) Collision Detector
-   */
   checkCollision(r1, r2) {
     return (
+      r1 && r2 &&
       r1.x < r2.x + r2.width &&
       r1.x + r1.width > r2.x &&
       r1.y < r2.y + r2.height &&
@@ -41,7 +39,7 @@ const Combat = {
   // 1. PLASMA PROJECTILE FIRE & 1.0s CHARGE RELEASE
   // =========================================================================
   startShootInput() {
-    if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+    if (window.AudioEngine) AudioEngine.init();
     if (Date.now() < this.shootCooldown) return;
     this.isChargingShoot = true;
     this.shootChargeStartTime = Date.now();
@@ -77,7 +75,7 @@ const Combat = {
         isCharged: true,
         damage: 120,
         aoeRadius: 150,
-        life: 80,
+        life: 85,
         color: '#00f0ff'
       });
       State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
@@ -95,7 +93,7 @@ const Combat = {
         isCharged: false,
         damage: 30,
         aoeRadius: 0,
-        life: 55,
+        life: 60,
         color: '#facc15'
       });
     }
@@ -105,7 +103,7 @@ const Combat = {
   // 2. 4-HIT COMBO & ANYTIME 1.5s CHARGE DISCHARGE
   // =========================================================================
   startSlashInput() {
-    if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+    if (window.AudioEngine) AudioEngine.init();
     const now = Date.now();
     this.isHoldingSlash = true;
     this.slashHoldStartTime = now;
@@ -127,18 +125,15 @@ const Combat = {
     const now = Date.now();
     const holdSeconds = (now - this.slashHoldStartTime) / 1000;
 
-    // 1.5s FULL CHARGE: 360 Cosmic Purple Lightning Wave
     if (holdSeconds >= 1.5) {
       this.executeDevastatingChargeSlash();
       this.comboStep = 0;
       this.lastSlashTapTime = now;
     } else if (holdSeconds >= 0.7) {
-      // 0.7s MID CHARGE: Heavy Molten Orange Cleave
       this.executeMidChargeSlash();
       this.comboStep = 0;
       this.lastSlashTapTime = now;
     } else {
-      // Normal Tap: Execute current combo step
       this.executeComboSlash(this.comboStep);
       this.comboStep = (this.comboStep + 1) % 4;
       this.lastSlashTapTime = now;
@@ -157,7 +152,6 @@ const Combat = {
     else if (p.direction === 'right') slashX += offset;
 
     if (step === 0) {
-      // HIT 1: Swift Piercing Needle Thrust (35 DMG)
       if (window.AudioEngine) AudioEngine.playSfx('slash');
       this.meleeSlashes.push({
         x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2,
@@ -165,7 +159,6 @@ const Combat = {
       });
       this.checkMeleeHits(slashX, slashY, 48, 35, false, p.direction);
     } else if (step === 1) {
-      // HIT 2: Sweeping Crescent Arc (50 DMG)
       if (window.AudioEngine) AudioEngine.playSfx('slash');
       this.meleeSlashes.push({
         x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2,
@@ -173,7 +166,6 @@ const Combat = {
       });
       this.checkMeleeHits(slashX, slashY, 56, 50, false, p.direction);
     } else if (step === 2) {
-      // HIT 3: 360-Degree Spinning Dual Vortex Disc (75 DMG)
       if (window.AudioEngine) AudioEngine.playSfx('slash');
       this.meleeSlashes.push({
         x: p.x + p.width / 2, y: p.y + p.height / 2,
@@ -182,7 +174,6 @@ const Combat = {
       });
       this.checkMeleeHits(p.x + p.width / 2, p.y + p.height / 2, 72, 75, false, 'radial');
     } else if (step === 3) {
-      // HIT 4: Dimensional Fissure Ground Slam (100 DMG)
       if (window.AudioEngine) AudioEngine.playSfx('slash');
       State.triggerScreenShake(7, 14);
       this.meleeSlashes.push({
@@ -220,7 +211,6 @@ const Combat = {
     if (window.AudioEngine) AudioEngine.playSfx('win');
     State.triggerScreenShake(16, 28);
 
-    // 360 Cosmic Purple Lightning Wave
     this.meleeSlashes.push({
       x: slashX, y: slashY, originX: slashX, originY: slashY,
       dir: p.direction, type: 'devastating_breaker', color: '#a855f7', radius: 95, life: 25, damage: 185
@@ -230,30 +220,42 @@ const Combat = {
       x: slashX, y: slashY, radius: 10, maxRadius: 220, color: '#a855f7', life: 30
     });
 
-    // 220px Radial Impact Zone
-    Entities.hostileNpcs.forEach(n => {
-      if (n.alive) {
-        const dist = Math.hypot((n.x + n.width / 2) - slashX, (n.y + n.height / 2) - slashY);
-        if (dist <= 220) {
-          const angle = Math.atan2((n.y + n.height / 2) - slashY, (n.x + n.width / 2) - slashX);
-          const knockDir = Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))
-            ? (Math.cos(angle) > 0 ? 'right' : 'left')
-            : (Math.sin(angle) > 0 ? 'down' : 'up');
+    // 220px Radial Damage to Hostile NPCs
+    if (State.currentDimension === 'wasteland') {
+      Entities.hostileNpcs.forEach(n => {
+        if (n.alive) {
+          const dist = Math.hypot((n.x + n.width / 2) - slashX, (n.y + n.height / 2) - slashY);
+          if (dist <= 220) {
+            const angle = Math.atan2((n.y + n.height / 2) - slashY, (n.x + n.width / 2) - slashX);
+            const knockDir = Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))
+              ? (Math.cos(angle) > 0 ? 'right' : 'left')
+              : (Math.sin(angle) > 0 ? 'down' : 'up');
 
-          Entities.damageNpc(n, 185, knockDir);
-          this.spawnDamageNumber(n.x + n.width / 2, n.y - 12, 185, '#a855f7', true);
+            Entities.damageNpc(n, 185, knockDir);
+            this.spawnDamageNumber(n.x + n.width / 2, n.y - 12, 185, '#a855f7', true);
+          }
         }
-      }
-    });
+      });
+    }
+
+    // Hit Underground Target Dummy
+    if (State.currentDimension === 'underground' && Entities.trainingDummies) {
+      Entities.trainingDummies.forEach(d => {
+        if (Math.hypot((d.x + d.width / 2) - slashX, (d.y + d.height / 2) - slashY) <= 220) {
+          this.spawnDamageNumber(d.x + d.width / 2, d.y - 12, 185, '#a855f7', true);
+        }
+      });
+    }
 
     this.checkDestructibleDoors(slashX, slashY, 130, 185, true);
     State.showToast("DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜");
   },
 
   // =========================================================================
-  // 3. HITBOX REGISTRATION & DAMAGE APPLICATION
+  // 3. HITBOX REGISTRATION & TARGET DUMMY TESTING
   // =========================================================================
   checkMeleeHits(hitX, hitY, hitRadius, damage, isCharged, knockDirMode) {
+    // 1. Hostile Enemies in Wasteland
     if (State.currentDimension === 'wasteland') {
       Entities.hostileNpcs.forEach(npc => {
         if (npc.alive) {
@@ -275,9 +277,22 @@ const Combat = {
 
       this.checkDestructibleDoors(hitX, hitY, hitRadius, damage, isCharged);
     }
+
+    // 2. Training Target Dummy in Underground Garage
+    if (State.currentDimension === 'underground' && Entities.trainingDummies) {
+      Entities.trainingDummies.forEach(dummy => {
+        const dist = Math.hypot((dummy.x + dummy.width / 2) - hitX, (dummy.y + dummy.height / 2) - hitY);
+        if (dist <= hitRadius) {
+          if (window.AudioEngine) AudioEngine.playSfx('stomp');
+          this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 8, damage, isCharged ? '#ff7700' : '#00f0ff', isCharged);
+        }
+      });
+    }
   },
 
   checkDestructibleDoors(hitX, hitY, hitRadius, damage, isCharged) {
+    if (State.currentDimension !== 'wasteland' || !Dimensions.destructibleDoors) return;
+
     Dimensions.destructibleDoors.forEach(d => {
       if (!d.shattered) {
         const doorCenterX = d.x + d.width / 2;
@@ -318,18 +333,18 @@ const Combat = {
   },
 
   // =========================================================================
-  // 4. ENGINE FRAME TICK & HOMING VECTOR SOLVER
+  // 4. ENGINE FRAME TICK & HOMING PROJECTILE LOGIC
   // =========================================================================
   update() {
-    // --- 1. Homing Projectile Physics ---
+    // 1. Projectiles
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
 
+      // Homing physics in Wasteland
       if (State.currentDimension === 'wasteland') {
         let bestTarget = null;
         let bestScore = -Infinity;
 
-        // Target acquisition prioritizing forward cone over backward targets
         for (let n of Entities.hostileNpcs) {
           if (n.alive) {
             const dx = (n.x + n.width / 2) - p.x;
@@ -343,7 +358,6 @@ const Combat = {
               while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
               angleDiff = Math.abs(angleDiff);
 
-              // Higher score for closer targets within a forward 120° cone
               const forwardBias = (Math.PI - angleDiff) / Math.PI;
               const proximityScore = (650 - dist) / 650;
               const totalScore = forwardBias * 1.5 + proximityScore;
@@ -381,8 +395,8 @@ const Combat = {
       let hit = false;
       const pBox = { x: p.x - p.radius, y: p.y - p.radius, width: p.radius * 2, height: p.radius * 2 };
 
-      // Destructible Doors Checked FIRST
-      if (State.currentDimension === 'wasteland') {
+      // Destructible Doors
+      if (State.currentDimension === 'wasteland' && Dimensions.destructibleDoors) {
         Dimensions.destructibleDoors.forEach(d => {
           if (!d.shattered && this.checkCollision(pBox, d)) {
             hit = true;
@@ -400,7 +414,7 @@ const Combat = {
           }
         });
 
-        // Hostile NPCs
+        // Hostile Enemies
         if (!hit) {
           for (let npc of Entities.hostileNpcs) {
             if (npc.alive && this.checkCollision(pBox, npc)) {
@@ -413,7 +427,19 @@ const Combat = {
         }
       }
 
-      // Static Obstacles Wall Check
+      // Check Underground Target Dummy
+      if (!hit && State.currentDimension === 'underground' && Entities.trainingDummies) {
+        for (let dummy of Entities.trainingDummies) {
+          if (this.checkCollision(pBox, dummy)) {
+            if (window.AudioEngine) AudioEngine.playSfx('stomp');
+            this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 10, p.damage, p.isCharged ? '#00f0ff' : '#facc15', p.isCharged);
+            hit = true;
+            break;
+          }
+        }
+      }
+
+      // Obstacle collision
       if (!hit) {
         const obs = Dimensions.getActiveObstacles();
         for (let o of obs) {
@@ -432,12 +458,14 @@ const Combat = {
             x: p.x, y: p.y, radius: 10, maxRadius: p.aoeRadius, color: '#00f0ff', life: 24
           });
 
-          Entities.hostileNpcs.forEach(n => {
-            if (n.alive && Math.hypot((n.x + n.width / 2) - p.x, (n.y + n.height / 2) - p.y) <= p.aoeRadius) {
-              Entities.damageNpc(n, 85, 'down');
-              this.spawnDamageNumber(n.x + n.width / 2, n.y - 8, 85, '#00f0ff', true);
-            }
-          });
+          if (State.currentDimension === 'wasteland') {
+            Entities.hostileNpcs.forEach(n => {
+              if (n.alive && Math.hypot((n.x + n.width / 2) - p.x, (n.y + n.height / 2) - p.y) <= p.aoeRadius) {
+                Entities.damageNpc(n, 85, 'down');
+                this.spawnDamageNumber(n.x + n.width / 2, n.y - 8, 85, '#00f0ff', true);
+              }
+            });
+          }
         }
         this.projectiles.splice(i, 1);
       } else if (p.life <= 0) {
@@ -445,7 +473,7 @@ const Combat = {
       }
     }
 
-    // --- 2. Enemy Projectiles ---
+    // 2. Enemy Projectiles
     for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
       const ep = this.enemyProjectiles[i];
       ep.x += ep.vx;
@@ -453,10 +481,7 @@ const Combat = {
       ep.life--;
 
       const p = Entities.player;
-      const playerCenterDist = Math.hypot((p.x + p.width / 2) - ep.x, (p.y + p.height / 2) - ep.y);
-
-      // Tight hurtbox calculation
-      if (playerCenterDist < p.width * 0.7) {
+      if (Math.hypot((p.x + p.width / 2) - ep.x, (p.y + p.height / 2) - ep.y) < p.width * 0.7) {
         Entities.damagePlayer(ep.damage, ep.vx > 0 ? 'right' : 'left');
         this.spawnDamageNumber(p.x + p.width / 2, p.y - 14, ep.damage, '#ff003c', false);
         this.enemyProjectiles.splice(i, 1);
@@ -465,13 +490,13 @@ const Combat = {
       }
     }
 
-    // --- 3. Melee Slashes Lifecycles ---
+    // 3. Melee Slashes
     for (let i = this.meleeSlashes.length - 1; i >= 0; i--) {
       this.meleeSlashes[i].life--;
       if (this.meleeSlashes[i].life <= 0) this.meleeSlashes.splice(i, 1);
     }
 
-    // --- 4. Shockwave & AoE Explosions ---
+    // 4. Explosions
     for (let i = this.explosions.length - 1; i >= 0; i--) {
       const exp = this.explosions[i];
       exp.radius += (exp.maxRadius - exp.radius) * 0.28;
@@ -479,18 +504,101 @@ const Combat = {
       if (exp.life <= 0) this.explosions.splice(i, 1);
     }
 
-    // --- 5. Floating Damage Numbers Lifecycles ---
+    // 5. Floating Numbers
     for (let i = this.floatingNumbers.length - 1; i >= 0; i--) {
       const fn = this.floatingNumbers[i];
-      fn.y -= 0.85; // Rise up
+      fn.y -= 0.85;
       fn.life--;
       if (fn.life <= 0) this.floatingNumbers.splice(i, 1);
     }
+
+    // 6. Proximity Scanner
+    this.checkProximity();
   },
 
-  /**
-   * Renders rising arcade damage popups in world camera coordinates.
-   */
+  // =========================================================================
+  // 5. PROXIMITY DETECTION & INTERACTION RESOLUTION
+  // =========================================================================
+  checkProximity() {
+    if (!window.Entities || !Entities.player || !window.Dimensions) return;
+
+    const p = Entities.player;
+    const prompt = document.getElementById('interactionPrompt');
+    const promptText = document.getElementById('promptText');
+    const actionLabel = document.getElementById('btnActionLabel');
+    const actionBtn = document.getElementById('btnAction');
+
+    this.activeInteractable = null;
+    const pBox = { x: p.x - 35, y: p.y - 35, width: p.width + 70, height: p.height + 70 };
+
+    // 1. Friendly NPCs
+    const npcs = (Entities.friendlyNpcs && Entities.friendlyNpcs[State.currentDimension]) || [];
+    for (let n of npcs) {
+      if (this.checkCollision(pBox, n)) {
+        this.activeInteractable = { type: 'npc', data: n };
+        if (promptText) promptText.innerText = `[E] TALK TO ${n.name}`;
+        if (actionLabel) actionLabel.innerText = "TALK";
+        if (prompt) prompt.classList.remove('hidden');
+        if (actionBtn) actionBtn.classList.add('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.4)]');
+        return;
+      }
+    }
+
+    // 2. Wasteland Chests
+    if (State.currentDimension === 'wasteland' && Dimensions.wastelandChests) {
+      for (let c of Dimensions.wastelandChests) {
+        if (!c.opened && this.checkCollision(pBox, c)) {
+          this.activeInteractable = { type: 'chest', data: c };
+          if (promptText) promptText.innerText = `[E] RAID ${c.label}`;
+          if (actionLabel) actionLabel.innerText = "OPEN";
+          if (prompt) prompt.classList.remove('hidden');
+          if (actionBtn) actionBtn.classList.add('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.4)]');
+          return;
+        }
+      }
+    }
+
+    // 3. Interactive World Zones (kiosks, portals, arcades, merch)
+    const zones = Dimensions.getActiveZones ? Dimensions.getActiveZones() : [];
+    for (let z of zones) {
+      if (this.checkCollision(pBox, z)) {
+        this.activeInteractable = { type: 'zone', data: z };
+        if (promptText) promptText.innerText = `[E] ${z.label}`;
+        if (actionLabel) actionLabel.innerText = "ENTER";
+        if (prompt) prompt.classList.remove('hidden');
+        if (actionBtn) actionBtn.classList.add('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.4)]');
+        return;
+      }
+    }
+
+    if (prompt) prompt.classList.add('hidden');
+    if (actionLabel) actionLabel.innerText = "ACTION";
+    if (actionBtn) actionBtn.classList.remove('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.4)]');
+  },
+
+  triggerActiveInteraction() {
+    if (!this.activeInteractable) return;
+    const item = this.activeInteractable;
+
+    if (item.type === 'npc') {
+      const n = item.data;
+      const nameEl = document.getElementById('npcName');
+      const roleEl = document.getElementById('npcRole');
+      const iconEl = document.getElementById('npcAvatarIcon');
+      const textEl = document.getElementById('npcDialogueText');
+      const modal = document.getElementById('npcModal');
+      if (nameEl) nameEl.innerText = n.name;
+      if (roleEl) roleEl.innerText = n.role;
+      if (iconEl) iconEl.innerText = n.icon || '👤';
+      if (textEl) textEl.innerText = n.dialogue;
+      if (modal) modal.classList.remove('hidden');
+    } else if (item.type === 'chest') {
+      Entities.openChest(item.data);
+    } else if (item.type === 'zone' && typeof item.data.action === 'function') {
+      item.data.action();
+    }
+  },
+
   renderDamageNumbers(ctx) {
     if (!this.floatingNumbers || this.floatingNumbers.length === 0) return;
 
@@ -506,11 +614,10 @@ const Combat = {
       ctx.fillText(fn.text, fn.x, fn.y);
       ctx.restore();
     });
-  },
-
-  triggerActiveInteraction() {
-    if (window.Input && typeof Input.triggerInteraction === 'function') {
-      Input.triggerInteraction();
-    }
   }
 };
+
+// Wire bridge to Input if triggered from there
+if (window.Input) {
+  Input.triggerInteraction = () => Combat.triggerActiveInteraction();
+}
