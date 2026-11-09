@@ -15,13 +15,13 @@ const AudioEngine = {
   bgmVersion: 'original',
   noirBassNotes: [110, 110, 130.81, 146.83, 164.81, 146.83, 130.81, 110, 98, 98, 110, 130.81, 146.83, 130.81, 123.47, 98],
 
-  init() {
+  async init() {
     try {
       if (!this.ctx) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (AudioCtx) {
           this.ctx = new AudioCtx();
-          
+
           // Master Gain Bus for Music
           this.bgmMasterGain = this.ctx.createGain();
           this.bgmMasterGain.gain.setValueAtTime(0.40, this.ctx.currentTime);
@@ -33,20 +33,26 @@ const AudioEngine = {
           this.sfxMasterGain.connect(this.ctx.destination);
         }
       }
+
       if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume();
+        await this.ctx.resume();
       }
     } catch (e) {
       console.warn("AudioContext init error:", e);
     }
   },
 
-  toggleBgm() {
-    this.init();
+  async toggleBgm() {
+    await this.init();
     if (!this.ctx) return;
+
+    if (this.ctx.state === 'suspended') {
+      await this.ctx.resume();
+    }
 
     this.isBgmPlaying = !this.isBgmPlaying;
     const icon = document.getElementById('bgmPlayIcon');
+
     if (this.isBgmPlaying) {
       if (icon) icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       this.startBgmLoop();
@@ -97,7 +103,7 @@ const AudioEngine = {
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
 
       osc.connect(g);
-      g.connect(this.bgmMasterGain);
+      g.connect(this.bgmMasterGain || this.ctx.destination);
 
       osc.start(now);
       osc.stop(now + 0.30);
@@ -182,7 +188,6 @@ const AudioEngine = {
         osc.start(now);
         osc.stop(now + 0.05);
       } else if (type === 'win') {
-        // Multi-frequency celebratory chime
         const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
         notes.forEach((freq, idx) => {
           const chordOsc = this.ctx.createOscillator();
@@ -207,6 +212,8 @@ const AudioEngine = {
     }
   }
 };
+
+window.AudioEngine = AudioEngine;
 
 // Global user-gesture audio unlocker
 const unlockAudioOnGesture = () => {
