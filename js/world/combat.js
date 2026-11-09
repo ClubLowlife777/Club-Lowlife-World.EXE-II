@@ -31,7 +31,7 @@ const Combat = {
   },
 
   startShootInput() {
-    if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+    if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
     if (Date.now() < this.shootCooldown) return;
     this.isChargingShoot = true;
     this.shootChargeStartTime = Date.now();
@@ -56,21 +56,21 @@ const Combat = {
     else if (dir === 'down') vy = 1;
     else if (dir === 'left') vx = -1;
     else if (dir === 'right') vx = 1;
-    else vy = 1; // Default downward if unaligned
+    else vy = 1;
 
     if (holdSeconds >= 1.0) {
       this.shootCooldown = Date.now() + 850;
-      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
       this.projectiles.push({
         x: p.x + (p.width || 26) / 2, 
         y: p.y + (p.height || 38) / 2,
         vx: vx * 8.5, vy: vy * 8.5, speed: 8.5, radius: 14,
         isCharged: true, damage: 120, aoeRadius: 150, life: 85, color: '#00f0ff'
       });
-      if (window.State && State.showToast) State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
+      if (window.State && typeof State.showToast === 'function') State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
     } else {
       this.shootCooldown = Date.now() + 180;
-      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
       this.projectiles.push({
         x: p.x + (p.width || 26) / 2, 
         y: p.y + (p.height || 38) / 2,
@@ -81,7 +81,7 @@ const Combat = {
   },
 
   startSlashInput() {
-    if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+    if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
     const now = Date.now();
     this.isHoldingSlash = true;
     this.slashHoldStartTime = now;
@@ -129,20 +129,20 @@ const Combat = {
     else if (p.direction === 'right') slashX += offset;
 
     if (step === 0) {
-      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
       this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'stab_thrust', color: '#ff003c', radius: 36, life: 9, damage: 35 });
       this.checkMeleeHits(slashX, slashY, 48, 35, false, p.direction);
     } else if (step === 1) {
-      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
       this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#00f0ff', radius: 48, life: 11, damage: 50 });
       this.checkMeleeHits(slashX, slashY, 56, 50, false, p.direction);
     } else if (step === 2) {
-      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
       this.meleeSlashes.push({ x: p.x + p.width / 2, y: p.y + p.height / 2, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'spinning_vortex', color: '#ff7700', radius: 64, life: 13, damage: 75 });
       this.checkMeleeHits(p.x + p.width / 2, p.y + p.height / 2, 72, 75, false, 'radial');
     } else if (step === 3) {
-      if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
-      if (window.State && State.triggerScreenShake) State.triggerScreenShake(7, 14);
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
+      if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(7, 14);
       this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'ground_slam', color: '#facc15', radius: 76, life: 15, damage: 100 });
       this.checkMeleeHits(slashX, slashY, 82, 100, true, p.direction);
     }
@@ -160,7 +160,7 @@ const Combat = {
     else if (p.direction === 'left') slashX -= offset;
     else if (p.direction === 'right') slashX += offset;
 
-    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
     this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#ff7700', radius: 64, life: 14, damage: 115 });
     this.checkMeleeHits(slashX, slashY, 74, 115, true, p.direction);
   },
@@ -171,8 +171,8 @@ const Combat = {
     const slashX = p.x + p.width / 2;
     const slashY = p.y + p.height / 2;
 
-    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
-    if (window.State && State.triggerScreenShake) State.triggerScreenShake(16, 28);
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
+    if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(16, 28);
 
     this.meleeSlashes.push({ x: slashX, y: slashY, originX: slashX, originY: slashY, dir: p.direction, type: 'devastating_breaker', color: '#a855f7', radius: 95, life: 25, damage: 185 });
     this.explosions.push({ x: slashX, y: slashY, radius: 10, maxRadius: 220, color: '#a855f7', life: 30 });
@@ -201,7 +201,7 @@ const Combat = {
     }
 
     this.checkDestructibleDoors(slashX, slashY, 130, 185, true);
-    if (window.State && State.showToast) State.showToast("DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜");
+    if (window.State && typeof State.showToast === 'function') State.showToast("DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜");
   },
 
   checkMeleeHits(hitX, hitY, hitRadius, damage, isCharged, knockDirMode) {
@@ -227,7 +227,7 @@ const Combat = {
     if (window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
       Entities.trainingDummies.forEach(dummy => {
         if (Math.hypot((dummy.x + dummy.width / 2) - hitX, (dummy.y + dummy.height / 2) - hitY) <= hitRadius) {
-          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+          if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
           this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 8, damage, isCharged ? '#ff7700' : '#00f0ff', isCharged);
         }
       });
@@ -241,11 +241,11 @@ const Combat = {
         if (Math.hypot((d.x + d.width / 2) - hitX, (d.y + d.height / 2) - hitY) <= hitRadius + 30) {
           if (isCharged) {
             d.hp -= damage;
-            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+            if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
             this.spawnDamageNumber(d.x + d.width / 2, d.y - 14, damage, '#ff003c', true);
             if (d.hp <= 0) {
               d.shattered = true;
-              if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
+              if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
               if (window.State) {
                 State.triggerScreenShake(14, 24);
                 State.showToast("BREACH DESTROYED // SECRET PATH OPENED! 🚪🔓");
@@ -339,7 +339,7 @@ const Combat = {
       if (!hit && window.State && State.currentDimension === 'underground' && window.Entities && Entities.trainingDummies) {
         for (let dummy of Entities.trainingDummies) {
           if (this.checkCollision(pBox, dummy)) {
-            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+            if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
             this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 10, p.damage, p.isCharged ? '#00f0ff' : '#facc15', p.isCharged);
             hit = true; break;
           }
@@ -355,8 +355,8 @@ const Combat = {
 
       if (hit) {
         if (p.isCharged) {
-          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
-          if (window.State && State.triggerScreenShake) State.triggerScreenShake(9, 16);
+          if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
+          if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(9, 16);
           this.explosions.push({ x: p.x, y: p.y, radius: 10, maxRadius: p.aoeRadius, color: '#00f0ff', life: 24 });
           if (window.State && State.currentDimension === 'wasteland' && window.Entities && Entities.hostileNpcs) {
             Entities.hostileNpcs.forEach(n => {
@@ -431,4 +431,5 @@ const Combat = {
     });
   }
 };
+
 window.Combat = Combat;
