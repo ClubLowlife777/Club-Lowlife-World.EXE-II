@@ -168,7 +168,7 @@ const Entities = {
   damageNpc(npc, amount, knockDir) {
     if (!npc.alive) return;
     npc.hp -= amount;
-    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
     npc.state = 'aggro';
     npc.aggroTimer = 350;
 
@@ -223,7 +223,7 @@ const Entities = {
         State.userProfile.chestsOpened.push(c.id);
       }
     }
-    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
     if (window.State) State.triggerScreenShake(6, 12);
 
     if (c.type === 'supply' && window.State) {
@@ -252,7 +252,7 @@ const Entities = {
     if (p.iFrames > 0) return;
     p.hp = Math.max(0, p.hp - amount);
     p.iFrames = 30;
-    if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
     if (window.State) State.triggerScreenShake(8, 14);
 
     const force = 11;
@@ -266,8 +266,9 @@ const Entities = {
     if (p.hp <= 0 && window.State) {
       State.showToast("NEURAL LINK CRITICAL // RESPAWNING...");
       setTimeout(() => {
-        p.x = State.currentDimension === 'wasteland' ? 800 : 350;
-        p.y = State.currentDimension === 'wasteland' ? 800 : 750;
+        // Shifted Wasteland respawn from (800, 800) to clear ground (650, 1100)
+        p.x = State.currentDimension === 'wasteland' ? 650 : 350;
+        p.y = State.currentDimension === 'wasteland' ? 1100 : 750;
         p.hp = p.maxHp;
         this.updatePlayerHealthUI();
         State.save();
@@ -302,7 +303,7 @@ const Entities = {
       }
       if (hitWallX) {
         p.knockbackVx = -p.knockbackVx * 0.45;
-        if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+        if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
       } else {
         p.x += p.knockbackVx;
       }
@@ -314,7 +315,7 @@ const Entities = {
       }
       if (hitWallY) {
         p.knockbackVy = -p.knockbackVy * 0.45;
-        if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('stomp');
+        if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
       } else {
         p.y += p.knockbackVy;
       }
@@ -397,7 +398,7 @@ const Entities = {
       p.danceTimer++;
       if (p.danceTimer % 150 === 0) {
         State.addTokens(1);
-        if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('coin');
+        if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('coin');
         State.showToast("DANCE FLOOR GROOVE: +1 TOKEN! 💃");
       }
     }
@@ -441,7 +442,7 @@ const Entities = {
         if (n.tier === 'boss') {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
-            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
+            if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
               if (window.Combat && Combat.enemyProjectiles) {
                 Combat.enemyProjectiles.push({
@@ -455,7 +456,7 @@ const Entities = {
         } else if (n.tier === 'mid') {
           if (dist < 260 && n.attackCooldown <= 0) {
             n.attackCooldown = 70;
-            if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('laser');
+            if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
             if (window.Combat && Combat.enemyProjectiles) {
               Combat.enemyProjectiles.push({
                 x: n.x + n.width / 2, y: n.y + n.height / 2,
@@ -468,7 +469,7 @@ const Entities = {
 
         if (dist < 42 && n.attackCooldown <= 0) {
           n.attackCooldown = 48;
-          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('slash');
+          if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
           const dmg = n.tier === 'boss' ? 28 : n.tier === 'mid' ? 19 : 12;
           this.damagePlayer(dmg, Math.cos(angle) > 0 ? 'right' : 'left');
         }
@@ -504,18 +505,19 @@ const Entities = {
       if (dist < 24) {
         if (item.type === 'coin') {
           if (window.State) State.addTokens(item.value);
-          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('coin');
+          if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('coin');
           if (window.State) State.showToast(`+${item.value} SOUND TOKENS! 🪙`);
         } else if (item.type === 'rare_tape') {
           if (window.State) {
             State.addRareTape();
             State.showToast(`RARE BATTLE CASSETTE ACQUIRED! (${State.userProfile.collectedRareTapes}/${State.RARE_TAPES_THRESHOLD}) 📼`);
           }
-          if (window.AudioEngine && AudioEngine.playSfx) AudioEngine.playSfx('win');
+          if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
         }
         this.lootPickups.splice(i, 1);
       }
     }
   }
 };
+
 window.Entities = Entities;
