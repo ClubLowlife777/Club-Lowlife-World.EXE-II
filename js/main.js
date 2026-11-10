@@ -30,31 +30,29 @@ window.addEventListener('resize', resizeCanvas);
 
 // Auto-save on page refresh or tab close
 window.addEventListener('beforeunload', () => {
-  if (window.State) State.save();
+  if (window.State && typeof State.save === 'function') State.save();
 });
 
 // Canvas mouse click attack & focus bindings
 canvas.addEventListener('mousedown', (e) => {
-  if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+  if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
 
-  // Remove focus from any active text input so keys register immediately
   if (document.activeElement && document.activeElement.tagName === 'INPUT') {
     document.activeElement.blur();
   }
 
-  // Left Click = Melee Slash, Right Click = Plasma Projectile
-  if (e.button === 0 && window.Combat) {
+  if (e.button === 0 && window.Combat && typeof Combat.startSlashInput === 'function') {
     Combat.startSlashInput();
-  } else if (e.button === 2 && window.Combat) {
+  } else if (e.button === 2 && window.Combat && typeof Combat.startShootInput === 'function') {
     e.preventDefault();
     Combat.startShootInput();
   }
 });
 
 canvas.addEventListener('mouseup', (e) => {
-  if (e.button === 0 && window.Combat) {
+  if (e.button === 0 && window.Combat && typeof Combat.releaseSlashInput === 'function') {
     Combat.releaseSlashInput();
-  } else if (e.button === 2 && window.Combat) {
+  } else if (e.button === 2 && window.Combat && typeof Combat.releaseShootInput === 'function') {
     e.preventDefault();
     Combat.releaseShootInput();
   }
@@ -66,9 +64,8 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
 
-  // Screen Shake Offset
   let shakeX = 0, shakeY = 0;
-  if (State.screenShake && State.screenShake.duration > 0) {
+  if (window.State && State.screenShake && State.screenShake.duration > 0) {
     shakeX = (Math.random() - 0.5) * State.screenShake.intensity;
     shakeY = (Math.random() - 0.5) * State.screenShake.intensity;
     State.screenShake.duration--;
@@ -76,19 +73,20 @@ function draw() {
 
   ctx.translate(-Math.floor(camera.x) + shakeX, -Math.floor(camera.y) + shakeY);
 
-  if (State.currentDimension === 'underground') drawUnderground();
-  else if (State.currentDimension === 'retrocade') drawRetrocade();
+  const dim = (window.State && State.currentDimension) ? State.currentDimension : 'underground';
+  if (dim === 'underground') drawUnderground();
+  else if (dim === 'retrocade') drawRetrocade();
   else drawWasteland();
 
   ctx.restore();
 
-  if (State.currentDimension === 'wasteland') {
+  if (dim === 'wasteland') {
     drawRainOverlay();
   }
 }
 
 // =========================================================================
-// 1. UNDERGROUND NIGHT SHIFT (2400 x 1200) - INTERIORS & OPEN DOORWAYS[cite: 1]
+// 1. UNDERGROUND NIGHT SHIFT (2400 x 1200)[cite: 1]
 // =========================================================================
 function drawUnderground() {
   ctx.fillStyle = '#161d2f';
@@ -103,13 +101,11 @@ function drawUnderground() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke();
   }
 
-  // Interior Floor Tinting
   ctx.fillStyle = '#121929'; ctx.fillRect(35, 35, 600, 415);
   ctx.fillStyle = '#171a2a'; ctx.fillRect(800, 35, 500, 320);
   ctx.fillStyle = '#1b1730'; ctx.fillRect(1450, 35, 915, 445);
   ctx.fillStyle = '#131824'; ctx.fillRect(1450, 505, 915, 660);
 
-  // Headers
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 11px "Chakra Petch"';
   ctx.fillText("TUNING BAY 01 // MERCH EXTRACTION", 60, 65);
@@ -119,7 +115,6 @@ function drawUnderground() {
   ctx.fillStyle = '#64748b';
   ctx.fillText("SUBTERRANEAN GENERATOR ANNEX", 1780, 535);
 
-  // Obstacle Walls
   ctx.fillStyle = '#222b40';
   if (typeof Dimensions !== 'undefined' && Dimensions.undergroundObstacles) {
     Dimensions.undergroundObstacles.forEach(o => {
@@ -141,7 +136,7 @@ function drawUnderground() {
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("PROMO: WASTELAND15", 200, 252);
 
-  // West Bay: Hologram Combat Target Dummy (Testing & Feedback)
+  // Target Dummy
   if (typeof Entities !== 'undefined' && Entities.trainingDummies) {
     Entities.trainingDummies.forEach(td => {
       ctx.save();
@@ -159,7 +154,7 @@ function drawUnderground() {
     });
   }
 
-  // North Central: Mastering Console
+  // Mastering Console
   ctx.fillStyle = '#0f172a'; ctx.fillRect(880, 120, 160, 90);
   ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 1.5; ctx.strokeRect(880, 120, 160, 90);
   ctx.fillStyle = '#0284c7'; ctx.fillRect(895, 130, 55, 30); ctx.fillRect(965, 130, 55, 30);
@@ -174,7 +169,7 @@ function drawUnderground() {
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("[AUDIT DISCOGRAPHY]", 908, 198);
 
-  // East Bay: 3 Arcade Cabinets[cite: 1]
+  // Cabinets[cite: 1]
   const arcadeTitles = ['VOID INVADERS', 'GRID RUNNER', 'LOWLIFE LEAP'];
   arcadeTitles.forEach((title, idx) => {
     const ax = 1650 + idx * 150;
@@ -188,7 +183,6 @@ function drawUnderground() {
   });
 
   drawPortal(2200, 900, '#00f0ff', '#ec4899', "WARP: RETROCADE DISTRICT 84");
-
   drawPortalsAndEntities('underground');
 }
 
@@ -282,7 +276,7 @@ function drawRetrocade() {
   const colors = ['#ec4899', '#00f0ff', '#a855f7', '#facc15'];
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 8; j++) {
-      ctx.fillStyle = colors[(i + j + (AudioEngine ? AudioEngine.bgmStepIndex : 0)) % colors.length];
+      ctx.fillStyle = colors[(i + j + (window.AudioEngine ? AudioEngine.bgmStepIndex : 0)) % colors.length];
       ctx.globalAlpha = 0.42;
       ctx.fillRect(980 + i * 42, 420 + j * 40, 38, 36);
       ctx.globalAlpha = 1.0;
@@ -293,7 +287,7 @@ function drawRetrocade() {
   ctx.fillStyle = '#4c1d95'; ctx.fillRect(1060, 140, 280, 80);
   ctx.strokeStyle = '#f43f5e'; ctx.strokeRect(1060, 140, 280, 80);
   for (let b = 0; b < 16; b++) {
-    const isPlaying = AudioEngine && AudioEngine.isBgmPlaying;
+    const isPlaying = window.AudioEngine && AudioEngine.isBgmPlaying;
     const barH = 10 + Math.sin((Date.now() / 120) + b) * 16 + (isPlaying ? 12 : 0);
     ctx.fillStyle = b % 2 === 0 ? '#00f0ff' : '#ec4899';
     ctx.fillRect(1080 + b * 15, 140 - barH, 10, barH);
@@ -374,7 +368,8 @@ function drawWasteland() {
     });
   }
 
-  drawPortal(800, 700, '#a855f7', '#ec4899', "WARP: RETROCADE");
+  // Shifted adjacent to verified spawn clearing (650, 1100)
+  drawPortal(650, 1020, '#a855f7', '#ec4899', "WARP: RETROCADE");
   drawPortal(3120, 150, '#10b981', '#facc15', "NEURAL EXTRACTION GATE [50 TAPES]");
 
   drawPortalsAndEntities('wasteland');
@@ -423,7 +418,6 @@ function drawHoldingChamberInterior() {
 // 4. ENTITIES, COMBAT PARTICLES, & OVERHEAD CALLSIGN BADGE[cite: 2]
 // =========================================================================
 function drawPortalsAndEntities(dim) {
-  // Friendly NPCs
   if (typeof Entities !== 'undefined' && Entities.friendlyNpcs) {
     (Entities.friendlyNpcs[dim] || []).forEach(n => {
       const bob = n.dancePhase !== undefined ? Math.sin((Date.now() / 150) + n.dancePhase) * 3.5 : 0;
@@ -433,7 +427,6 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Wasteland Enemies
   if (dim === 'wasteland' && typeof Entities !== 'undefined' && Entities.hostileNpcs) {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive) return;
@@ -457,7 +450,6 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Loot Pickups
   if (typeof Entities !== 'undefined' && Entities.lootPickups) {
     Entities.lootPickups.forEach(p => {
       ctx.fillStyle = p.type === 'coin' ? '#facc15' : '#eab308';
@@ -467,7 +459,6 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Homing Projectiles[cite: 2]
   if (typeof Combat !== 'undefined' && Combat.projectiles) {
     Combat.projectiles.forEach(p => {
       ctx.save();
@@ -486,7 +477,6 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Enemy Projectiles
   if (typeof Combat !== 'undefined' && Combat.enemyProjectiles) {
     Combat.enemyProjectiles.forEach(ep => {
       ctx.fillStyle = '#ff003c';
@@ -494,7 +484,6 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Melee Slashes[cite: 2]
   if (typeof Combat !== 'undefined' && Combat.meleeSlashes) {
     Combat.meleeSlashes.forEach(s => {
       ctx.save();
@@ -536,7 +525,6 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Explosions
   if (typeof Combat !== 'undefined' && Combat.explosions) {
     Combat.explosions.forEach(exp => {
       ctx.save();
@@ -547,12 +535,10 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Render Arcade Damage Numbers
   if (typeof Combat !== 'undefined' && Combat.renderDamageNumbers) {
     Combat.renderDamageNumbers(ctx);
   }
 
-  // Render Player Character & Callsign Badge[cite: 2]
   if (typeof Entities !== 'undefined' && Entities.player) {
     const p = Entities.player;
     const skinId = State.userProfile && State.userProfile.activeSkin ? State.userProfile.activeSkin : 'enforcer';
@@ -564,10 +550,6 @@ function drawPortalsAndEntities(dim) {
   }
 }
 
-/**
- * Draws the username callsign badge and indicator arrow
- * floating directly above the player's head.
- */
 function renderPlayerCallsign(ctx, px, py, handle) {
   ctx.save();
 
@@ -584,16 +566,13 @@ function renderPlayerCallsign(ctx, px, py, handle) {
   const pillHeight = 14;
   const pillY = tagY - pillHeight - 2;
 
-  // Background pill
   ctx.fillStyle = 'rgba(7, 8, 11, 0.85)';
   ctx.fillRect(headCenterX - (textWidth / 2) - paddingX, pillY, textWidth + (paddingX * 2), pillHeight);
 
-  // Tactical Cyan border
   ctx.strokeStyle = '#00f0ff';
   ctx.lineWidth = 1;
   ctx.strokeRect(headCenterX - (textWidth / 2) - paddingX, pillY, textWidth + (paddingX * 2), pillHeight);
 
-  // Downward-pointing indicator arrow
   ctx.fillStyle = '#00f0ff';
   ctx.beginPath();
   ctx.moveTo(headCenterX - 3, pillY + pillHeight);
@@ -602,7 +581,6 @@ function renderPlayerCallsign(ctx, px, py, handle) {
   ctx.closePath();
   ctx.fill();
 
-  // Callsign text
   ctx.fillStyle = '#ffffff';
   ctx.fillText(text, headCenterX, tagY - 2);
 
@@ -620,11 +598,9 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   const walkBob = isMoving ? Math.sin(animTimer * 0.35) * 3 : 0;
   const legOffset = isMoving ? Math.sin(animTimer * 0.35) * 4 : 0;
 
-  // Shadow
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.beginPath(); ctx.ellipse(13, 37, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
 
-  // Charge auras[cite: 2]
   if (typeof Combat !== 'undefined' && Combat.isHoldingSlash) {
     const holdSec = (Date.now() - Combat.slashHoldStartTime) / 1000;
     if (holdSec >= 1.5) {
@@ -642,7 +618,6 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
     }
   }
 
-  // Legs & Boots
   ctx.fillStyle = pantsColor;
   ctx.fillRect(5, 26 + legOffset, 6, 11 - legOffset);
   ctx.fillRect(15, 26 - legOffset, 6, 11 + legOffset);
@@ -650,14 +625,12 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
   ctx.fillRect(4, 34 + legOffset, 7, 4);
   ctx.fillRect(15, 34 - legOffset, 7, 4);
 
-  // Heavy Trench Duster[cite: 2]
   ctx.fillStyle = coatColor;
   ctx.fillRect(3, 12 + walkBob, 20, 18);
   if (direction === 'up') ctx.fillRect(4, 28 + walkBob, 18, 6);
   else if (direction === 'left') ctx.fillRect(16, 24 + walkBob, 8, 8);
   else if (direction === 'right') ctx.fillRect(2, 24 + walkBob, 8, 8);
 
-  // Tactical Mask & Visor[cite: 2]
   ctx.fillStyle = '#090b10';
   ctx.beginPath(); ctx.arc(13, 7 + walkBob, 9, 0, Math.PI * 2); ctx.fill();
 
@@ -690,15 +663,17 @@ function gameLoop() {
   if (typeof Entities !== 'undefined' && Entities.update) Entities.update();
   if (typeof Combat !== 'undefined' && Combat.update) Combat.update();
 
-  const cfg = State.DIMENSIONS[State.currentDimension];
-  if (cfg && typeof Entities !== 'undefined' && Entities.player) {
-    const targetX = Entities.player.x - camera.width / 2;
-    const targetY = Entities.player.y - camera.height / 2;
+  if (window.State && State.DIMENSIONS && State.currentDimension) {
+    const cfg = State.DIMENSIONS[State.currentDimension];
+    if (cfg && typeof Entities !== 'undefined' && Entities.player) {
+      const targetX = Entities.player.x - camera.width / 2;
+      const targetY = Entities.player.y - camera.height / 2;
 
-    camera.x += (targetX - camera.x) * 0.12;
-    camera.y += (targetY - camera.y) * 0.12;
-    camera.x = Math.max(0, Math.min(cfg.width - camera.width, camera.x));
-    camera.y = Math.max(0, Math.min(cfg.height - camera.height, camera.y));
+      camera.x += (targetX - camera.x) * 0.12;
+      camera.y += (targetY - camera.y) * 0.12;
+      camera.x = Math.max(0, Math.min(cfg.width - camera.width, camera.x));
+      camera.y = Math.max(0, Math.min(cfg.height - camera.height, camera.y));
+    }
   }
 
   draw();
@@ -707,8 +682,8 @@ function gameLoop() {
 
 window.onload = function() {
   resizeCanvas();
-  if (window.State && State.init) State.init();
-  if (window.Input && Input.init) Input.init();
-  if (window.Entities && Entities.init) Entities.init();
+  if (window.State && typeof State.init === 'function') State.init();
+  if (window.Input && typeof Input.init === 'function') Input.init();
+  if (window.Entities && typeof Entities.init === 'function') Entities.init();
   gameLoop();
 };
