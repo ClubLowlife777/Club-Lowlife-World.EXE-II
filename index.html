@@ -41,14 +41,14 @@
 
     <!-- Active Audio Player HUD Bar -->
     <div class="flex items-center gap-1.5 bg-[#0e1117]/90 px-2 py-1 rounded-lg border border-[#262c3d] text-xs">
-      <button id="bgmToggleBtn" class="p-1 text-[#00f0ff] hover:text-white transition" title="Play / Pause Audio">
+      <button id="bgmToggleBtn" class="p-1 text-[#00f0ff] hover:text-white transition" title="Play / Pause Audio" onclick="if(window.AudioEngine && typeof AudioEngine.toggleBgm === 'function') AudioEngine.toggleBgm();">
         <svg id="bgmPlayIcon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
       <div class="flex flex-col max-w-[95px] sm:max-w-none truncate">
         <span class="text-[8px] text-neutral-400 font-mono uppercase leading-tight">BROADCAST:</span>
         <span id="activeTrackName" class="text-[10px] sm:text-[11px] font-bold text-white leading-tight truncate">"DANCING"</span>
       </div>
-      <select id="trackVersionSelect" class="bg-black text-[9px] sm:text-[10px] text-[#00f0ff] border border-neutral-700 rounded px-1 py-0.5 font-mono focus:outline-none">
+      <select id="trackVersionSelect" onchange="if(window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm(this.value);" class="bg-black text-[9px] sm:text-[10px] text-[#00f0ff] border border-neutral-700 rounded px-1 py-0.5 font-mono focus:outline-none">
         <option value="original">ORIGINAL</option>
         <option value="spedup">SPED (+15%)</option>
         <option value="slowed">SLOW (-15%)</option>
@@ -65,7 +65,12 @@
         <span>📼</span>
         <b id="rareBattleTapeCount">0/50</b>
       </div>
-      <button id="btnWarp" onclick="if(window.State && typeof State.switchDimension === 'function') { State.switchDimension(State.currentDimension === 'underground' ? 'retrocade' : State.currentDimension === 'retrocade' ? 'wasteland' : 'underground', 350, 750); }" class="px-2 py-1 bg-gradient-to-r from-pink-600 to-cyan-500 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
+      <button id="btnWarp" onclick="if(window.State && typeof State.switchDimension === 'function') {
+        const nextDim = State.currentDimension === 'underground' ? 'retrocade' : (State.currentDimension === 'retrocade' ? 'wasteland' : 'underground');
+        const spawnX = nextDim === 'wasteland' ? 650 : (nextDim === 'retrocade' ? 1200 : 350);
+        const spawnY = nextDim === 'wasteland' ? 1100 : (nextDim === 'retrocade' ? 750 : 750);
+        State.switchDimension(nextDim, spawnX, spawnY);
+      }" class="px-2 py-1 bg-gradient-to-r from-pink-600 to-cyan-500 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
         WARP
       </button>
       <button id="openLinksModalBtn" onclick="openDiscographyModal()" class="px-2 py-1 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-xs rounded transition">
@@ -162,8 +167,8 @@
       </div>
       <div id="gatedStatusMessage" class="text-xs font-mono text-red-400 mb-4">ACCESS RESTRICTED</div>
       <div class="flex gap-2">
-        <button id="gatedProceedBtn" onclick="State.attemptGateWarp()" class="flex-1 py-2 bg-neutral-800 text-neutral-500 font-cyber font-bold text-xs rounded cursor-not-allowed">WARP TO HORIZON</button>
-        <button onclick="State.closeModals()" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
+        <button id="gatedProceedBtn" onclick="if(window.State && typeof State.attemptGateWarp === 'function') State.attemptGateWarp();" class="flex-1 py-2 bg-neutral-800 text-neutral-500 font-cyber font-bold text-xs rounded cursor-not-allowed">WARP TO HORIZON</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
       </div>
     </div>
   </div>
@@ -180,7 +185,7 @@
       </div>
       <p id="npcDialogueText" class="text-xs text-neutral-200 leading-relaxed min-h-[48px]">Dialogue goes here...</p>
       <div class="mt-4 flex justify-end">
-        <button onclick="State.closeModals()" class="px-4 py-1.5 bg-[#00f0ff] text-black font-cyber font-bold text-xs rounded hover:bg-white transition">DISMISS [ESC]</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-4 py-1.5 bg-[#00f0ff] text-black font-cyber font-bold text-xs rounded hover:bg-white transition">DISMISS [ESC]</button>
       </div>
     </div>
   </div>
@@ -195,7 +200,7 @@
           <span class="text-[9px] text-[#00f0ff] font-mono tracking-widest uppercase">TRANSMISSION TERMINAL // CLUB LOWLIFE</span>
           <h2 class="text-sm sm:text-base font-cyber font-bold text-white uppercase tracking-wider mt-0.5">DISCOGRAPHY & RELEASES</h2>
         </div>
-        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white p-1 text-sm font-bold transition">✕</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold transition">✕</button>
       </div>
 
       <!-- Dynamic Catalog Container -->
@@ -214,7 +219,7 @@
     <div class="relative w-full max-w-sm bg-[#0e1117] border border-neutral-700 rounded-xl p-5 font-cyber text-xs space-y-2">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
         <h2 class="font-bold text-white tracking-widest uppercase">LOWLIFE WORLD DIRECTORY</h2>
-        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
       <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-purple-500/40 text-white hover:border-purple-400">DANCING ALL PLATFORMS</a>
       <a href="https://clublowlife.dimensions.fm/retrocade-evolved" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-pink-500/40 text-white hover:border-pink-400">RETROCADE EVOLVED</a>
@@ -227,7 +232,7 @@
     <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-5 font-mono text-xs">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
         <h3 class="font-cyber font-bold text-white uppercase">BLACK TRUCK // MERCH STASH</h3>
-        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
       <div class="p-2.5 bg-black/70 border border-[#00f0ff]/40 rounded mb-3 flex items-center justify-between">
         <span class="text-neutral-400">CODE:</span>
@@ -251,7 +256,7 @@
       <a href="https://forms.gle/TsE7MAHSD1erDca59" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 bg-[#ffb300] text-black font-cyber font-bold text-xs rounded transition hover:bg-yellow-300 mb-2">
         OPEN PHYSICAL CASSETTE STASH
       </a>
-      <button onclick="State.closeModals()" class="w-full py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
+      <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="w-full py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
     </div>
   </div>
 
@@ -260,7 +265,7 @@
     <div class="relative w-full max-w-sm bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 flex flex-col font-mono text-xs">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
         <h3 class="font-cyber font-bold text-white">AVATAR LOCKER</h3>
-        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
       <div id="skinsList" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1"></div>
     </div>
@@ -271,7 +276,7 @@
     <div class="relative w-full max-w-2xl bg-neutral-950 border-2 border-[#00f0ff] rounded-xl p-3 sm:p-4 flex flex-col items-center">
       <div class="w-full flex items-center justify-between border-b border-neutral-800 pb-2 mb-2 font-cyber">
         <span id="arcadeTitle" class="text-xs sm:text-sm font-bold text-[#00f0ff]">ARCADE MACHINE</span>
-        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white px-2 py-0.5 text-sm">EXIT [ESC]</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-2 py-0.5 text-sm">EXIT [ESC]</button>
       </div>
       <canvas id="arcadeCanvas" class="w-full max-w-[600px] aspect-[4/3] bg-black border border-neutral-800 block"></canvas>
       <div class="w-full mt-2 text-center font-mono text-[11px] text-neutral-400" id="arcadeControlsHint">
@@ -285,7 +290,7 @@
     <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-yellow-500 rounded-xl p-5 text-center font-mono">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-4 font-cyber">
         <span class="text-sm font-bold text-yellow-400">RETROCADE CYBER SLOTS</span>
-        <button onclick="State.closeModals()" class="text-neutral-400 hover:text-white">✕</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
       <div class="flex justify-center items-center gap-3 my-5 py-4 bg-black/90 border-2 border-yellow-500/40 rounded-lg text-4xl">
         <div id="slotReel1" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">📼</div>
@@ -294,10 +299,10 @@
       </div>
       <div id="slotPayoutMsg" class="text-xs text-yellow-300 min-h-[20px] mb-4">INSERT 5 TOKENS TO SPIN</div>
       <div class="flex gap-2">
-        <button id="slotSpinBtn" onclick="CasinoGame.spin()" class="flex-1 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:opacity-90 text-black font-cyber font-bold text-xs rounded">
+        <button id="slotSpinBtn" onclick="if(window.CasinoGame && typeof CasinoGame.spin === 'function') CasinoGame.spin();" class="flex-1 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:opacity-90 text-black font-cyber font-bold text-xs rounded">
           SPIN (5 TOKENS)
         </button>
-        <button onclick="State.closeModals()" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">EXIT</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">EXIT</button>
       </div>
     </div>
   </div>
@@ -325,7 +330,6 @@
 
       input.value = (window.State && State.userProfile && State.userProfile.handle) ? State.userProfile.handle : '';
       
-      // Force registration on initial launch if handle is empty
       if (!input.value || input.value.trim() === '') {
         cancelBtn.classList.add('hidden');
       } else {
@@ -350,7 +354,6 @@
       }
     }
 
-    // Allow Enter key submission in the callsign registration input
     document.addEventListener('DOMContentLoaded', () => {
       const input = document.getElementById('usernameInput');
       if (input) {
@@ -360,7 +363,6 @@
       }
     });
 
-    // Dynamic releases & discography builder
     function openDiscographyModal() {
       const container = document.getElementById('releaseListContainer');
       const modal = document.getElementById('discoModal');
@@ -407,7 +409,7 @@
             ${item.description ? `<p class="text-[11px] text-neutral-400 leading-snug">${item.description}</p>` : ''}
             <div class="flex flex-wrap gap-1.5 pt-1">
               ${linkButtons}
-              ${item.id === 'dancing' ? `<button onclick="if(window.AudioEngine) AudioEngine.setTrackBgm('original')" class="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-[#00f0ff] font-cyber text-[10px] rounded transition">▶ PLAY IN WORLD</button>` : ''}
+              ${item.id === 'dancing' ? `<button onclick="if(window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm('original')" class="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-[#00f0ff] font-cyber text-[10px] rounded transition">▶ PLAY IN WORLD</button>` : ''}
             </div>
           </div>
         `;
@@ -416,7 +418,6 @@
       modal.classList.remove('hidden');
     }
 
-    // Pre-populate releases once DOM is loaded
     window.addEventListener('DOMContentLoaded', () => {
       if (typeof openDiscographyModal === 'function') {
         const container = document.getElementById('releaseListContainer');
