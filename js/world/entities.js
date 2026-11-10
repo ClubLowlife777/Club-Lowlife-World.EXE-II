@@ -266,7 +266,6 @@ const Entities = {
     if (p.hp <= 0 && window.State) {
       State.showToast("NEURAL LINK CRITICAL // RESPAWNING...");
       setTimeout(() => {
-        // Shifted Wasteland respawn from (800, 800) to clear ground (650, 1100)
         p.x = State.currentDimension === 'wasteland' ? 650 : 350;
         p.y = State.currentDimension === 'wasteland' ? 1100 : 750;
         p.hp = p.maxHp;
@@ -294,7 +293,7 @@ const Entities = {
       ? Dimensions.getActiveObstacles() 
       : [];
 
-    // 1. Knockback Resolution
+    // 1. Player Knockback Resolution
     if (Math.abs(p.knockbackVx) > 0.05 || Math.abs(p.knockbackVy) > 0.05) {
       const testBoxX = { x: p.x + p.knockbackVx, y: p.y, width: p.width, height: p.height };
       let hitWallX = false;
@@ -323,7 +322,7 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
-      // 2. Standard Input Velocity
+      // 2. Player Standard Input Velocity
       let currentSpeed = (window.Input && Input.keys && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
       
       if (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.environmentalHazards) {
@@ -411,6 +410,13 @@ const Entities = {
     if (!window.State || State.currentDimension !== 'wasteland') return;
     const p = this.player;
 
+    const obstacles = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
+      ? Dimensions.getActiveObstacles() 
+      : [];
+    const doors = (window.Dimensions && Dimensions.destructibleDoors) 
+      ? Dimensions.destructibleDoors.filter(d => !d.shattered) 
+      : [];
+
     this.hostileNpcs.forEach(n => {
       if (!n.alive) return;
       const dist = Math.hypot(p.x - n.x, p.y - n.y);
@@ -421,9 +427,30 @@ const Entities = {
         n.aggroTimer = 350;
       }
 
+      // 1. Knockback with Wall Resolution
       if (Math.abs(n.knockbackVx) > 0.1 || Math.abs(n.knockbackVy) > 0.1) {
-        n.x += n.knockbackVx; 
-        n.y += n.knockbackVy;
+        const testX = { x: n.x + n.knockbackVx, y: n.y, width: n.width, height: n.height };
+        let hitX = false;
+        for (let o of obstacles) {
+          if (window.Combat && Combat.checkCollision(testX, o)) { hitX = true; break; }
+        }
+        for (let d of doors) {
+          if (window.Combat && Combat.checkCollision(testX, d)) { hitX = true; break; }
+        }
+        if (!hitX) n.x += n.knockbackVx;
+        else n.knockbackVx = 0;
+
+        const testY = { x: n.x, y: n.y + n.knockbackVy, width: n.width, height: n.height };
+        let hitY = false;
+        for (let o of obstacles) {
+          if (window.Combat && Combat.checkCollision(testY, o)) { hitY = true; break; }
+        }
+        for (let d of doors) {
+          if (window.Combat && Combat.checkCollision(testY, d)) { hitY = true; break; }
+        }
+        if (!hitY) n.y += n.knockbackVy;
+        else n.knockbackVy = 0;
+
         n.knockbackVx *= 0.82; 
         n.knockbackVy *= 0.82;
         return;
@@ -431,6 +458,7 @@ const Entities = {
 
       if (n.attackCooldown > 0) n.attackCooldown--;
 
+      // 2. Aggro Pathing / Movement
       if (n.state === 'aggro') {
         n.aggroTimer--;
         if (n.aggroTimer <= 0 && dist > 600) n.state = 'peaceful';
@@ -439,6 +467,7 @@ const Entities = {
         let vx = Math.cos(angle) * n.speed;
         let vy = Math.sin(angle) * n.speed;
 
+        // Boss Projectile Attacks
         if (n.tier === 'boss') {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
@@ -467,6 +496,7 @@ const Entities = {
           }
         }
 
+        // Melee Strike
         if (dist < 42 && n.attackCooldown <= 0) {
           n.attackCooldown = 48;
           if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
@@ -474,9 +504,30 @@ const Entities = {
           this.damagePlayer(dmg, Math.cos(angle) > 0 ? 'right' : 'left');
         }
 
-        n.x += vx; 
-        n.y += vy;
+        // Independent AABB Collision on Enemy X
+        const nextBoxX = { x: n.x + vx, y: n.y, width: n.width, height: n.height };
+        let colX = false;
+        for (let o of obstacles) {
+          if (window.Combat && Combat.checkCollision(nextBoxX, o)) { colX = true; break; }
+        }
+        for (let d of doors) {
+          if (window.Combat && Combat.checkCollision(nextBoxX, d)) { colX = true; break; }
+        }
+        if (!colX) n.x += vx;
+
+        // Independent AABB Collision on Enemy Y
+        const nextBoxY = { x: n.x, y: n.y + vy, width: n.width, height: n.height };
+        let colY = false;
+        for (let o of obstacles) {
+          if (window.Combat && Combat.checkCollision(nextBoxY, o)) { colY = true; break; }
+        }
+        for (let d of doors) {
+          if (window.Combat && Combat.checkCollision(nextBoxY, d)) { colY = true; break; }
+        }
+        if (!colY) n.y += vy;
+
       } else {
+        // 3. Peaceful Wandering with Wall Physics
         n.moveTimer--;
         if (n.moveTimer <= 0) {
           n.moveTimer = 40 + Math.floor(Math.random() * 60);
@@ -484,10 +535,33 @@ const Entities = {
         }
         if (n.dir !== 'idle') {
           const wanderSpeed = n.speed * 0.45;
-          if (n.dir === 'up') n.y = Math.max(60, n.y - wanderSpeed);
-          else if (n.dir === 'down') n.y = Math.min(4740, n.y + wanderSpeed);
-          else if (n.dir === 'left') n.x = Math.max(60, n.x - wanderSpeed);
-          else if (n.dir === 'right') n.x = Math.min(6340, n.x + wanderSpeed);
+          let wvx = 0, wvy = 0;
+          if (n.dir === 'up') wvy = -wanderSpeed;
+          else if (n.dir === 'down') wvy = wanderSpeed;
+          else if (n.dir === 'left') wvx = -wanderSpeed;
+          else if (n.dir === 'right') wvx = wanderSpeed;
+
+          const wanderBoxX = { x: n.x + wvx, y: n.y, width: n.width, height: n.height };
+          let wColX = false;
+          for (let o of obstacles) {
+            if (window.Combat && Combat.checkCollision(wanderBoxX, o)) { wColX = true; break; }
+          }
+          for (let d of doors) {
+            if (window.Combat && Combat.checkCollision(wanderBoxX, d)) { wColX = true; break; }
+          }
+          if (!wColX) n.x = Math.max(60, Math.min(6340, n.x + wvx));
+          else n.dir = 'idle';
+
+          const wanderBoxY = { x: n.x, y: n.y + wvy, width: n.width, height: n.height };
+          let wColY = false;
+          for (let o of obstacles) {
+            if (window.Combat && Combat.checkCollision(wanderBoxY, o)) { wColY = true; break; }
+          }
+          for (let d of doors) {
+            if (window.Combat && Combat.checkCollision(wanderBoxY, d)) { wColY = true; break; }
+          }
+          if (!wColY) n.y = Math.max(60, Math.min(4740, n.y + wvy));
+          else n.dir = 'idle';
         }
       }
     });
