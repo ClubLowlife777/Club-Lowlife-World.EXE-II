@@ -18,7 +18,7 @@ const Input = {
         return;
       }
 
-      if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+      if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
 
       // Prevent canvas page scrolling with arrows/space
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
@@ -66,7 +66,6 @@ const Input = {
       }
     });
 
-    // Reset pressed keys if window loses focus
     window.addEventListener('blur', () => this.resetKeys());
 
     this.bindTouchJoystick();
@@ -88,7 +87,6 @@ const Input = {
     }
   },
 
-  // Normalized directional velocity vector used by Entities.player
   getMovementVector() {
     let vx = 0;
     let vy = 0;
@@ -117,7 +115,7 @@ const Input = {
 
     zone.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+      if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
       for (let t of e.changedTouches) {
         if (this.joystickTouchId === null) {
           this.joystickTouchId = t.identifier;
@@ -223,17 +221,17 @@ const Input = {
   },
 
   bindHudButtons() {
-    // Quick Warp Engine (supports both possible button IDs)
+    // Quick Warp Engine - Synchronized to open Wasteland clearing (650, 1100)
     const warpBtn = document.getElementById('quickWarpBtn') || document.getElementById('btnWarp');
     if (warpBtn) {
       warpBtn.onclick = () => {
-        if (window.AudioEngine && AudioEngine.init) AudioEngine.init();
+        if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
         if (!window.State || typeof State.switchDimension !== 'function') return;
 
         if (State.currentDimension === 'underground') {
           State.switchDimension('retrocade', 1200, 750);
         } else if (State.currentDimension === 'retrocade') {
-          State.switchDimension('wasteland', 800, 800);
+          State.switchDimension('wasteland', 650, 1100);
         } else {
           State.switchDimension('underground', 350, 750);
         }
@@ -243,18 +241,17 @@ const Input = {
     const bgmBtn = document.getElementById('bgmToggleBtn');
     if (bgmBtn) {
       bgmBtn.onclick = () => {
-        if (window.AudioEngine && AudioEngine.toggleBgm) AudioEngine.toggleBgm();
+        if (window.AudioEngine && typeof AudioEngine.toggleBgm === 'function') AudioEngine.toggleBgm();
       };
     }
 
     const trackSelect = document.getElementById('trackVersionSelect');
     if (trackSelect) {
       trackSelect.onchange = (e) => {
-        if (window.AudioEngine && AudioEngine.setTrackBgm) AudioEngine.setTrackBgm(e.target.value);
+        if (window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm(e.target.value);
       };
     }
 
-    // Links Modal Engine
     const linksBtn = document.getElementById('openLinksModalBtn');
     if (linksBtn) {
       linksBtn.onclick = (e) => {
@@ -263,7 +260,6 @@ const Input = {
       };
     }
 
-    // Skins Locker Engine (supports both modal IDs)
     const skinsBtn = document.getElementById('openSkinsBtn');
     if (skinsBtn) {
       skinsBtn.onclick = (e) => {
@@ -358,10 +354,8 @@ const Input = {
   }
 };
 
-// Explicit Global Attachment across browser execution scopes
 window.Input = Input;
 
-// Auto-boot Input if loaded asynchronously after window load
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
   Input.init();
 }
