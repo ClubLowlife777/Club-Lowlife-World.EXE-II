@@ -48,7 +48,12 @@ const Combat = {
     if (!window.Entities || !Entities.player) return;
     const p = Entities.player;
 
+    const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
+    const hasTapeSaturator = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_tape_saturator'));
+
     const holdSeconds = (Date.now() - this.shootChargeStartTime) / 1000;
+    const requiredHold = isHypercharged ? 0.5 : 1.0;
+
     let vx = 0, vy = 0;
     const dir = p.direction || 'down';
 
@@ -58,24 +63,30 @@ const Combat = {
     else if (dir === 'right') vx = 1;
     else vy = 1;
 
-    if (holdSeconds >= 1.0) {
-      this.shootCooldown = Date.now() + 850;
+    // Analog Tape Saturator boosts damage by 35% and alters color to warm orange[cite: 2, 6, 14]
+    const damageMultiplier = (hasTapeSaturator ? 1.35 : 1.0) * (isHypercharged ? 1.5 : 1.0);
+    const plasmaColor = hasTapeSaturator ? '#f97316' : '#00f0ff';
+
+    if (holdSeconds >= requiredHold) {
+      this.shootCooldown = Date.now() + (isHypercharged ? 400 : 850);
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
+      const dmg = Math.round(120 * damageMultiplier);
       this.projectiles.push({
         x: p.x + (p.width || 26) / 2, 
         y: p.y + (p.height || 38) / 2,
-        vx: vx * 8.5, vy: vy * 8.5, speed: 8.5, radius: 14,
-        isCharged: true, damage: 120, aoeRadius: 150, life: 85, color: '#00f0ff'
+        vx: vx * 9.5, vy: vy * 9.5, speed: 9.5, radius: 14,
+        isCharged: true, damage: dmg, aoeRadius: 150, life: 85, color: plasmaColor
       });
       if (window.State && typeof State.showToast === 'function') State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
     } else {
       this.shootCooldown = Date.now() + 180;
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
+      const dmg = Math.round(30 * damageMultiplier);
       this.projectiles.push({
         x: p.x + (p.width || 26) / 2, 
         y: p.y + (p.height || 38) / 2,
-        vx: vx * 12.5, vy: vy * 12.5, speed: 12.5, radius: 5,
-        isCharged: false, damage: 30, aoeRadius: 0, life: 60, color: '#facc15'
+        vx: vx * 13, vy: vy * 13, speed: 13, radius: 5,
+        isCharged: false, damage: dmg, aoeRadius: 0, life: 60, color: hasTapeSaturator ? '#fbbf24' : '#facc15'
       });
     }
   },
@@ -100,12 +111,16 @@ const Combat = {
 
     const now = Date.now();
     const holdSeconds = (now - this.slashHoldStartTime) / 1000;
+    const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
 
-    if (holdSeconds >= 1.5) {
+    const devastatingThreshold = isHypercharged ? 0.75 : 1.5;
+    const midThreshold = isHypercharged ? 0.35 : 0.7;
+
+    if (holdSeconds >= devastatingThreshold) {
       this.executeDevastatingChargeSlash();
       this.comboStep = 0;
       this.lastSlashTapTime = now;
-    } else if (holdSeconds >= 0.7) {
+    } else if (holdSeconds >= midThreshold) {
       this.executeMidChargeSlash();
       this.comboStep = 0;
       this.lastSlashTapTime = now;
@@ -123,6 +138,9 @@ const Combat = {
     let slashY = p.y + p.height / 2;
     const offset = 34;
 
+    const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
+    const dmgMult = isHypercharged ? 1.6 : 1.0;
+
     if (p.direction === 'up') slashY -= offset;
     else if (p.direction === 'down') slashY += offset;
     else if (p.direction === 'left') slashX -= offset;
@@ -130,21 +148,25 @@ const Combat = {
 
     if (step === 0) {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
-      this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'stab_thrust', color: '#ff003c', radius: 36, life: 9, damage: 35 });
-      this.checkMeleeHits(slashX, slashY, 48, 35, false, p.direction);
+      const dmg = Math.round(35 * dmgMult);
+      this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'stab_thrust', color: '#ff003c', radius: 36, life: 9, damage: dmg });
+      this.checkMeleeHits(slashX, slashY, 48, dmg, false, p.direction);
     } else if (step === 1) {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
-      this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#00f0ff', radius: 48, life: 11, damage: 50 });
-      this.checkMeleeHits(slashX, slashY, 56, 50, false, p.direction);
+      const dmg = Math.round(50 * dmgMult);
+      this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#00f0ff', radius: 48, life: 11, damage: dmg });
+      this.checkMeleeHits(slashX, slashY, 56, dmg, false, p.direction);
     } else if (step === 2) {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
-      this.meleeSlashes.push({ x: p.x + p.width / 2, y: p.y + p.height / 2, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'spinning_vortex', color: '#ff7700', radius: 64, life: 13, damage: 75 });
-      this.checkMeleeHits(p.x + p.width / 2, p.y + p.height / 2, 72, 75, false, 'radial');
+      const dmg = Math.round(75 * dmgMult);
+      this.meleeSlashes.push({ x: p.x + p.width / 2, y: p.y + p.height / 2, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'spinning_vortex', color: '#ff7700', radius: 64, life: 13, damage: dmg });
+      this.checkMeleeHits(p.x + p.width / 2, p.y + p.height / 2, 72, dmg, false, 'radial');
     } else if (step === 3) {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
       if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(7, 14);
-      this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'ground_slam', color: '#facc15', radius: 76, life: 15, damage: 100 });
-      this.checkMeleeHits(slashX, slashY, 82, 100, true, p.direction);
+      const dmg = Math.round(100 * dmgMult);
+      this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'ground_slam', color: '#facc15', radius: 76, life: 15, damage: dmg });
+      this.checkMeleeHits(slashX, slashY, 82, dmg, true, p.direction);
     }
   },
 
@@ -155,14 +177,17 @@ const Combat = {
     let slashY = p.y + p.height / 2;
     const offset = 38;
 
+    const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
+    const dmg = Math.round(115 * (isHypercharged ? 1.6 : 1.0));
+
     if (p.direction === 'up') slashY -= offset;
     else if (p.direction === 'down') slashY += offset;
     else if (p.direction === 'left') slashX -= offset;
     else if (p.direction === 'right') slashX += offset;
 
     if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
-    this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#ff7700', radius: 64, life: 14, damage: 115 });
-    this.checkMeleeHits(slashX, slashY, 74, 115, true, p.direction);
+    this.meleeSlashes.push({ x: slashX, y: slashY, originX: p.x + p.width / 2, originY: p.y + p.height / 2, dir: p.direction, type: 'crescent_sweep', color: '#ff7700', radius: 64, life: 14, damage: dmg });
+    this.checkMeleeHits(slashX, slashY, 74, dmg, true, p.direction);
   },
 
   executeDevastatingChargeSlash() {
@@ -171,22 +196,30 @@ const Combat = {
     const slashX = p.x + p.width / 2;
     const slashY = p.y + p.height / 2;
 
-    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
-    if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(16, 28);
+    const hasSubWoofer = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_sub_woofer'));
+    const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
 
-    this.meleeSlashes.push({ x: slashX, y: slashY, originX: slashX, originY: slashY, dir: p.direction, type: 'devastating_breaker', color: '#a855f7', radius: 95, life: 25, damage: 185 });
-    this.explosions.push({ x: slashX, y: slashY, radius: 10, maxRadius: 220, color: '#a855f7', life: 30 });
+    // Sub-Woofer Relic Expands Shockwave Radius to 310px & Deals 225 Damage[cite: 2, 6, 14]
+    const aoeRadius = hasSubWoofer ? 310 : 220;
+    const baseDmg = hasSubWoofer ? 225 : 185;
+    const dmg = Math.round(baseDmg * (isHypercharged ? 1.5 : 1.0));
+
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
+    if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(18, 30);
+
+    this.meleeSlashes.push({ x: slashX, y: slashY, originX: slashX, originY: slashY, dir: p.direction, type: 'devastating_breaker', color: hasSubWoofer ? '#00f0ff' : '#a855f7', radius: 95, life: 25, damage: dmg });
+    this.explosions.push({ x: slashX, y: slashY, radius: 10, maxRadius: aoeRadius, color: hasSubWoofer ? '#00f0ff' : '#a855f7', life: 32 });
 
     if (window.State && State.currentDimension === 'wasteland' && Entities.hostileNpcs) {
       Entities.hostileNpcs.forEach(n => {
         if (n.alive) {
           const dist = Math.hypot((n.x + n.width / 2) - slashX, (n.y + n.height / 2) - slashY);
-          if (dist <= 220) {
+          if (dist <= aoeRadius) {
             const angle = Math.atan2((n.y + n.height / 2) - slashY, (n.x + n.width / 2) - slashX);
             const knockDir = Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))
               ? (Math.cos(angle) > 0 ? 'right' : 'left') : (Math.sin(angle) > 0 ? 'down' : 'up');
-            Entities.damageNpc(n, 185, knockDir);
-            this.spawnDamageNumber(n.x + n.width / 2, n.y - 12, 185, '#a855f7', true);
+            Entities.damageNpc(n, dmg, knockDir);
+            this.spawnDamageNumber(n.x + n.width / 2, n.y - 12, dmg, hasSubWoofer ? '#00f0ff' : '#a855f7', true);
           }
         }
       });
@@ -194,14 +227,16 @@ const Combat = {
 
     if (window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
       Entities.trainingDummies.forEach(d => {
-        if (Math.hypot((d.x + d.width / 2) - slashX, (d.y + d.height / 2) - slashY) <= 220) {
-          this.spawnDamageNumber(d.x + d.width / 2, d.y - 12, 185, '#a855f7', true);
+        if (Math.hypot((d.x + d.width / 2) - slashX, (d.y + d.height / 2) - slashY) <= aoeRadius) {
+          this.spawnDamageNumber(d.x + d.width / 2, d.y - 12, dmg, hasSubWoofer ? '#00f0ff' : '#a855f7', true);
         }
       });
     }
 
-    this.checkDestructibleDoors(slashX, slashY, 130, 185, true);
-    if (window.State && typeof State.showToast === 'function') State.showToast("DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜");
+    this.checkDestructibleDoors(slashX, slashY, 130, dmg, true);
+    if (window.State && typeof State.showToast === 'function') {
+      State.showToast(hasSubWoofer ? "PURE MONO SUB-BASS SHOCKWAVE DISCHARGED! 🔊⚡[cite: 1, 14]" : "DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜[cite: 2]");
+    }
   },
 
   checkMeleeHits(hitX, hitY, hitRadius, damage, isCharged, knockDirMode) {
@@ -273,7 +308,6 @@ const Combat = {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
 
-      // Homing Subroutine
       if (window.State && State.currentDimension === 'wasteland' && window.Entities && Entities.hostileNpcs) {
         let bestTarget = null, bestScore = -Infinity;
         for (let n of Entities.hostileNpcs) {
@@ -357,12 +391,12 @@ const Combat = {
         if (p.isCharged) {
           if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
           if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(9, 16);
-          this.explosions.push({ x: p.x, y: p.y, radius: 10, maxRadius: p.aoeRadius, color: '#00f0ff', life: 24 });
+          this.explosions.push({ x: p.x, y: p.y, radius: 10, maxRadius: p.aoeRadius, color: p.color || '#00f0ff', life: 24 });
           if (window.State && State.currentDimension === 'wasteland' && window.Entities && Entities.hostileNpcs) {
             Entities.hostileNpcs.forEach(n => {
               if (n.alive && Math.hypot((n.x + n.width / 2) - p.x, (n.y + n.height / 2) - p.y) <= p.aoeRadius) {
-                Entities.damageNpc(n, 85, 'down');
-                this.spawnDamageNumber(n.x + n.width / 2, n.y - 8, 85, '#00f0ff', true);
+                Entities.damageNpc(n, Math.round(p.damage * 0.7), 'down');
+                this.spawnDamageNumber(n.x + n.width / 2, n.y - 8, Math.round(p.damage * 0.7), p.color || '#00f0ff', true);
               }
             });
           }
@@ -373,7 +407,6 @@ const Combat = {
       }
     }
 
-    // Enemy Projectiles Pass
     for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
       const ep = this.enemyProjectiles[i];
       ep.x += ep.vx; 
@@ -393,13 +426,11 @@ const Combat = {
       }
     }
 
-    // Melee Slashes Pass
     for (let i = this.meleeSlashes.length - 1; i >= 0; i--) {
       this.meleeSlashes[i].life--;
       if (this.meleeSlashes[i].life <= 0) this.meleeSlashes.splice(i, 1);
     }
 
-    // Explosions Pass
     for (let i = this.explosions.length - 1; i >= 0; i--) {
       const exp = this.explosions[i];
       exp.radius += (exp.maxRadius - exp.radius) * 0.28;
@@ -407,7 +438,6 @@ const Combat = {
       if (exp.life <= 0) this.explosions.splice(i, 1);
     }
 
-    // Floating Numbers Pass
     for (let i = this.floatingNumbers.length - 1; i >= 0; i--) {
       const fn = this.floatingNumbers[i];
       fn.y -= 0.85; 
