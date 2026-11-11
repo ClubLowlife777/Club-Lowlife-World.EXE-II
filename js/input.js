@@ -1,5 +1,5 @@
 /**
- * CLUB LOWLIFE // INPUT MANAGER & PROXIMITY ENGINE
+ * CLUB LOWLIFE // INPUT MANAGER & PROXIMITY ENGINE (MOBILE OPTIMIZED)
  * File: js/input.js
  * Engine: Vanilla HTML5 Canvas / Decoupled Physics
  */
@@ -12,7 +12,6 @@ const Input = {
 
   init() {
     window.addEventListener('keydown', (e) => {
-      // Ignore gameplay keystrokes when typing into text inputs
       if (e.target && e.target.tagName === 'INPUT') {
         if (e.code === 'Escape' && window.State) State.closeModals();
         return;
@@ -20,7 +19,6 @@ const Input = {
 
       if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
 
-      // Prevent canvas page scrolling with arrows/space
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
       }
@@ -28,15 +26,16 @@ const Input = {
       const code = e.code;
       const key = (e.key || '').toLowerCase();
 
-      // Directional Movement Bindings
       if (code === 'KeyW' || code === 'ArrowUp' || key === 'w' || key === 'arrowup') this.keys.up = true;
       if (code === 'KeyS' || code === 'ArrowDown' || key === 's' || key === 'arrowdown') this.keys.down = true;
       if (code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'arrowleft') this.keys.left = true;
       if (code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'arrowright') this.keys.right = true;
       if (code === 'ShiftLeft' || code === 'ShiftRight' || key === 'shift') this.keys.shift = true;
 
-      // Combat & Action Triggers
       if ((code === 'KeyE' || key === 'e') && !e.repeat) this.triggerInteraction();
+      if ((code === 'KeyQ' || key === 'q') && !e.repeat && window.State && typeof State.useAmberVial === 'function') {
+        State.useAmberVial();
+      }
       if ((code === 'KeyJ' || key === 'j') && !e.repeat && window.Combat && typeof Combat.startShootInput === 'function') {
         Combat.startShootInput();
       }
@@ -183,7 +182,15 @@ const Input = {
     const bShoot = document.getElementById('btnShoot');
     const bSlash = document.getElementById('btnSlash');
     const bAction = document.getElementById('btnAction');
+    const bVial = document.getElementById('btnVial');
     const promptBanner = document.getElementById('interactionPrompt');
+
+    if (bVial) {
+      bVial.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (window.State && typeof State.useAmberVial === 'function') State.useAmberVial();
+      }, { passive: false });
+    }
 
     if (bShoot) {
       const startShoot = (e) => { e.preventDefault(); if (window.Combat && Combat.startShootInput) Combat.startShootInput(); };
@@ -215,13 +222,17 @@ const Input = {
       bAction.addEventListener('click', handleAction);
     }
 
+    // Tapping the banner anywhere activates the interaction on mobile
     if (promptBanner) {
+      promptBanner.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        this.triggerInteraction();
+      }, { passive: false });
       promptBanner.addEventListener('click', () => this.triggerInteraction());
     }
   },
 
   bindHudButtons() {
-    // Quick Warp Engine - Synchronized to open Wasteland clearing (650, 1100)
     const warpBtn = document.getElementById('quickWarpBtn') || document.getElementById('btnWarp');
     if (warpBtn) {
       warpBtn.onclick = () => {
@@ -279,7 +290,8 @@ const Input = {
     const p = Entities.player;
     const dim = State.currentDimension;
 
-    const pBox = { x: p.x - 35, y: p.y - 35, width: (p.width || 32) + 70, height: (p.height || 32) + 70 };
+    // Generous proximity detection radius so phone users don't have to be pixel-perfect
+    const pBox = { x: p.x - 45, y: p.y - 45, width: (p.width || 32) + 90, height: (p.height || 32) + 90 };
     const checkOverlap = (b1, b2) => (
       b1.x < b2.x + b2.width &&
       b1.x + b1.width > b2.x &&
@@ -321,12 +333,18 @@ const Input = {
     this.activeInteractable = nearest;
 
     if (nearest && banner && label) {
-      label.innerText = `[E] ${nearest.label}`;
+      label.innerText = `[TAP] ${nearest.label}`;
       banner.classList.remove('hidden');
-      if (actionBtn) actionBtn.classList.add('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.4)]');
+      if (actionBtn) {
+        actionBtn.classList.remove('border-neutral-600');
+        actionBtn.classList.add('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.6)]');
+      }
     } else if (banner) {
       banner.classList.add('hidden');
-      if (actionBtn) actionBtn.classList.remove('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.4)]');
+      if (actionBtn) {
+        actionBtn.classList.remove('border-[#00f0ff]', 'text-[#00f0ff]', 'shadow-[0_0_15px_rgba(0,240,255,0.6)]');
+        actionBtn.classList.add('border-neutral-600');
+      }
     }
   },
 
