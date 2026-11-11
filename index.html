@@ -23,7 +23,6 @@
           <span class="font-cyber font-bold tracking-widest text-xs sm:text-sm text-white">CLUB LOWLIFE</span>
           <span id="dimensionBadge" class="text-[9px] sm:text-[10px] bg-[#161922] border border-[#00f0ff]/40 text-[#00f0ff] px-1.5 py-0.5 rounded font-cyber">DIMENSION: UNDERGROUND</span>
           
-          <!-- Persistent Callsign Badge Button -->
           <button onclick="openUsernameModal()" id="callsignBadgeBtn" class="text-[9px] sm:text-[10px] bg-[#161922] border border-cyan-400/40 text-cyan-300 px-1.5 py-0.5 rounded font-mono hover:border-cyan-300 transition flex items-center gap-1" title="Change Operative Callsign">
             <span>ID:</span>
             <b id="hudCallsign">OPERATIVE</b>
@@ -123,6 +122,29 @@
 
   <!-- OVERLAY MODALS -->
 
+  <!-- INTERACTIVE LORE CASSETTE MODAL (PHASE 2) -->
+  <div id="loreModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-amber-500 rounded-xl p-5 font-mono shadow-[0_0_30px_rgba(245,158,11,0.25)]">
+      <div class="flex items-center gap-3 border-b border-neutral-800 pb-3 mb-3">
+        <div class="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500 flex items-center justify-center text-2xl">📼</div>
+        <div>
+          <span class="text-[9px] text-amber-400 font-mono tracking-widest uppercase">CATALOG ARCHIVE // REEL DECODED</span>
+          <h3 id="loreModalTitle" class="font-cyber font-bold text-white text-sm sm:text-base tracking-wider uppercase">TAPE ARCHIVE</h3>
+        </div>
+      </div>
+      <div class="p-3 bg-black/80 border border-neutral-800 rounded mb-4">
+        <p id="loreModalText" class="text-xs text-neutral-200 leading-relaxed min-h-[60px]">Loading trivia...</p>
+      </div>
+      <div class="flex items-center justify-between text-[10px] text-neutral-400 mb-3 border-t border-neutral-800/80 pt-2 font-mono">
+        <span>BATTLE CASSETTES: <b id="loreModalTapeCount" class="text-amber-400">0/50</b></span>
+        <span class="text-[#00f0ff] animate-pulse">● TRANSMISSION SAVED</span>
+      </div>
+      <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
+        ACKNOWLEDGE & CLOSE [ESC]
+      </button>
+    </div>
+  </div>
+
   <!-- USERNAME REGISTRATION MODAL -->
   <div id="usernameModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
     <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-5 font-mono shadow-[0_0_25px_rgba(0,240,255,0.25)]">
@@ -131,7 +153,7 @@
         <h3 class="font-cyber font-bold text-white text-sm tracking-wider uppercase">SYNDICATE REGISTRATION</h3>
       </div>
       <p class="text-xs text-neutral-400 mb-4 leading-relaxed">
-        Input operative callsign. This identity persists across sessions and appears above your operative in-world.
+        Input operative callsign. This identity persists across sessions and appears above your operative in-world[cite: 8].
       </p>
       <div class="mb-4">
         <label class="block text-[10px] text-[#00f0ff] font-cyber uppercase tracking-widest mb-1.5">OPERATIVE HANDLE [MAX 16 CHARS]</label>
@@ -190,11 +212,9 @@
     </div>
   </div>
 
-  <!-- DYNAMIC DISCOGRAPHY / NEW RELEASES MODAL (Managed via State.releases) -->
+  <!-- DYNAMIC DISCOGRAPHY / NEW RELEASES MODAL -->
   <div id="discoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
     <div class="relative w-full max-w-lg bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 sm:p-5 flex flex-col shadow-[0_0_30px_rgba(0,240,255,0.15)]">
-      
-      <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-neutral-800 pb-3 mb-3">
         <div>
           <span class="text-[9px] text-[#00f0ff] font-mono tracking-widest uppercase">TRANSMISSION TERMINAL // CLUB LOWLIFE</span>
@@ -202,11 +222,7 @@
         </div>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold transition">✕</button>
       </div>
-
-      <!-- Dynamic Catalog Container -->
       <div id="releaseListContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
-
-      <!-- Modal Footer -->
       <div class="mt-3 pt-2.5 border-t border-neutral-800 flex justify-between items-center text-[9px] font-mono text-neutral-500">
         <span>AUDIO SUITE: 07 // ARCHIVES ONLINE</span>
         <span class="text-[#00f0ff] animate-pulse">● SIGNAL CONNECTED</span>
@@ -320,7 +336,6 @@
   <script src="js/arcade/casino.js"></script>
   <script src="js/main.js"></script>
 
-  <!-- MODAL HANDLERS & DYNAMIC ENGINES -->
   <script>
     function openUsernameModal() {
       const modal = document.getElementById('usernameModal');
