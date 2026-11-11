@@ -14,13 +14,13 @@ const Dimensions = {
     { x: 0, y: 0, width: 35, height: 1200, label: "PERIMETER WEST" },
     { x: 2365, y: 0, width: 35, height: 1200, label: "PERIMETER EAST" },
 
-    // Tuning Garage & Trunk Bay (120px Rollup Bay Opening at X=260-380)
+    // Tuning Garage & Trunk Bay (120px Opening at X=260-380)
     { x: 35, y: 450, width: 225, height: 25, label: "GARAGE SOUTH WALL (WEST)" },
     { x: 380, y: 450, width: 255, height: 25, label: "GARAGE SOUTH WALL (EAST)" },
     { x: 635, y: 35, width: 25, height: 185, label: "GARAGE EAST WALL (NORTH)" },
     { x: 635, y: 320, width: 25, height: 155, label: "GARAGE EAST WALL (SOUTH)" },
 
-    // Studio Mastering Suite (100px Double Door Opening at X=1000-1100)
+    // Studio Mastering Suite (100px Double Door at X=1000-1100)
     { x: 800, y: 35, width: 25, height: 320, label: "STUDIO WEST WALL" },
     { x: 800, y: 355, width: 200, height: 25, label: "STUDIO SOUTH WALL (WEST)" },
     { x: 1100, y: 355, width: 200, height: 25, label: "STUDIO SOUTH WALL (EAST)" },
@@ -85,18 +85,17 @@ const Dimensions = {
   // 3. THE ASHEN WASTELAND (6400 x 4800 px Corruption Battleground)
   // =========================================================================
   worldObstacles: [
-    // Outer Perimeter
     { x: 0, y: 0, width: 6400, height: 50, label: "WASTELAND PERIMETER NORTH" },
     { x: 0, y: 4750, width: 6400, height: 50, label: "WASTELAND PERIMETER SOUTH" },
     { x: 0, y: 0, width: 50, height: 4800, label: "WASTELAND PERIMETER WEST" },
     { x: 6350, y: 0, width: 50, height: 4800, label: "WASTELAND PERIMETER EAST" },
 
-    // Highway Overpass (Spawn Clearing is safely south at 650, 1100)
+    // Highway Overpass
     { x: 600, y: 800, width: 40, height: 180, label: "HIGHWAY PILLAR NW" },
     { x: 600, y: 800, width: 900, height: 40, label: "ELEVATED HIGHWAY DECK" },
     { x: 1500, y: 800, width: 40, height: 750, label: "HIGHWAY PILLAR EAST" },
 
-    // Northern Obsidian Canyon (Openings on south ledge)
+    // Northern Obsidian Canyon
     { x: 4200, y: 400, width: 1600, height: 140, label: "OBSIDIAN PLATEAU" },
     { x: 4200, y: 540, width: 140, height: 700, label: "CANYON WEST WALL" },
     { x: 5660, y: 540, width: 140, height: 700, label: "CANYON EAST WALL" },
@@ -108,24 +107,21 @@ const Dimensions = {
     { x: 800, y: 2300, width: 400, height: 200, label: "CHEMICAL VATS" },
     { x: 1800, y: 2100, width: 450, height: 180, label: "REFINERY ANNEX" },
 
-    // NEW LANDMARK 1: Martian University Research Annex (X: 2100-2700, Y: 1200-1700)
-    // Features wide 160px Southern Entrance Gap at X: 2320 - 2480
+    // Martian University Research Annex (160px Southern Entrance Gap at X: 2320-2480)
     { x: 2100, y: 1200, width: 600, height: 35, label: "MARTIAN UNIV. LAB NORTH" },
     { x: 2100, y: 1200, width: 35, height: 500, label: "MARTIAN UNIV. WEST WALL" },
     { x: 2665, y: 1200, width: 35, height: 500, label: "MARTIAN UNIV. EAST WALL" },
     { x: 2100, y: 1665, width: 220, height: 35, label: "MARTIAN UNIV. SOUTH (W)" },
     { x: 2480, y: 1665, width: 220, height: 35, label: "MARTIAN UNIV. SOUTH (E)" },
 
-    // NEW LANDMARK 2: Sector 777 Overlook ("Living on the Highs") (X: 3800-4400, Y: 2300-2850)
-    // Features wide 180px Western Entrance Gap at Y: 2510 - 2690
+    // Sector 777 Overlook ("Living on the Highs") (180px Western Entrance Gap at Y: 2510-2690)
     { x: 3800, y: 2300, width: 600, height: 35, label: "SECTOR 777 LOUNGE NORTH" },
     { x: 4365, y: 2300, width: 35, height: 550, label: "SECTOR 777 EAST WALL" },
     { x: 3800, y: 2815, width: 600, height: 35, label: "SECTOR 777 SOUTH WALL" },
     { x: 3800, y: 2300, width: 35, height: 210, label: "SECTOR 777 WEST (N)" },
     { x: 3800, y: 2690, width: 35, height: 160, label: "SECTOR 777 WEST (S)" },
 
-    // The Subterranean Holding Chamber (X: 2800-3700, Y: 3800-4400)
-    // Connected via 140px East Doorway (Y: 4030-4170) to the Industrial Washroom
+    // The Subterranean Holding Chamber (Connected via 140px Doorway at Y: 4030-4170 to Washroom)
     { x: 2800, y: 3800, width: 900, height: 35, label: "CHAMBER NORTH WALL" },
     { x: 2800, y: 3800, width: 35, height: 600, label: "CHAMBER WEST WALL" },
     { x: 3665, y: 3800, width: 35, height: 230, label: "CHAMBER EAST WALL (N)" },
@@ -133,8 +129,7 @@ const Dimensions = {
     { x: 2800, y: 4365, width: 360, height: 35, label: "CHAMBER SOUTH WALL (WEST)" },
     { x: 3340, y: 4365, width: 360, height: 35, label: "CHAMBER SOUTH WALL (EAST)" },
 
-    // NEW LANDMARK 3: Industrial Washroom (Short Film Scene 4 Mirror Reveal) (X: 3700-4050, Y: 3900-4300)
-    // Accessible through the Holding Chamber East Doorway (Y: 4030-4170)
+    // Industrial Washroom (Short Film Mirror Reveal)
     { x: 3700, y: 3900, width: 350, height: 35, label: "WASHROOM NORTH WALL" },
     { x: 4015, y: 3900, width: 35, height: 400, label: "WASHROOM EAST WALL" },
     { x: 3700, y: 4265, width: 350, height: 35, label: "WASHROOM SOUTH WALL" }
@@ -156,7 +151,6 @@ const Dimensions = {
     { id: "c2", x: 1600, y: 1950, width: 38, height: 30, type: "biohazard", label: "SILO 07 HAZMAT CACHE", opened: false },
     { id: "c3", x: 5500, y: 700, width: 40, height: 32, type: "vault", label: "OBSOLETE CAVE VAULT", skinReward: "cave_stalker", opened: false },
     { id: "c4", x: 3220, y: 3950, width: 44, height: 34, type: "master_holding", label: "GOLDEN MASTER VAULT", skinReward: "static_nightmare", opened: false },
-    // New Phase 1 Exploration Chests inside open-entrance buildings
     { id: "c5", x: 2380, y: 1320, width: 40, height: 32, type: "vault", label: "MARTIAN UNIVERSITY ARCHIVE VAULT", skinReward: "sound_designer", opened: false },
     { id: "c6", x: 4220, y: 2450, width: 40, height: 32, type: "vault", label: "SECTOR 777 VIP STASH", skinReward: "jackpot_777", opened: false },
     { id: "c7", x: 3920, y: 4180, width: 38, height: 30, type: "biohazard", label: "WASHROOM AMBER VIAL CACHE", opened: false },
@@ -171,7 +165,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = 'EXTRACTION TRANSIT LOG // SCENE 01';
         document.getElementById('npcRole').innerText = 'SYNDICATE DISPATCH ARCHIVE';
         document.getElementById('npcAvatarIcon').innerText = '🚐';
-        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south. The old colorful Retrocade self is being held inside.';
+        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze[cite: 14]. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south[cite: 14]. The old colorful Retrocade self is being held inside[cite: 14].';
         m.classList.remove('hidden');
       }
     }},
@@ -183,7 +177,17 @@ const Dimensions = {
         document.getElementById('npcName').innerText = 'THE MIRROR REVEAL // SCENE 04';
         document.getElementById('npcRole').innerText = 'INDUSTRIAL RESTROOM (TUBE LIGHT)';
         document.getElementById('npcAvatarIcon').innerText = '🪞';
-        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era.';
+        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass[cite: 14]. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era[cite: 14].';
+        m.classList.remove('hidden');
+      }
+    }},
+    { id: 'bonfire_safe_zone', x: 2180, y: 2780, width: 240, height: 240, label: "CONNER CADE'S BONFIRE SAFE ZONE", action: () => {
+      const m = document.getElementById('npcModal');
+      if (m) {
+        document.getElementById('npcName').innerText = "CONNER CADE'S CREATIVE BONFIRE";
+        document.getElementById('npcRole').innerText = 'NEUTRAL CREATIVE REFUGE';
+        document.getElementById('npcAvatarIcon').innerText = '🔥';
+        document.getElementById('npcDialogueText').innerText = "Warm orange light flickers against the wet asphalt[cite: 12, 14]. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops[cite: 12, 14].";
         m.classList.remove('hidden');
       }
     }},
@@ -204,9 +208,26 @@ const Dimensions = {
   },
 
   getActiveZones() {
-    if (window.State && State.currentDimension === 'wasteland') return this.wastelandZones;
-    if (window.State && State.currentDimension === 'retrocade') return this.retrocadeZones;
-    return this.undergroundZones;
+    let zones = [];
+    if (window.State && State.currentDimension === 'wasteland') zones = [...this.wastelandZones];
+    else if (window.State && State.currentDimension === 'retrocade') zones = [...this.retrocadeZones];
+    else zones = [...this.undergroundZones];
+
+    // Append Lore Cassettes active in current dimension
+    if (window.State && Array.isArray(State.loreTapes)) {
+      State.loreTapes.forEach(t => {
+        if (t.dim === State.currentDimension) {
+          zones.push({
+            id: t.id,
+            x: t.x - 20, y: t.y - 20, width: 40, height: 40,
+            label: `LISTEN TO ${t.title}`,
+            action: () => State.inspectLoreTape(t)
+          });
+        }
+      });
+    }
+
+    return zones;
   }
 };
 
