@@ -13,7 +13,10 @@ const AudioEngine = {
   bgmTimer: null,
   bgmTempo: 130,
   bgmVersion: 'original',
+  // Original / Sped / Slow Bassline
   noirBassNotes: [110, 110, 130.81, 146.83, 164.81, 146.83, 130.81, 110, 98, 98, 110, 130.81, 146.83, 130.81, 123.47, 98],
+  // Unlocked Dystopian VIP Techno Acid Pattern (138 BPM Four-on-the-Floor)
+  vipAcidBassNotes: [130.81, 261.63, 130.81, 196.00, 130.81, 293.66, 130.81, 146.83, 116.54, 233.08, 116.54, 174.61, 98.00, 196.00, 110.00, 220.00],
 
   async init() {
     try {
@@ -22,12 +25,10 @@ const AudioEngine = {
         if (AudioCtx) {
           this.ctx = new AudioCtx();
 
-          // Master Gain Bus for Music
           this.bgmMasterGain = this.ctx.createGain();
           this.bgmMasterGain.gain.setValueAtTime(0.40, this.ctx.currentTime);
           this.bgmMasterGain.connect(this.ctx.destination);
 
-          // Master Gain Bus for Sound Effects
           this.sfxMasterGain = this.ctx.createGain();
           this.sfxMasterGain.gain.setValueAtTime(0.35, this.ctx.currentTime);
           this.sfxMasterGain.connect(this.ctx.destination);
@@ -57,7 +58,7 @@ const AudioEngine = {
       if (icon) icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       this.startBgmLoop();
       if (window.State && typeof State.showToast === 'function') {
-        State.showToast("BROADCASTING: 'DANCING'");
+        State.showToast(this.bgmVersion === 'vip_techno' ? "BROADCASTING: 'DANCING (VIP TECHNO)' 🔊" : "BROADCASTING: 'DANCING'");
       }
     } else {
       if (icon) icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
@@ -90,31 +91,77 @@ const AudioEngine = {
     }
 
     const now = this.ctx.currentTime;
-    const bassFreq = this.noirBassNotes[this.bgmStepIndex];
+    const isVip = this.bgmVersion === 'vip_techno';
+    const notesArray = isVip ? this.vipAcidBassNotes : this.noirBassNotes;
+    const bassFreq = notesArray[this.bgmStepIndex];
+
     if (bassFreq > 0) {
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
 
-      osc.type = 'sawtooth';
+      osc.type = isVip ? 'sawtooth' : 'sawtooth';
       osc.frequency.setValueAtTime(bassFreq, now);
 
-      g.gain.setValueAtTime(0.001, now);
-      g.gain.linearRampToValueAtTime(0.18, now + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      if (isVip) {
+        // Acid Filter Envelope for VIP Stem
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(600, now);
+        filter.frequency.exponentialRampToValueAtTime(3200, now + 0.05);
+        filter.frequency.exponentialRampToValueAtTime(400, now + 0.18);
+        filter.Q.setValueAtTime(6, now);
 
-      osc.connect(g);
+        g.gain.setValueAtTime(0.001, now);
+        g.gain.linearRampToValueAtTime(0.24, now + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+        osc.connect(filter);
+        filter.connect(g);
+      } else {
+        g.gain.setValueAtTime(0.001, now);
+        g.gain.linearRampToValueAtTime(0.18, now + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        osc.connect(g);
+      }
+
       g.connect(this.bgmMasterGain || this.ctx.destination);
-
       osc.start(now);
-      osc.stop(now + 0.30);
+      osc.stop(now + (isVip ? 0.24 : 0.30));
+
+      // Industrial Rave Kick on beats 0, 4, 8, 12 in VIP mode
+      if (isVip && this.bgmStepIndex % 4 === 0) {
+        this.synthesizeKick(now);
+      }
     }
+  },
+
+  synthesizeKick(time) {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+
+    osc.frequency.setValueAtTime(140, time);
+    osc.frequency.exponentialRampToValueAtTime(42, time + 0.09);
+
+    g.gain.setValueAtTime(0.40, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+
+    osc.connect(g);
+    g.connect(this.bgmMasterGain || this.ctx.destination);
+
+    osc.start(time);
+    osc.stop(time + 0.16);
   },
 
   setTrackBgm(version) {
     this.bgmVersion = version;
     const sel = document.getElementById('trackVersionSelect');
     if (sel) sel.value = version;
-    this.bgmTempo = version === 'spedup' ? 150 : version === 'slowed' ? 104 : 130;
+    
+    if (version === 'vip_techno') this.bgmTempo = 138;
+    else if (version === 'spedup') this.bgmTempo = 150;
+    else if (version === 'slowed') this.bgmTempo = 104;
+    else this.bgmTempo = 130;
 
     if (!this.isBgmPlaying) {
       this.toggleBgm();
@@ -188,7 +235,7 @@ const AudioEngine = {
         osc.start(now);
         osc.stop(now + 0.05);
       } else if (type === 'win') {
-        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+        const notes = [523.25, 659.25, 783.99];
         notes.forEach((freq, idx) => {
           const chordOsc = this.ctx.createOscillator();
           const chordGain = this.ctx.createGain();
@@ -215,7 +262,6 @@ const AudioEngine = {
 
 window.AudioEngine = AudioEngine;
 
-// Global user-gesture audio unlocker
 const unlockAudioOnGesture = () => {
   AudioEngine.init();
   window.removeEventListener('click', unlockAudioOnGesture);
