@@ -5,20 +5,16 @@
  */
 
 const State = {
-  RARE_TAPES_THRESHOLD: 100,
+  RARE_TAPES_THRESHOLD: 50,
   currentDimension: 'underground',
   activeMiniGame: null,
 
-  // Dimension viewport & camera bounding boundaries (Synchronized to Dossier specs)
   DIMENSIONS: {
-    underground: { name: "UNDERGROUND NIGHT SHIFT", width: 2400, height: 1200 },
-    retrocade: { name: "NIRVANA (RETROCADE)", width: 2400, height: 1200 },
-    wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800 }
+    underground: { name: "UNDERGROUND NIGHT SHIFT", width: 2400, height: 1200, defaultSpawn: { x: 350, y: 750 } },
+    retrocade: { name: "NIRVANA (RETROCADE)", width: 2400, height: 1200, defaultSpawn: { x: 1200, y: 750 } },
+    wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800, defaultSpawn: { x: 650, y: 1100 } }
   },
 
-  // =========================================================================
-  // CENTRALIZED RELEASES & LINK-IN-BIO CATALOG
-  // =========================================================================
   releases: [
     {
       id: "dancing",
@@ -57,9 +53,6 @@ const State = {
     this.screenShake.duration = duration;
   },
 
-  // =========================================================================
-  // 60 PLAYABLE SKINS CATALOG
-  // =========================================================================
   SKINS_DATA: [
     // 01-10: Founders & Street Enforcers
     { id: 'enforcer', name: 'THE NEW ERA ENFORCER', desc: 'Default tactical duster with neon cyan visor.', rarity: 'common', coat: '#090b10', trim: '#161d2a', visor: '#00f0ff', pants: '#06080c' },
@@ -155,6 +148,17 @@ const State = {
         if (this.userProfile.lastDimension) {
           this.currentDimension = this.userProfile.lastDimension;
         }
+        // Auto-rescue if player save had them trapped in the old (800, 800) highway wall
+        if (
+          this.currentDimension === 'wasteland' &&
+          this.userProfile.lastPosition &&
+          this.userProfile.lastPosition.x >= 580 &&
+          this.userProfile.lastPosition.x <= 1550 &&
+          this.userProfile.lastPosition.y >= 760 &&
+          this.userProfile.lastPosition.y <= 860
+        ) {
+          this.userProfile.lastPosition = { x: 650, y: 1100 };
+        }
       }
     } catch (e) {
       console.warn("Storage access restricted. Progress will be session-only.", e);
@@ -163,7 +167,6 @@ const State = {
     this.updateHud();
     this.renderSkins();
 
-    // First-time boot: prompt for username registration if empty
     if (!this.userProfile.handle || this.userProfile.handle.trim() === "") {
       setTimeout(() => {
         if (typeof openUsernameModal === 'function') openUsernameModal();
@@ -248,14 +251,17 @@ const State = {
   switchDimension(dimKey, spawnX, spawnY) {
     this.currentDimension = dimKey;
     const cfg = this.DIMENSIONS[dimKey];
+    const targetX = spawnX !== undefined ? spawnX : (cfg && cfg.defaultSpawn ? cfg.defaultSpawn.x : 350);
+    const targetY = spawnY !== undefined ? spawnY : (cfg && cfg.defaultSpawn ? cfg.defaultSpawn.y : 750);
+
     if (typeof Entities !== 'undefined' && Entities && Entities.player) {
-      Entities.player.x = spawnX;
-      Entities.player.y = spawnY;
+      Entities.player.x = targetX;
+      Entities.player.y = targetY;
     }
     const badge = document.getElementById('dimensionBadge');
-    if (badge) badge.innerText = `DIMENSION: ${cfg.name}`;
+    if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
     this.save();
-    this.showToast(`WARPED TO ${cfg.name}! 🌀`);
+    if (cfg) this.showToast(`WARPED TO ${cfg.name}! 🌀`);
   },
 
   showToast(msg) {
@@ -322,4 +328,5 @@ const State = {
     }
   }
 };
+
 window.State = State;
