@@ -45,12 +45,95 @@ const Dimensions = {
   ],
 
   undergroundZones: [
-    { id: 'disco_room', x: 880, y: 120, width: 160, height: 100, label: 'DISCOGRAPHY VAULT', action: () => { const m = document.getElementById('discoModal'); if (m) m.classList.remove('hidden'); } },
-    { id: 'portal_retrocade', x: 2200, y: 900, width: 80, height: 80, label: 'WARP: RETROCADE DISTRICT 84', action: () => { if (window.State) State.switchDimension('retrocade', 1200, 750); } },
-    { id: 'truck_merch', x: 180, y: 200, width: 150, height: 90, label: 'TRUNK POP // MERCH', action: () => { const m = document.getElementById('merchModal'); if (m) m.classList.remove('hidden'); } },
-    { id: 'arcade_galaga', x: 1650, y: 120, width: 70, height: 70, label: 'PLAY VOID INVADERS [5🪙]', action: () => { if (window.VoidInvaders) VoidInvaders.start(); } },
-    { id: 'arcade_pacman', x: 1800, y: 120, width: 70, height: 70, label: 'PLAY GRID RUNNER [5🪙]', action: () => { if (window.GridRunner) GridRunner.start(); } },
-    { id: 'arcade_mario', x: 1950, y: 120, width: 70, height: 70, label: 'PLAY LOWLIFE LEAP [5🪙]', action: () => { if (window.LowlifeLeap) LowlifeLeap.start(); } }
+    { 
+      id: 'disco_room', 
+      x: 880, y: 120, width: 160, height: 95, 
+      label: 'DISCOGRAPHY VAULT', 
+      action: () => { 
+        const m = document.getElementById('discoModal'); 
+        if (m) m.classList.remove('hidden'); 
+      } 
+    },
+    { 
+      id: 'portal_retrocade', 
+      x: 2200, y: 900, width: 80, height: 80, 
+      label: 'WARP: RETROCADE DISTRICT 84', 
+      action: () => { 
+        if (window.State) State.switchDimension('retrocade', 1200, 750); 
+      } 
+    },
+    { 
+      id: 'truck_merch', 
+      x: 180, y: 200, width: 150, height: 90, 
+      label: 'TRUNK POP // MERCH', 
+      action: () => { 
+        const m = document.getElementById('merchModal'); 
+        if (m) m.classList.remove('hidden'); 
+      } 
+    },
+
+    // ARCADE CABINET 1: VOID INVADERS (W: 70, H: 80)
+    { 
+      id: 'arcade_galaga', 
+      x: 1640, y: 110, width: 90, height: 90, 
+      label: 'PLAY VOID INVADERS [5🪙]', 
+      action: () => {
+        if (!window.State || !State.spendTokens(5)) {
+          if (window.State) State.showToast("INSUFFICIENT TOKENS // NEED 5🪙 TO PLAY!");
+          return;
+        }
+        const modal = document.getElementById('arcadeModal');
+        const title = document.getElementById('arcadeTitle');
+        if (title) title.innerText = "ARCADE // VOID INVADERS [5🪙 INSERTED]";
+        if (modal) modal.classList.remove('hidden');
+        if (window.VoidInvaders && typeof VoidInvaders.start === 'function') {
+          State.activeMiniGame = VoidInvaders;
+          VoidInvaders.start();
+        }
+      } 
+    },
+
+    // ARCADE CABINET 2: GRID RUNNER (W: 70, H: 80)
+    { 
+      id: 'arcade_pacman', 
+      x: 1790, y: 110, width: 90, height: 90, 
+      label: 'PLAY GRID RUNNER [5🪙]', 
+      action: () => {
+        if (!window.State || !State.spendTokens(5)) {
+          if (window.State) State.showToast("INSUFFICIENT TOKENS // NEED 5🪙 TO PLAY!");
+          return;
+        }
+        const modal = document.getElementById('arcadeModal');
+        const title = document.getElementById('arcadeTitle');
+        if (title) title.innerText = "ARCADE // GRID RUNNER [5🪙 INSERTED]";
+        if (modal) modal.classList.remove('hidden');
+        if (window.GridRunner && typeof GridRunner.start === 'function') {
+          State.activeMiniGame = GridRunner;
+          GridRunner.start();
+        }
+      } 
+    },
+
+    // ARCADE CABINET 3: LOWLIFE LEAP (W: 70, H: 80)
+    { 
+      id: 'arcade_mario', 
+      x: 1940, y: 110, width: 90, height: 90, 
+      label: 'PLAY LOWLIFE LEAP [5🪙]', 
+      action: () => {
+        if (!window.State || !State.spendTokens(5)) {
+          if (window.State) State.showToast("INSUFFICIENT TOKENS // NEED 5🪙 TO PLAY!");
+          return;
+        }
+        const modal = document.getElementById('arcadeModal');
+        const title = document.getElementById('arcadeTitle');
+        if (title) title.innerText = "ARCADE // LOWLIFE LEAP [5🪙 INSERTED]";
+        if (modal) modal.classList.remove('hidden');
+        if (window.LowlifeLeap && typeof LowlifeLeap.start === 'function') {
+          State.activeMiniGame = LowlifeLeap;
+          LowlifeLeap.start();
+        }
+      } 
+    }
   ],
 
   // =========================================================================
@@ -165,7 +248,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = 'EXTRACTION TRANSIT LOG // SCENE 01';
         document.getElementById('npcRole').innerText = 'SYNDICATE DISPATCH ARCHIVE';
         document.getElementById('npcAvatarIcon').innerText = '🚐';
-        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze[cite: 14]. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south[cite: 14]. The old colorful Retrocade self is being held inside[cite: 14].';
+        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze[cite: 15]. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south[cite: 15]. The old colorful Retrocade self is being held inside[cite: 15].';
         m.classList.remove('hidden');
       }
     }},
@@ -177,7 +260,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = 'THE MIRROR REVEAL // SCENE 04';
         document.getElementById('npcRole').innerText = 'INDUSTRIAL RESTROOM (TUBE LIGHT)';
         document.getElementById('npcAvatarIcon').innerText = '🪞';
-        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass[cite: 14]. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era[cite: 14].';
+        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass[cite: 15]. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era[cite: 15].';
         m.classList.remove('hidden');
       }
     }},
@@ -187,7 +270,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = "CONNER CADE'S CREATIVE BONFIRE";
         document.getElementById('npcRole').innerText = 'NEUTRAL CREATIVE REFUGE';
         document.getElementById('npcAvatarIcon').innerText = '🔥';
-        document.getElementById('npcDialogueText').innerText = "Warm orange light flickers against the wet asphalt[cite: 12, 14]. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops[cite: 12, 14].";
+        document.getElementById('npcDialogueText').innerText = "Warm orange light flickers against the wet asphalt[cite: 14, 15]. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops[cite: 14, 15].";
         m.classList.remove('hidden');
       }
     }},
@@ -213,13 +296,16 @@ const Dimensions = {
     else if (window.State && State.currentDimension === 'retrocade') zones = [...this.retrocadeZones];
     else zones = [...this.undergroundZones];
 
-    // Append Lore Cassettes active in current dimension
+    // Append Lore Cassettes with dedicated 50x50 AABB collision boxes
     if (window.State && Array.isArray(State.loreTapes)) {
       State.loreTapes.forEach(t => {
         if (t.dim === State.currentDimension) {
           zones.push({
             id: t.id,
-            x: t.x - 20, y: t.y - 20, width: 40, height: 40,
+            x: t.x - 25, 
+            y: t.y - 25, 
+            width: 50, 
+            height: 50,
             label: `LISTEN TO ${t.title}`,
             action: () => State.inspectLoreTape(t)
           });
