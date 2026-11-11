@@ -28,12 +28,10 @@ function resizeCanvas() {
 }
 window.addEventListener('resize', resizeCanvas);
 
-// Auto-save on page refresh or tab close
 window.addEventListener('beforeunload', () => {
   if (window.State && typeof State.save === 'function') State.save();
 });
 
-// Canvas mouse click attack & focus bindings
 canvas.addEventListener('mousedown', (e) => {
   if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
 
@@ -86,7 +84,7 @@ function draw() {
 }
 
 // =========================================================================
-// 1. UNDERGROUND NIGHT SHIFT (2400 x 1200)[cite: 1]
+// 1. UNDERGROUND NIGHT SHIFT (2400 x 1200)
 // =========================================================================
 function drawUnderground() {
   ctx.fillStyle = '#161d2f';
@@ -127,16 +125,15 @@ function drawUnderground() {
 
   drawUndergroundDoorways();
 
-  // West Bay: Trunk Pop Vehicle[cite: 1]
+  // West Bay: Trunk Pop Vehicle
   ctx.fillStyle = '#1e293b'; ctx.fillRect(180, 200, 150, 75);
   ctx.fillStyle = '#ff003c'; ctx.fillRect(185, 265, 20, 6); ctx.fillRect(305, 265, 20, 6);
   ctx.fillStyle = '#334155'; ctx.fillRect(210, 180, 90, 25);
   ctx.fillStyle = '#00f0ff'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("TRUNK POP // MERCH", 195, 235);
   ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 8px "Share Tech Mono"';
-  ctx.fillText("PROMO: WASTELAND15", 200, 252);
+  ctx.fillText("PROMO: LOWLIFEWORLD15", 200, 252);
 
-  // Target Dummy
   if (typeof Entities !== 'undefined' && Entities.trainingDummies) {
     Entities.trainingDummies.forEach(td => {
       ctx.save();
@@ -169,7 +166,6 @@ function drawUnderground() {
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("[AUDIT DISCOGRAPHY]", 908, 198);
 
-  // Cabinets[cite: 1]
   const arcadeTitles = ['VOID INVADERS', 'GRID RUNNER', 'LOWLIFE LEAP'];
   arcadeTitles.forEach((title, idx) => {
     const ax = 1650 + idx * 150;
@@ -232,7 +228,7 @@ function drawUndergroundDoorways() {
 }
 
 // =========================================================================
-// 2. RETROCADE / NIRVANA COMPLEX (2400 x 1200)[cite: 1]
+// 2. RETROCADE / NIRVANA COMPLEX (2400 x 1200)
 // =========================================================================
 function drawRetrocade() {
   ctx.fillStyle = '#24143a'; ctx.fillRect(0, 0, 2400, 1200);
@@ -262,7 +258,7 @@ function drawRetrocade() {
   ctx.beginPath(); ctx.moveTo(1735, 500); ctx.lineTo(1735, 660); ctx.stroke();
   ctx.restore();
 
-  // DJ Barrier Wall[cite: 1]
+  // DJ Barrier Wall
   ctx.fillStyle = 'rgba(168, 85, 247, 0.35)'; ctx.fillRect(920, 240, 560, 25);
   ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 3; ctx.strokeRect(920, 240, 560, 25);
   for (let s = 920; s < 1480; s += 20) {
@@ -272,7 +268,7 @@ function drawRetrocade() {
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
   ctx.fillText("▲ ACOUSTIC SECURITY WALL ▲", 1100, 257);
 
-  // Dance Floor (10x8 Matrix)[cite: 1]
+  // Dance Floor (10x8 Matrix)
   const colors = ['#ec4899', '#00f0ff', '#a855f7', '#facc15'];
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 8; j++) {
@@ -293,7 +289,6 @@ function drawRetrocade() {
     ctx.fillRect(1080 + b * 15, 140 - barH, 10, barH);
   }
 
-  // West Kiosk & East Casino[cite: 1]
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 12px "Chakra Petch"';
   ctx.fillText("NIRVANA // CLUB LOWLIFE MUSIC KIOSK", 160, 100);
   ctx.fillStyle = '#431407'; ctx.fillRect(260, 220, 160, 90);
@@ -319,7 +314,7 @@ function drawRetrocade() {
 }
 
 // =========================================================================
-// 3. THE ASHEN WASTELAND (6400 x 4800)[cite: 1]
+// 3. THE ASHEN WASTELAND (6400 x 4800)
 // =========================================================================
 function drawWasteland() {
   ctx.fillStyle = '#181f2c'; ctx.fillRect(0, 0, 6400, 4800);
@@ -327,6 +322,32 @@ function drawWasteland() {
   ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)'; ctx.lineWidth = 1;
   for (let x = 0; x < 6400; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 4800); ctx.stroke(); }
   for (let y = 0; y < 4800; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(6400, y); ctx.stroke(); }
+
+  // Interior Floor Tints
+  ctx.fillStyle = '#111827'; ctx.fillRect(2135, 1235, 530, 430); // Martian University
+  ctx.fillStyle = '#1e1b4b'; ctx.fillRect(3835, 2335, 530, 480); // Sector 777 Overlook
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(2835, 3835, 830, 530); // Holding Chamber
+  ctx.fillStyle = '#062e22'; ctx.fillRect(3700, 3935, 315, 330); // Industrial Washroom
+
+  ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 13px "Chakra Petch"';
+  ctx.fillText("MARTIAN UNIVERSITY // FREQUENCY LAB", 2240, 1280);
+  ctx.fillStyle = '#facc15'; ctx.font = 'bold 14px "Chakra Petch"';
+  ctx.fillText("SECTOR 777 // LIVING ON THE HIGHS", 3940, 2380);
+
+  // Extraction Getaway Van
+  ctx.save();
+  ctx.fillStyle = '#090b10'; ctx.fillRect(460, 1080, 125, 65);
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.strokeRect(460, 1080, 125, 65);
+  ctx.fillStyle = '#ff003c'; ctx.fillRect(462, 1088, 6, 14); ctx.fillRect(462, 1124, 6, 14);
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.14)';
+  ctx.beginPath(); ctx.moveTo(585, 1090); ctx.lineTo(740, 1040); ctx.lineTo(740, 1120); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(585, 1135); ctx.lineTo(740, 1105); ctx.lineTo(740, 1185); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#00f0ff'; ctx.font = 'bold 8px "Share Tech Mono"';
+  ctx.fillText("EXTRACTION VAN [E]", 472, 1116);
+  ctx.restore();
+
+  // Conner Cade's Creative Bonfire Safe Zone (Phase 2)
+  drawConnerCadeBonfire();
 
   if (typeof Dimensions !== 'undefined' && Dimensions.environmentalHazards) {
     Dimensions.environmentalHazards.forEach(h => {
@@ -340,8 +361,8 @@ function drawWasteland() {
       ctx.fillStyle = '#222d3d'; ctx.fillRect(o.x, o.y, o.width, o.height);
       ctx.strokeStyle = '#384860'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
       if (o.label) {
-        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 11px "Share Tech Mono"';
-        ctx.fillText(o.label, o.x + 15, o.y + 25);
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px "Share Tech Mono"';
+        ctx.fillText(o.label, o.x + 10, o.y + 22);
       }
     });
   }
@@ -368,11 +389,89 @@ function drawWasteland() {
     });
   }
 
-  // Shifted adjacent to verified spawn clearing (650, 1100)
   drawPortal(650, 1020, '#a855f7', '#ec4899', "WARP: RETROCADE");
   drawPortal(3120, 150, '#10b981', '#facc15', "NEURAL EXTRACTION GATE [50 TAPES]");
 
   drawPortalsAndEntities('wasteland');
+}
+
+// Renders the animated bonfire, ember glow ring, and safe zone aura
+function drawConnerCadeBonfire() {
+  const bx = 2300, by = 2900;
+  const time = Date.now() / 150;
+  const pulse = Math.sin(time) * 10;
+
+  ctx.save();
+
+  // Safe Zone Perimeter Glow Ring (Radius 180px)
+  ctx.strokeStyle = 'rgba(249, 115, 22, 0.35)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.arc(bx, by, 180 + Math.sin(time * 0.4) * 4, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Warm Amber Ground Ambience
+  const grad = ctx.createRadialGradient(bx, by, 15, bx, by, 180);
+  grad.addColorStop(0, 'rgba(251, 146, 60, 0.22)');
+  grad.addColorStop(0.7, 'rgba(234, 88, 12, 0.08)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(bx, by, 180, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Stone Fire Ring
+  ctx.fillStyle = '#44403c';
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+    const sx = bx + Math.cos(a) * 26;
+    const sy = by + Math.sin(a) * 20;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Cross Logs
+  ctx.strokeStyle = '#292524';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(bx - 16, by - 8); ctx.lineTo(bx + 16, by + 8);
+  ctx.moveTo(bx - 16, by + 8); ctx.lineTo(bx + 16, by - 8);
+  ctx.stroke();
+
+  // Animated Pixel Fire Core
+  ctx.fillStyle = '#ea580c';
+  ctx.beginPath();
+  ctx.arc(bx, by - 4, 16 + pulse * 0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath();
+  ctx.arc(bx, by - 8, 10 + pulse * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(bx, by - 10, 5 + pulse * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rising Sparks & Embers
+  for (let e = 0; e < 5; e++) {
+    const emberOffset = (time * 8 + e * 35) % 60;
+    const ex = bx + Math.sin(time + e) * 14;
+    const ey = by - 12 - emberOffset;
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(ex, ey, 2.5, 2.5);
+  }
+
+  // Banner Header
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#fb923c';
+  ctx.font = 'bold 10px "Chakra Petch"';
+  ctx.textAlign = 'center';
+  ctx.fillText("CONNER CADE'S CREATIVE BONFIRE [SAFE ZONE]", bx, by - 36);
+
+  ctx.restore();
 }
 
 function drawRainOverlay() {
@@ -412,12 +511,23 @@ function drawHoldingChamberInterior() {
   ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(chairX + 12, chairY - 2, 7, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 8px "Share Tech Mono"';
   ctx.fillText("CAPTIVE OLD SELF", chairX - 16, chairY + 38);
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(74, 222, 128, 0.22)';
+  ctx.fillRect(3840, 3940, 140, 90);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(3890, 3936, 55, 10);
+  ctx.strokeStyle = '#e2e8f0';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(3890, 3936, 55, 10);
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 8px "Share Tech Mono"';
+  ctx.fillText("CRACKED MIRROR [E]", 3875, 3965);
+  ctx.restore();
 }
 
-// =========================================================================
-// 4. ENTITIES, COMBAT PARTICLES, & OVERHEAD CALLSIGN BADGE[cite: 2]
-// =========================================================================
 function drawPortalsAndEntities(dim) {
+  // Friendly NPCs
   if (typeof Entities !== 'undefined' && Entities.friendlyNpcs) {
     (Entities.friendlyNpcs[dim] || []).forEach(n => {
       const bob = n.dancePhase !== undefined ? Math.sin((Date.now() / 150) + n.dancePhase) * 3.5 : 0;
@@ -427,6 +537,44 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
+  // Interactive Lore Cassettes Rendering (Phase 2 Glowing Tapes)
+  if (window.State && Array.isArray(State.loreTapes)) {
+    State.loreTapes.forEach(t => {
+      if (t.dim === dim) {
+        const isFound = State.userProfile && State.userProfile.discoveredLoreTapes && State.userProfile.discoveredLoreTapes.includes(t.id);
+        const floatBob = Math.sin(Date.now() / 200 + t.x) * 4;
+
+        ctx.save();
+        // Pulsing Gold Aura
+        ctx.fillStyle = isFound ? 'rgba(156, 163, 175, 0.35)' : 'rgba(245, 158, 11, 0.45)';
+        ctx.beginPath();
+        ctx.arc(t.x, t.y + floatBob, 14 + Math.sin(Date.now() / 150) * 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cassette Body
+        ctx.fillStyle = isFound ? '#374151' : '#b45309';
+        ctx.fillRect(t.x - 12, t.y - 8 + floatBob, 24, 16);
+        ctx.strokeStyle = isFound ? '#9ca3af' : '#fbbf24';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(t.x - 12, t.y - 8 + floatBob, 24, 16);
+
+        // Tape Spools
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(t.x - 5, t.y + floatBob, 3, 0, Math.PI * 2);
+        ctx.arc(t.x + 5, t.y + floatBob, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = isFound ? '#9ca3af' : '#facc15';
+        ctx.font = 'bold 7px "Share Tech Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText("TAPE [E]", t.x, t.y - 12 + floatBob);
+        ctx.restore();
+      }
+    });
+  }
+
+  // Wasteland Enemies
   if (dim === 'wasteland' && typeof Entities !== 'undefined' && Entities.hostileNpcs) {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive) return;
@@ -450,6 +598,7 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
+  // Loot Pickups
   if (typeof Entities !== 'undefined' && Entities.lootPickups) {
     Entities.lootPickups.forEach(p => {
       ctx.fillStyle = p.type === 'coin' ? '#facc15' : '#eab308';
@@ -459,6 +608,7 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
+  // Combat Projectiles
   if (typeof Combat !== 'undefined' && Combat.projectiles) {
     Combat.projectiles.forEach(p => {
       ctx.save();
@@ -484,6 +634,7 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
+  // Melee Slashes
   if (typeof Combat !== 'undefined' && Combat.meleeSlashes) {
     Combat.meleeSlashes.forEach(s => {
       ctx.save();
@@ -587,9 +738,6 @@ function renderPlayerCallsign(ctx, px, py, handle) {
   ctx.restore();
 }
 
-// =========================================================================
-// 5. PIXEL CHARACTER RENDERING ENGINE & AURAS[cite: 2]
-// =========================================================================
 function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction, isMoving, animTimer, scale = 1.0) {
   ctx.save();
   ctx.translate(px, py);
@@ -656,9 +804,6 @@ function drawPortal(px, py, color1, color2, label) {
   ctx.fillText(label, px - 15, py + 95);
 }
 
-// =========================================================================
-// 6. ENGINE TICK & LIFECYCLE
-// =========================================================================
 function gameLoop() {
   if (typeof Entities !== 'undefined' && Entities.update) Entities.update();
   if (typeof Combat !== 'undefined' && Combat.update) Combat.update();
