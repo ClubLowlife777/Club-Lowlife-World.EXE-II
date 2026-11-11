@@ -71,8 +71,6 @@ const Dimensions = {
         if (m) m.classList.remove('hidden'); 
       } 
     },
-
-    // ARCADE CABINET 1: VOID INVADERS (W: 70, H: 80)
     { 
       id: 'arcade_galaga', 
       x: 1640, y: 110, width: 90, height: 90, 
@@ -92,8 +90,6 @@ const Dimensions = {
         }
       } 
     },
-
-    // ARCADE CABINET 2: GRID RUNNER (W: 70, H: 80)
     { 
       id: 'arcade_pacman', 
       x: 1790, y: 110, width: 90, height: 90, 
@@ -113,8 +109,6 @@ const Dimensions = {
         }
       } 
     },
-
-    // ARCADE CABINET 3: LOWLIFE LEAP (W: 70, H: 80)
     { 
       id: 'arcade_mario', 
       x: 1940, y: 110, width: 90, height: 90, 
@@ -232,10 +226,10 @@ const Dimensions = {
   wastelandChests: [
     { id: "c1", x: 800, y: 650, width: 36, height: 28, type: "supply", label: "HIGHWAY SUPPLY CRATE", opened: false },
     { id: "c2", x: 1600, y: 1950, width: 38, height: 30, type: "biohazard", label: "SILO 07 HAZMAT CACHE", opened: false },
-    { id: "c3", x: 5500, y: 700, width: 40, height: 32, type: "vault", label: "OBSOLETE CAVE VAULT", skinReward: "cave_stalker", opened: false },
+    { id: "c3", x: 5500, y: 700, width: 40, height: 32, type: "vault", label: "OBSOLETE CAVE VAULT", relicReward: "relic_peak_controller", skinReward: "cave_stalker", opened: false },
     { id: "c4", x: 3220, y: 3950, width: 44, height: 34, type: "master_holding", label: "GOLDEN MASTER VAULT", skinReward: "static_nightmare", opened: false },
-    { id: "c5", x: 2380, y: 1320, width: 40, height: 32, type: "vault", label: "MARTIAN UNIVERSITY ARCHIVE VAULT", skinReward: "sound_designer", opened: false },
-    { id: "c6", x: 4220, y: 2450, width: 40, height: 32, type: "vault", label: "SECTOR 777 VIP STASH", skinReward: "jackpot_777", opened: false },
+    { id: "c5", x: 2380, y: 1320, width: 40, height: 32, type: "vault", label: "MARTIAN UNIVERSITY ARCHIVE VAULT", relicReward: "relic_tape_saturator", skinReward: "sound_designer", opened: false },
+    { id: "c6", x: 4220, y: 2450, width: 40, height: 32, type: "vault", label: "SECTOR 777 VIP STASH", relicReward: "relic_gross_beat", skinReward: "jackpot_777", opened: false },
     { id: "c7", x: 3920, y: 4180, width: 38, height: 30, type: "biohazard", label: "WASHROOM AMBER VIAL CACHE", opened: false },
     { id: "c8", x: 920, y: 1420, width: 36, height: 28, type: "supply", label: "OVERPASS DROP CRATE", opened: false }
   ],
@@ -248,7 +242,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = 'EXTRACTION TRANSIT LOG // SCENE 01';
         document.getElementById('npcRole').innerText = 'SYNDICATE DISPATCH ARCHIVE';
         document.getElementById('npcAvatarIcon').innerText = '🚐';
-        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze[cite: 15]. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south[cite: 15]. The old colorful Retrocade self is being held inside[cite: 15].';
+        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze[cite: 16]. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south[cite: 16]. The old colorful Retrocade self is being held inside[cite: 16].';
         m.classList.remove('hidden');
       }
     }},
@@ -260,7 +254,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = 'THE MIRROR REVEAL // SCENE 04';
         document.getElementById('npcRole').innerText = 'INDUSTRIAL RESTROOM (TUBE LIGHT)';
         document.getElementById('npcAvatarIcon').innerText = '🪞';
-        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass[cite: 15]. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era[cite: 15].';
+        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass[cite: 16]. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era[cite: 16].';
         m.classList.remove('hidden');
       }
     }},
@@ -270,7 +264,7 @@ const Dimensions = {
         document.getElementById('npcName').innerText = "CONNER CADE'S CREATIVE BONFIRE";
         document.getElementById('npcRole').innerText = 'NEUTRAL CREATIVE REFUGE';
         document.getElementById('npcAvatarIcon').innerText = '🔥';
-        document.getElementById('npcDialogueText').innerText = "Warm orange light flickers against the wet asphalt[cite: 14, 15]. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops[cite: 14, 15].";
+        document.getElementById('npcDialogueText').innerText = "Warm orange light flickers against the wet asphalt[cite: 14, 16]. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops[cite: 14, 16].";
         m.classList.remove('hidden');
       }
     }},
@@ -296,7 +290,6 @@ const Dimensions = {
     else if (window.State && State.currentDimension === 'retrocade') zones = [...this.retrocadeZones];
     else zones = [...this.undergroundZones];
 
-    // Append Lore Cassettes with dedicated 50x50 AABB collision boxes
     if (window.State && Array.isArray(State.loreTapes)) {
       State.loreTapes.forEach(t => {
         if (t.dim === State.currentDimension) {
