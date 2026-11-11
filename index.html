@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full w-full overflow-hidden">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -9,74 +9,95 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Prevent all mobile pull-to-refresh, bounce-scrolling, and double-tap zoom */
+    html, body {
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      overscroll-behavior: none;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: fixed;
+    }
+  </style>
 </head>
-<body class="bg-[#07080b] text-white antialiased flex flex-col justify-between select-none">
-  <div id="crtOverlay" class="crt-overlay"></div>
-  <div class="crt-vignette"></div>
+<body class="bg-[#07080b] text-white antialiased flex flex-col justify-between">
+  <div id="crtOverlay" class="crt-overlay pointer-events-none"></div>
+  <div class="crt-vignette pointer-events-none"></div>
 
-  <!-- PERSISTENT TOP HUD -->
-  <header class="absolute top-0 left-0 right-0 z-30 px-3 py-2 flex flex-wrap items-center justify-between bg-black/90 border-b border-[#262c3d]/60 backdrop-blur-md gap-2">
-    <div class="flex items-center gap-2">
-      <div id="dimensionStatusDot" class="w-2.5 h-2.5 rounded-full bg-[#00f0ff] animate-ping"></div>
+  <!-- PERSISTENT TOP HUD (Mobile-Responsive Compact Grid) -->
+  <header class="absolute top-0 left-0 right-0 z-30 px-2.5 py-1.5 flex flex-wrap items-center justify-between bg-black/90 border-b border-[#262c3d]/60 backdrop-blur-md gap-1.5">
+    <div class="flex items-center gap-1.5">
+      <div id="dimensionStatusDot" class="w-2 h-2 rounded-full bg-[#00f0ff] animate-ping"></div>
       <div>
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <span class="font-cyber font-bold tracking-widest text-xs sm:text-sm text-white">CLUB LOWLIFE</span>
-          <span id="dimensionBadge" class="text-[9px] sm:text-[10px] bg-[#161922] border border-[#00f0ff]/40 text-[#00f0ff] px-1.5 py-0.5 rounded font-cyber">DIMENSION: UNDERGROUND</span>
+        <div class="flex items-center gap-1 flex-wrap">
+          <span class="font-cyber font-bold tracking-widest text-[11px] sm:text-sm text-white">LOWLIFE</span>
+          <span id="dimensionBadge" class="text-[8px] sm:text-[10px] bg-[#161922] border border-[#00f0ff]/40 text-[#00f0ff] px-1 py-0.2 rounded font-cyber">UNDERGROUND</span>
           
-          <button onclick="openUsernameModal()" id="callsignBadgeBtn" class="text-[9px] sm:text-[10px] bg-[#161922] border border-cyan-400/40 text-cyan-300 px-1.5 py-0.5 rounded font-mono hover:border-cyan-300 transition flex items-center gap-1" title="Change Operative Callsign">
+          <button onclick="openUsernameModal()" id="callsignBadgeBtn" class="text-[8px] sm:text-[10px] bg-[#161922] border border-cyan-400/40 text-cyan-300 px-1 py-0.2 rounded font-mono hover:border-cyan-300 transition flex items-center gap-0.5">
             <span>ID:</span>
             <b id="hudCallsign">OPERATIVE</b>
           </button>
         </div>
-        <div class="flex items-center gap-1.5 mt-0.5">
-          <span class="text-[8px] font-mono text-neutral-400">HP:</span>
-          <div class="w-20 sm:w-28 bg-neutral-900 h-2 rounded-full overflow-hidden border border-neutral-700">
+        <div class="flex items-center gap-1 mt-0.5">
+          <span class="text-[7px] sm:text-[8px] font-mono text-neutral-400">HP:</span>
+          <div class="w-16 sm:w-28 bg-neutral-900 h-1.5 sm:h-2 rounded-full overflow-hidden border border-neutral-700">
             <div id="playerHpBar" class="bg-gradient-to-r from-red-500 to-green-400 h-full w-full transition-all duration-200"></div>
           </div>
-          <span id="playerHpText" class="text-[9px] font-mono text-green-400 font-bold">100/100</span>
+          <span id="playerHpText" class="text-[8px] sm:text-[9px] font-mono text-green-400 font-bold">100/100</span>
         </div>
       </div>
     </div>
 
-    <!-- Active Audio Player HUD Bar -->
-    <div class="flex items-center gap-1.5 bg-[#0e1117]/90 px-2 py-1 rounded-lg border border-[#262c3d] text-xs">
+    <!-- Active Audio Player Bar (Compact on Mobile) -->
+    <div class="flex items-center gap-1 bg-[#0e1117]/90 px-1.5 py-0.5 rounded border border-[#262c3d] text-xs">
       <button id="bgmToggleBtn" class="p-1 text-[#00f0ff] hover:text-white transition" title="Play / Pause Audio" onclick="if(window.AudioEngine && typeof AudioEngine.toggleBgm === 'function') AudioEngine.toggleBgm();">
-        <svg id="bgmPlayIcon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="bgmPlayIcon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
-      <div class="flex flex-col max-w-[95px] sm:max-w-none truncate">
-        <span class="text-[8px] text-neutral-400 font-mono uppercase leading-tight">BROADCAST:</span>
-        <span id="activeTrackName" class="text-[10px] sm:text-[11px] font-bold text-white leading-tight truncate">"DANCING"</span>
+      <div class="hidden sm:flex flex-col truncate">
+        <span class="text-[7px] text-neutral-400 font-mono uppercase leading-tight">BROADCAST:</span>
+        <span id="activeTrackName" class="text-[9px] font-bold text-white leading-tight truncate">"DANCING"</span>
       </div>
-      <select id="trackVersionSelect" onchange="if(window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm(this.value);" class="bg-black text-[9px] sm:text-[10px] text-[#00f0ff] border border-neutral-700 rounded px-1 py-0.5 font-mono focus:outline-none">
-        <option value="original">ORIGINAL</option>
-        <option value="spedup">SPED (+15%)</option>
-        <option value="slowed">SLOW (-15%)</option>
+      <select id="trackVersionSelect" onchange="if(window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm(this.value);" class="bg-black text-[8px] sm:text-[10px] text-[#00f0ff] border border-neutral-700 rounded px-1 py-0.5 font-mono focus:outline-none">
+        <option value="original">ORIG</option>
+        <option value="spedup">SPED</option>
+        <option value="slowed">SLOW</option>
       </select>
     </div>
 
-    <!-- Stats & Navigation Badges -->
-    <div class="flex items-center gap-1.5">
-      <div class="px-2 py-1 bg-black/70 border border-yellow-500/50 rounded text-xs text-yellow-400 font-mono flex items-center gap-1" title="Sound Tokens">
+    <!-- Inventory Badges & Modals -->
+    <div class="flex items-center gap-1">
+      <div class="px-1.5 py-0.5 bg-black/70 border border-yellow-500/50 rounded text-[10px] sm:text-xs text-yellow-400 font-mono flex items-center gap-0.5" title="Sound Tokens">
         <span>🪙</span>
         <b id="casinoTokensCount">100</b>
       </div>
-      <div class="px-2 py-1 bg-black/70 border border-amber-500/60 rounded text-xs text-amber-400 font-mono flex items-center gap-1" title="Battle Cassettes">
+      <div class="px-1.5 py-0.5 bg-black/70 border border-amber-500/60 rounded text-[10px] sm:text-xs text-amber-400 font-mono flex items-center gap-0.5" title="Battle Cassettes">
         <span>📼</span>
         <b id="rareBattleTapeCount">0/50</b>
       </div>
+      <button id="hudVialCountBadge" onclick="if(window.State) State.useAmberVial();" class="px-1.5 py-0.5 bg-amber-950/80 border border-amber-500/50 rounded text-[10px] sm:text-xs text-amber-300 font-mono flex items-center gap-0.5 active:scale-95 transition" title="Use Amber Dropper Vial [Q]">
+        <span>🧪</span>
+        <b id="hudVialCount">0</b>
+      </button>
+      <button id="openGearBtn" onclick="openGearModal()" class="px-1.5 py-0.5 bg-[#1e1b4b] border border-purple-500/50 rounded text-[10px] sm:text-xs text-purple-300 font-cyber active:scale-95 transition" title="Studio Gear Relics">
+        GEAR
+      </button>
       <button id="btnWarp" onclick="if(window.State && typeof State.switchDimension === 'function') {
         const nextDim = State.currentDimension === 'underground' ? 'retrocade' : (State.currentDimension === 'retrocade' ? 'wasteland' : 'underground');
         const spawnX = nextDim === 'wasteland' ? 650 : (nextDim === 'retrocade' ? 1200 : 350);
         const spawnY = nextDim === 'wasteland' ? 1100 : (nextDim === 'retrocade' ? 750 : 750);
         State.switchDimension(nextDim, spawnX, spawnY);
-      }" class="px-2 py-1 bg-gradient-to-r from-pink-600 to-cyan-500 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
+      }" class="px-1.5 py-0.5 bg-gradient-to-r from-pink-600 to-cyan-500 active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded transition">
         WARP
       </button>
-      <button id="openLinksModalBtn" onclick="openDiscographyModal()" class="px-2 py-1 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-xs rounded transition">
+      <button id="openLinksModalBtn" onclick="openDiscographyModal()" class="px-1.5 py-0.5 bg-[#00f0ff] active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded transition">
         LINKS
       </button>
-      <button id="openSkinsBtn" onclick="const sm = document.getElementById('skinLockerModal') || document.getElementById('skinsModal'); if(sm) sm.classList.remove('hidden'); if(window.State && typeof State.renderSkins === 'function') State.renderSkins();" class="px-2 py-1 bg-[#0e1117] hover:bg-neutral-800 border border-[#262c3d] rounded text-xs text-white transition" title="Locker">
-        SKINS 🧥
+      <button id="openSkinsBtn" onclick="const sm = document.getElementById('skinLockerModal') || document.getElementById('skinsModal'); if(sm) sm.classList.remove('hidden'); if(window.State && typeof State.renderSkins === 'function') State.renderSkins();" class="px-1.5 py-0.5 bg-[#0e1117] border border-[#262c3d] rounded text-[10px] sm:text-xs text-white active:scale-95 transition">
+        SKINS
       </button>
     </div>
   </header>
@@ -85,87 +106,121 @@
   <main class="relative w-full h-full flex items-center justify-center bg-black overflow-hidden">
     <canvas id="gameCanvas" class="w-full h-full block cursor-crosshair"></canvas>
     
-    <!-- Proximity Interaction Banner -->
-    <div id="interactionPrompt" class="hidden pointer-events-auto absolute bottom-28 sm:bottom-12 z-30 px-4 py-2 bg-black/90 border border-[#a855f7] text-[#a855f7] rounded-md shadow-[0_0_20px_rgba(168,85,247,0.5)] flex items-center gap-2 font-mono text-xs sm:text-sm backdrop-blur">
+    <!-- Proximity Interaction Banner (Large Tap Target for Phones) -->
+    <div id="interactionPrompt" class="hidden pointer-events-auto absolute bottom-32 sm:bottom-12 z-30 px-4 py-2 bg-black/95 border-2 border-[#a855f7] text-[#a855f7] rounded-lg shadow-[0_0_20px_rgba(168,85,247,0.6)] flex items-center gap-2 font-mono text-xs sm:text-sm backdrop-blur active:scale-95 transition cursor-pointer">
       <span class="w-2.5 h-2.5 rounded-full bg-[#a855f7] prompt-pulse"></span>
-      <span id="promptText" class="font-bold text-white tracking-wide">TAP ACTION</span>
+      <span id="promptText" class="font-bold text-white tracking-wide">TAP ACTION [E]</span>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toastMessage" class="pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3 absolute top-16 z-30 px-4 py-2 bg-black/95 border border-[#00f0ff] rounded text-xs text-white font-mono shadow-[0_0_15px_rgba(0,240,255,0.3)] max-w-sm text-center">
+    <div id="toastMessage" class="pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3 absolute top-14 sm:top-16 z-30 px-3 py-1.5 bg-black/95 border border-[#00f0ff] rounded text-[11px] sm:text-xs text-white font-mono shadow-[0_0_15px_rgba(0,240,255,0.3)] max-w-xs text-center">
       Notification Alert
     </div>
   </main>
 
-  <!-- MOBILE TOUCH CONTROLS -->
-  <div id="touchControls" class="sm:hidden pointer-events-none absolute inset-x-0 bottom-6 z-30 px-5 flex items-end justify-between">
-    <div id="joystickZone" class="pointer-events-auto relative w-28 h-28 rounded-full bg-black/50 border border-[#262c3d]/80 backdrop-blur-md flex items-center justify-center">
-      <div id="joystickKnob" class="w-12 h-12 rounded-full bg-gradient-to-br from-[#00f0ff] to-blue-700 border-2 border-white transform translate-x-0 translate-y-0"></div>
+  <!-- DEDICATED MOBILE TOUCH CONTROLS (Always Available on Phones) -->
+  <div id="touchControls" class="sm:hidden pointer-events-none absolute inset-x-0 bottom-4 z-30 px-3 flex items-end justify-between select-none">
+    
+    <!-- Left Hand: Analog Touch Joystick -->
+    <div id="joystickZone" class="pointer-events-auto relative w-28 h-28 rounded-full bg-black/60 border border-[#262c3d] backdrop-blur-md flex items-center justify-center shadow-lg">
+      <div id="joystickKnob" class="w-12 h-12 rounded-full bg-gradient-to-br from-[#00f0ff] to-blue-700 border-2 border-white transform translate-x-0 translate-y-0 pointer-events-none"></div>
     </div>
-    <div class="pointer-events-auto flex items-end gap-2">
-      <button id="btnShoot" class="relative w-14 h-14 p-2 rounded-full bg-black/70 border-2 border-[#00f0ff] text-[#00f0ff] active:scale-95 font-cyber font-bold text-[10px] flex flex-col items-center justify-center">
+
+    <!-- Right Hand: 4-Button Cluster (Thumb-Accessible Target Layout) -->
+    <div class="pointer-events-auto flex items-end gap-1.5">
+      <!-- Amber Vial Button [Q] -->
+      <button id="btnVial" onclick="if(window.State) State.useAmberVial();" class="w-12 h-12 rounded-full bg-amber-950/90 border-2 border-amber-500 text-amber-300 active:scale-90 font-cyber font-bold text-[9px] flex flex-col items-center justify-center shadow-md">
+        <span>VIAL</span>
+        <span class="text-[7px] font-mono text-neutral-300">[Q]</span>
+      </button>
+
+      <!-- Plasma Gun [J] -->
+      <button id="btnShoot" class="relative w-13 h-13 p-2 rounded-full bg-black/80 border-2 border-[#00f0ff] text-[#00f0ff] active:scale-90 font-cyber font-bold text-[10px] flex flex-col items-center justify-center shadow-md">
         <span>FIRE</span>
-        <span class="text-[8px] font-mono text-neutral-400">[J]</span>
+        <span class="text-[7px] font-mono text-neutral-400">[J]</span>
         <div id="btnShootChargeFill" class="absolute inset-0 rounded-full bg-[#00f0ff]/30 opacity-0 pointer-events-none"></div>
       </button>
-      <button id="btnSlash" class="relative w-16 h-16 p-2 rounded-full bg-black/70 border-2 border-[#ff003c] text-[#ff003c] active:scale-95 font-cyber font-bold text-xs flex flex-col items-center justify-center">
+
+      <!-- Melee Slash [K] -->
+      <button id="btnSlash" class="relative w-15 h-15 p-2 rounded-full bg-black/80 border-2 border-[#ff003c] text-[#ff003c] active:scale-90 font-cyber font-bold text-xs flex flex-col items-center justify-center shadow-md">
         <span>SLASH</span>
-        <span class="text-[8px] font-mono text-neutral-400">[K]</span>
+        <span class="text-[7px] font-mono text-neutral-400">[K]</span>
         <div id="btnSlashChargeRing" class="absolute inset-0 rounded-full border-2 border-purple-500 opacity-0 pointer-events-none"></div>
       </button>
-      <button id="btnAction" class="btn-action-idle w-14 h-14 p-2 rounded-full border-2 font-cyber font-bold text-[10px] flex flex-col items-center justify-center backdrop-blur active:scale-95">
-        <span id="btnActionLabel">ACTION</span>
-        <span class="text-[8px] font-mono text-neutral-300">[E]</span>
+
+      <!-- Universal Action / Talk / Open [E] -->
+      <button id="btnAction" class="btn-action-idle w-13 h-13 p-2 rounded-full border-2 border-neutral-600 font-cyber font-bold text-[10px] flex flex-col items-center justify-center backdrop-blur active:scale-90 shadow-md">
+        <span id="btnActionLabel">ACT</span>
+        <span class="text-[7px] font-mono text-neutral-300">[E]</span>
       </button>
     </div>
   </div>
 
-  <!-- OVERLAY MODALS -->
+  <!-- STUDIO GEAR RELICS MODAL -->
+  <div id="gearModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-purple-500 rounded-xl p-4 sm:p-5 font-mono shadow-[0_0_30px_rgba(168,85,247,0.25)] flex flex-col">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl sm:text-2xl">🎛️</span>
+          <div>
+            <h3 class="font-cyber font-bold text-white text-xs sm:text-sm tracking-wider uppercase">STUDIO HARDWARE RACK</h3>
+            <span class="text-[8px] sm:text-[9px] text-purple-400 font-mono tracking-widest uppercase">EQUIPPED RELIC STAT MODIFIERS</span>
+          </div>
+        </div>
+        <button onclick="if(window.State) State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold">✕</button>
+      </div>
+      <div id="gearListContainer" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1"></div>
+      <div class="mt-3 pt-2 border-t border-neutral-800/80 flex justify-between items-center text-[9px] sm:text-[10px] font-mono text-neutral-400">
+        <span>AMBER VIALS: <b id="gearModalVialCount" class="text-amber-400">0</b> (KEY: [Q])</span>
+        <span class="text-[#00f0ff] animate-pulse">HARDWARE ONLINE</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- INTERACTIVE LORE CASSETTE MODAL (PHASE 2) -->
-  <div id="loreModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-amber-500 rounded-xl p-5 font-mono shadow-[0_0_30px_rgba(245,158,11,0.25)]">
-      <div class="flex items-center gap-3 border-b border-neutral-800 pb-3 mb-3">
-        <div class="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500 flex items-center justify-center text-2xl">📼</div>
+  <!-- INTERACTIVE LORE CASSETTE MODAL -->
+  <div id="loreModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-amber-500 rounded-xl p-4 sm:p-5 font-mono shadow-[0_0_30px_rgba(245,158,11,0.25)]">
+      <div class="flex items-center gap-2.5 border-b border-neutral-800 pb-2 mb-3">
+        <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500 flex items-center justify-center text-xl">📼</div>
         <div>
-          <span class="text-[9px] text-amber-400 font-mono tracking-widest uppercase">CATALOG ARCHIVE // REEL DECODED</span>
-          <h3 id="loreModalTitle" class="font-cyber font-bold text-white text-sm sm:text-base tracking-wider uppercase">TAPE ARCHIVE</h3>
+          <span class="text-[8px] text-amber-400 font-mono tracking-widest uppercase">CATALOG ARCHIVE // REEL DECODED</span>
+          <h3 id="loreModalTitle" class="font-cyber font-bold text-white text-xs sm:text-sm tracking-wider uppercase">TAPE ARCHIVE</h3>
         </div>
       </div>
-      <div class="p-3 bg-black/80 border border-neutral-800 rounded mb-4">
-        <p id="loreModalText" class="text-xs text-neutral-200 leading-relaxed min-h-[60px]">Loading trivia...</p>
+      <div class="p-2.5 bg-black/80 border border-neutral-800 rounded mb-3">
+        <p id="loreModalText" class="text-[11px] sm:text-xs text-neutral-200 leading-relaxed min-h-[50px]">Loading trivia...</p>
       </div>
-      <div class="flex items-center justify-between text-[10px] text-neutral-400 mb-3 border-t border-neutral-800/80 pt-2 font-mono">
+      <div class="flex items-center justify-between text-[9px] text-neutral-400 mb-3 border-t border-neutral-800/80 pt-2 font-mono">
         <span>BATTLE CASSETTES: <b id="loreModalTapeCount" class="text-amber-400">0/50</b></span>
         <span class="text-[#00f0ff] animate-pulse">● TRANSMISSION SAVED</span>
       </div>
-      <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:opacity-90 text-black font-cyber font-bold text-xs rounded transition">
+      <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-cyber font-bold text-xs rounded transition active:scale-95">
         ACKNOWLEDGE & CLOSE [ESC]
       </button>
     </div>
   </div>
 
   <!-- USERNAME REGISTRATION MODAL -->
-  <div id="usernameModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-5 font-mono shadow-[0_0_25px_rgba(0,240,255,0.25)]">
-      <div class="flex items-center gap-2 mb-3 border-b border-neutral-800 pb-2">
-        <span class="text-xl">🪪</span>
-        <h3 class="font-cyber font-bold text-white text-sm tracking-wider uppercase">SYNDICATE REGISTRATION</h3>
+  <div id="usernameModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-4 sm:p-5 font-mono shadow-[0_0_25px_rgba(0,240,255,0.25)]">
+      <div class="flex items-center gap-2 mb-2 border-b border-neutral-800 pb-2">
+        <span class="text-lg">🪪</span>
+        <h3 class="font-cyber font-bold text-white text-xs sm:text-sm tracking-wider uppercase">SYNDICATE REGISTRATION</h3>
       </div>
-      <p class="text-xs text-neutral-400 mb-4 leading-relaxed">
+      <p class="text-[10px] sm:text-xs text-neutral-400 mb-3 leading-relaxed">
         Input operative callsign. This identity persists across sessions and appears above your operative in-world[cite: 8].
       </p>
-      <div class="mb-4">
-        <label class="block text-[10px] text-[#00f0ff] font-cyber uppercase tracking-widest mb-1.5">OPERATIVE HANDLE [MAX 16 CHARS]</label>
+      <div class="mb-3">
+        <label class="block text-[9px] text-[#00f0ff] font-cyber uppercase tracking-widest mb-1">OPERATIVE HANDLE [MAX 16 CHARS]</label>
         <input type="text" id="usernameInput" maxlength="16" placeholder="e.g. GHOST_99" 
-               class="w-full bg-black border border-neutral-700 rounded px-3 py-2 text-sm text-white font-mono focus:border-[#00f0ff] focus:outline-none uppercase tracking-wider" />
-        <span id="usernameError" class="text-[10px] text-red-400 mt-1 hidden font-mono">Invalid handle. Alphanumeric only.</span>
+               class="w-full bg-black border border-neutral-700 rounded px-3 py-2 text-xs sm:text-sm text-white font-mono focus:border-[#00f0ff] focus:outline-none uppercase tracking-wider" />
+        <span id="usernameError" class="text-[9px] text-red-400 mt-1 hidden font-mono">Invalid handle. Alphanumeric only.</span>
       </div>
       <div class="flex gap-2">
-        <button onclick="submitUsernameForm()" class="flex-1 py-2 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-xs rounded transition">
+        <button onclick="submitUsernameForm()" class="flex-1 py-2 bg-[#00f0ff] active:scale-95 text-black font-cyber font-bold text-xs rounded transition">
           CONFIRM CALLSIGN
         </button>
-        <button id="usernameCancelBtn" onclick="document.getElementById('usernameModal').classList.add('hidden')" class="px-3 py-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-cyber text-xs rounded">
+        <button id="usernameCancelBtn" onclick="document.getElementById('usernameModal').classList.add('hidden')" class="px-3 py-2 bg-neutral-900 text-neutral-400 font-cyber text-xs rounded">
           CANCEL
         </button>
       </div>
@@ -173,21 +228,21 @@
   </div>
 
   <!-- GATED EXTRACTION GATEWAY MODAL -->
-  <div id="gatedModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-[#ffb300] rounded-xl p-5 text-center font-mono">
-      <div class="w-16 h-16 mx-auto mb-3 bg-[#ffb300]/10 border-2 border-[#ffb300] rounded-full flex items-center justify-center text-3xl">🌌</div>
-      <h3 class="text-base font-cyber font-bold text-white tracking-widest uppercase">EXTRACTION GATEWAY</h3>
-      <p class="text-xs text-neutral-400 mt-1">REQUIRES 50 RARE SYNDICATE BATTLE CASSETTES</p>
-      <div class="my-4 p-3 bg-black/80 border border-neutral-700 rounded">
-        <div class="flex justify-between text-xs text-neutral-300 mb-1">
+  <div id="gatedModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-[#ffb300] rounded-xl p-4 text-center font-mono">
+      <div class="w-12 h-12 mx-auto mb-2 bg-[#ffb300]/10 border-2 border-[#ffb300] rounded-full flex items-center justify-center text-2xl">🌌</div>
+      <h3 class="text-sm font-cyber font-bold text-white tracking-widest uppercase">EXTRACTION GATEWAY</h3>
+      <p class="text-[10px] text-neutral-400 mt-0.5">REQUIRES 50 RARE SYNDICATE BATTLE CASSETTES</p>
+      <div class="my-3 p-2.5 bg-black/80 border border-neutral-700 rounded">
+        <div class="flex justify-between text-[10px] text-neutral-300 mb-1">
           <span>PROGRESSION:</span>
           <b id="gatedTapeProgress" class="text-[#ffb300]">0 / 50 TAPES</b>
         </div>
-        <div class="w-full bg-neutral-900 h-3 rounded-full overflow-hidden border border-neutral-800">
+        <div class="w-full bg-neutral-900 h-2.5 rounded-full overflow-hidden border border-neutral-800">
           <div id="gatedProgressBar" class="bg-gradient-to-r from-yellow-500 to-pink-500 h-full w-0 transition-all duration-500"></div>
         </div>
       </div>
-      <div id="gatedStatusMessage" class="text-xs font-mono text-red-400 mb-4">ACCESS RESTRICTED</div>
+      <div id="gatedStatusMessage" class="text-[10px] font-mono text-red-400 mb-3">ACCESS RESTRICTED</div>
       <div class="flex gap-2">
         <button id="gatedProceedBtn" onclick="if(window.State && typeof State.attemptGateWarp === 'function') State.attemptGateWarp();" class="flex-1 py-2 bg-neutral-800 text-neutral-500 font-cyber font-bold text-xs rounded cursor-not-allowed">WARP TO HORIZON</button>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
@@ -196,34 +251,34 @@
   </div>
 
   <!-- NPC DIALOGUE MODAL -->
-  <div id="npcModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-[#0e1117] border border-[#00f0ff]/60 rounded-xl p-5 shadow-[0_0_30px_rgba(0,240,255,0.2)] font-mono">
-      <div class="flex items-center gap-3 border-b border-neutral-800 pb-3 mb-3">
-        <div id="npcAvatarIcon" class="w-10 h-10 rounded-full bg-[#161922] border border-[#00f0ff] flex items-center justify-center text-xl">👤</div>
+  <div id="npcModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-lg bg-[#0e1117] border border-[#00f0ff]/60 rounded-xl p-4 shadow-[0_0_30px_rgba(0,240,255,0.2)] font-mono">
+      <div class="flex items-center gap-2.5 border-b border-neutral-800 pb-2 mb-2">
+        <div id="npcAvatarIcon" class="w-9 h-9 rounded-full bg-[#161922] border border-[#00f0ff] flex items-center justify-center text-lg">👤</div>
         <div>
-          <h4 id="npcName" class="font-cyber font-bold text-white text-sm">NPC_NAME</h4>
-          <span id="npcRole" class="text-[10px] text-[#00f0ff]">SYNDICATE_OPERATIVE</span>
+          <h4 id="npcName" class="font-cyber font-bold text-white text-xs sm:text-sm">NPC_NAME</h4>
+          <span id="npcRole" class="text-[9px] text-[#00f0ff]">SYNDICATE_OPERATIVE</span>
         </div>
       </div>
-      <p id="npcDialogueText" class="text-xs text-neutral-200 leading-relaxed min-h-[48px]">Dialogue goes here...</p>
-      <div class="mt-4 flex justify-end">
-        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-4 py-1.5 bg-[#00f0ff] text-black font-cyber font-bold text-xs rounded hover:bg-white transition">DISMISS [ESC]</button>
+      <p id="npcDialogueText" class="text-[11px] sm:text-xs text-neutral-200 leading-relaxed min-h-[42px]">Dialogue goes here...</p>
+      <div class="mt-3 flex justify-end">
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-3.5 py-1.5 bg-[#00f0ff] text-black font-cyber font-bold text-xs rounded active:scale-95 transition">DISMISS [ESC]</button>
       </div>
     </div>
   </div>
 
   <!-- DYNAMIC DISCOGRAPHY / NEW RELEASES MODAL -->
   <div id="discoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-    <div class="relative w-full max-w-lg bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 sm:p-5 flex flex-col shadow-[0_0_30px_rgba(0,240,255,0.15)]">
-      <div class="flex items-center justify-between border-b border-neutral-800 pb-3 mb-3">
+    <div class="relative w-full max-w-lg bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 flex flex-col shadow-[0_0_30px_rgba(0,240,255,0.15)]">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
         <div>
-          <span class="text-[9px] text-[#00f0ff] font-mono tracking-widest uppercase">TRANSMISSION TERMINAL // CLUB LOWLIFE</span>
-          <h2 class="text-sm sm:text-base font-cyber font-bold text-white uppercase tracking-wider mt-0.5">DISCOGRAPHY & RELEASES</h2>
+          <span class="text-[8px] text-[#00f0ff] font-mono tracking-widest uppercase">TRANSMISSION TERMINAL // CLUB LOWLIFE</span>
+          <h2 class="text-xs sm:text-sm font-cyber font-bold text-white uppercase tracking-wider">DISCOGRAPHY & RELEASES</h2>
         </div>
-        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold transition">✕</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold">✕</button>
       </div>
-      <div id="releaseListContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
-      <div class="mt-3 pt-2.5 border-t border-neutral-800 flex justify-between items-center text-[9px] font-mono text-neutral-500">
+      <div id="releaseListContainer" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1"></div>
+      <div class="mt-2.5 pt-2 border-t border-neutral-800 flex justify-between items-center text-[8px] font-mono text-neutral-500">
         <span>AUDIO SUITE: 07 // ARCHIVES ONLINE</span>
         <span class="text-[#00f0ff] animate-pulse">● SIGNAL CONNECTED</span>
       </div>
@@ -231,94 +286,94 @@
   </div>
 
   <!-- DIRECTORY LINKS MODAL -->
-  <div id="linksModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-sm bg-[#0e1117] border border-neutral-700 rounded-xl p-5 font-cyber text-xs space-y-2">
+  <div id="linksModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-sm bg-[#0e1117] border border-neutral-700 rounded-xl p-4 font-cyber text-xs space-y-2">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
-        <h2 class="font-bold text-white tracking-widest uppercase">LOWLIFE WORLD DIRECTORY</h2>
+        <h2 class="font-bold text-white tracking-widest uppercase text-xs">LOWLIFE WORLD DIRECTORY</h2>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
-      <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-purple-500/40 text-white hover:border-purple-400">DANCING ALL PLATFORMS</a>
-      <a href="https://clublowlife.dimensions.fm/retrocade-evolved" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-pink-500/40 text-white hover:border-pink-400">RETROCADE EVOLVED</a>
-      <a href="https://www.instagram.com/omglowlife" target="_blank" rel="noopener noreferrer" class="block p-2.5 rounded bg-black/60 border border-cyan-500/40 text-white hover:border-cyan-400">INSTAGRAM</a>
+      <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" class="block p-2 rounded bg-black/60 border border-purple-500/40 text-white text-[11px]">DANCING ALL PLATFORMS</a>
+      <a href="https://clublowlife.dimensions.fm/retrocade-evolved" target="_blank" rel="noopener noreferrer" class="block p-2 rounded bg-black/60 border border-pink-500/40 text-white text-[11px]">RETROCADE EVOLVED</a>
+      <a href="https://www.instagram.com/omglowlife" target="_blank" rel="noopener noreferrer" class="block p-2 rounded bg-black/60 border border-cyan-500/40 text-white text-[11px]">INSTAGRAM</a>
     </div>
   </div>
 
   <!-- TRUNK MERCH MODAL -->
-  <div id="merchModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-5 font-mono text-xs">
-      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
-        <h3 class="font-cyber font-bold text-white uppercase">BLACK TRUCK // MERCH STASH</h3>
+  <div id="merchModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-4 font-mono text-xs">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
+        <h3 class="font-cyber font-bold text-white uppercase text-xs">BLACK TRUCK // MERCH STASH</h3>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
-      <div class="p-2.5 bg-black/70 border border-[#00f0ff]/40 rounded mb-3 flex items-center justify-between">
+      <div class="p-2 bg-black/70 border border-[#00f0ff]/40 rounded mb-2 flex items-center justify-between text-[11px]">
         <span class="text-neutral-400">CODE:</span>
         <span class="text-[#00f0ff] font-bold">LOWLIFEWORLD15 (15% OFF)</span>
       </div>
-      <a href="https://clublowlife.com" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 bg-[#00f0ff] hover:bg-white text-black font-cyber font-bold text-center rounded transition">
+      <a href="https://clublowlife.com" target="_blank" rel="noopener noreferrer" class="block w-full py-2 bg-[#00f0ff] active:scale-95 text-black font-cyber font-bold text-center rounded transition">
         ENTER MERCH STORE
       </a>
     </div>
   </div>
 
   <!-- PHYSICAL CASSETTE CLAIM MODAL -->
-  <div id="cassetteClaimModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-[#ffb300] rounded-xl p-5 text-center font-mono">
-      <div class="w-14 h-14 mx-auto mb-2 bg-[#ffb300]/10 border-2 border-[#ffb300] rounded-full flex items-center justify-center text-3xl">📼</div>
-      <h3 class="font-cyber font-bold text-white uppercase tracking-wider text-sm">PHYSICAL CASSETTE AIR-DROP</h3>
-      <p class="text-xs text-neutral-400 mt-1">LOWLIFE CASSETTE CLAIM PORTAL</p>
-      <div class="my-3 p-3 bg-black/80 border border-neutral-700 rounded text-left text-xs text-neutral-300">
-        <p><b class="text-[#ffb300]">Includes:</b> "DANCING" + Retro Cade Evolved extended album.</p>
+  <div id="cassetteClaimModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-[#ffb300] rounded-xl p-4 text-center font-mono">
+      <div class="w-12 h-12 mx-auto mb-2 bg-[#ffb300]/10 border-2 border-[#ffb300] rounded-full flex items-center justify-center text-2xl">📼</div>
+      <h3 class="font-cyber font-bold text-white uppercase tracking-wider text-xs sm:text-sm">PHYSICAL CASSETTE AIR-DROP</h3>
+      <p class="text-[10px] text-neutral-400 mt-0.5">LOWLIFE CASSETTE CLAIM PORTAL</p>
+      <div class="my-2.5 p-2 bg-black/80 border border-neutral-700 rounded text-left text-[11px] text-neutral-300">
+        <p><b class="text-[#ffb300]">Includes:</b> "DANCING" + Retro Cade Evolved extended album[cite: 16].</p>
       </div>
-      <a href="https://forms.gle/TsE7MAHSD1erDca59" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 bg-[#ffb300] text-black font-cyber font-bold text-xs rounded transition hover:bg-yellow-300 mb-2">
+      <a href="https://forms.gle/TsE7MAHSD1erDca59" target="_blank" rel="noopener noreferrer" class="block w-full py-2 bg-[#ffb300] text-black font-cyber font-bold text-xs rounded transition active:scale-95 mb-2">
         OPEN PHYSICAL CASSETTE STASH
       </a>
-      <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="w-full py-2 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
+      <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="w-full py-1.5 bg-neutral-900 text-white font-cyber text-xs rounded">RETURN</button>
     </div>
   </div>
 
   <!-- AVATAR LOCKER MODAL -->
   <div id="skinLockerModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3">
     <div class="relative w-full max-w-sm bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 flex flex-col font-mono text-xs">
-      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3">
-        <h3 class="font-cyber font-bold text-white">AVATAR LOCKER</h3>
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
+        <h3 class="font-cyber font-bold text-white text-xs">AVATAR LOCKER</h3>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
-      <div id="skinsList" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1"></div>
+      <div id="skinsList" class="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1"></div>
     </div>
   </div>
 
   <!-- ARCADE CONTAINER MODAL -->
   <div id="arcadeModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
-    <div class="relative w-full max-w-2xl bg-neutral-950 border-2 border-[#00f0ff] rounded-xl p-3 sm:p-4 flex flex-col items-center">
+    <div class="relative w-full max-w-2xl bg-neutral-950 border-2 border-[#00f0ff] rounded-xl p-3 flex flex-col items-center">
       <div class="w-full flex items-center justify-between border-b border-neutral-800 pb-2 mb-2 font-cyber">
         <span id="arcadeTitle" class="text-xs sm:text-sm font-bold text-[#00f0ff]">ARCADE MACHINE</span>
-        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-2 py-0.5 text-sm">EXIT [ESC]</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-2 py-0.5 text-xs">EXIT [ESC]</button>
       </div>
-      <canvas id="arcadeCanvas" class="w-full max-w-[600px] aspect-[4/3] bg-black border border-neutral-800 block"></canvas>
-      <div class="w-full mt-2 text-center font-mono text-[11px] text-neutral-400" id="arcadeControlsHint">
-        CONTROLS: [A/D] MOVE, [SPACE/J] ACTION
+      <canvas id="arcadeCanvas" class="w-full max-w-[580px] aspect-[4/3] bg-black border border-neutral-800 block"></canvas>
+      <div class="w-full mt-2 text-center font-mono text-[10px] text-neutral-400" id="arcadeControlsHint">
+        PHONE CONTROLS: USE TOUCH JOYSTICK & [FIRE/J] ACTION
       </div>
     </div>
   </div>
 
   <!-- CASINO SLOTS MODAL -->
-  <div id="casinoModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-yellow-500 rounded-xl p-5 text-center font-mono">
-      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-4 font-cyber">
-        <span class="text-sm font-bold text-yellow-400">RETROCADE CYBER SLOTS</span>
+  <div id="casinoModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-yellow-500 rounded-xl p-4 text-center font-mono">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3 font-cyber">
+        <span class="text-xs sm:text-sm font-bold text-yellow-400">RETROCADE CYBER SLOTS</span>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
-      <div class="flex justify-center items-center gap-3 my-5 py-4 bg-black/90 border-2 border-yellow-500/40 rounded-lg text-4xl">
-        <div id="slotReel1" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">📼</div>
-        <div id="slotReel2" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">7️⃣</div>
-        <div id="slotReel3" class="w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">💿</div>
+      <div class="flex justify-center items-center gap-2 my-4 py-3 bg-black/90 border-2 border-yellow-500/40 rounded-lg text-3xl">
+        <div id="slotReel1" class="w-14 h-16 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">📼</div>
+        <div id="slotReel2" class="w-14 h-16 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">7️⃣</div>
+        <div id="slotReel3" class="w-14 h-16 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">💿</div>
       </div>
-      <div id="slotPayoutMsg" class="text-xs text-yellow-300 min-h-[20px] mb-4">INSERT 5 TOKENS TO SPIN</div>
+      <div id="slotPayoutMsg" class="text-[10px] text-yellow-300 min-h-[16px] mb-3">INSERT 5 TOKENS TO SPIN</div>
       <div class="flex gap-2">
-        <button id="slotSpinBtn" onclick="if(window.CasinoGame && typeof CasinoGame.spin === 'function') CasinoGame.spin();" class="flex-1 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:opacity-90 text-black font-cyber font-bold text-xs rounded">
+        <button id="slotSpinBtn" onclick="if(window.CasinoGame && typeof CasinoGame.spin === 'function') CasinoGame.spin();" class="flex-1 py-2 bg-gradient-to-r from-yellow-500 to-amber-600 active:scale-95 text-black font-cyber font-bold text-xs rounded">
           SPIN (5 TOKENS)
         </button>
-        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-4 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">EXIT</button>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-3 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">EXIT</button>
       </div>
     </div>
   </div>
@@ -369,6 +424,15 @@
       }
     }
 
+    function openGearModal() {
+      const modal = document.getElementById('gearModal');
+      if (!modal) return;
+      if (window.State && typeof State.renderGearRack === 'function') {
+        State.renderGearRack();
+      }
+      modal.classList.remove('hidden');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const input = document.getElementById('usernameInput');
       if (input) {
@@ -384,12 +448,12 @@
       if (!container || !modal || !window.State || !Array.isArray(State.releases)) return;
 
       const colorMap = {
-        emerald: "bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold",
-        rose:    "bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500 text-rose-200",
-        red:     "bg-red-600/30 hover:bg-red-600/50 border border-red-500 text-red-200",
-        amber:   "bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500 text-amber-200",
-        cyan:    "bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-300",
-        purple:  "bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500 text-purple-200"
+        emerald: "bg-[#1DB954] text-black font-bold",
+        rose:    "bg-rose-600/30 border border-rose-500 text-rose-200",
+        red:     "bg-red-600/30 border border-red-500 text-red-200",
+        amber:   "bg-amber-600/30 border border-amber-500 text-amber-200",
+        cyan:    "bg-cyan-500/20 border border-cyan-400 text-cyan-300",
+        purple:  "bg-purple-600/30 border border-purple-500 text-purple-200"
       };
 
       const badgeMap = {
@@ -407,24 +471,24 @@
         const linkButtons = (item.links || []).map(btn => {
           const btnStyle = colorMap[btn.color] || colorMap.cyan;
           return `<a href="${btn.url}" target="_blank" rel="noopener noreferrer" 
-                     class="px-2.5 py-1.5 rounded text-[10px] font-cyber tracking-wide text-center transition ${btnStyle}">
+                     class="px-2 py-1 rounded text-[9px] font-cyber tracking-wide text-center active:scale-95 transition ${btnStyle}">
                     ${btn.platform}
                   </a>`;
         }).join("");
 
         return `
-          <div class="p-3.5 border rounded-lg ${borderClass} transition flex flex-col gap-2 font-mono">
+          <div class="p-2.5 border rounded-lg ${borderClass} transition flex flex-col gap-1.5 font-mono">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="text-[9px] uppercase tracking-wider font-semibold text-neutral-400 font-mono">${item.type}</span>
-                <h3 class="text-xs sm:text-sm font-bold font-cyber ${isHighlight ? 'text-[#00f0ff]' : 'text-white'}">${item.title}</h3>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[8px] uppercase tracking-wider font-semibold text-neutral-400 font-mono">${item.type}</span>
+                <h3 class="text-xs font-bold font-cyber ${isHighlight ? 'text-[#00f0ff]' : 'text-white'}">${item.title}</h3>
               </div>
-              <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 border rounded ${badgeClass}">${item.status}</span>
+              <span class="text-[8px] font-mono uppercase px-1 py-0.2 border rounded ${badgeClass}">${item.status}</span>
             </div>
-            ${item.description ? `<p class="text-[11px] text-neutral-400 leading-snug">${item.description}</p>` : ''}
-            <div class="flex flex-wrap gap-1.5 pt-1">
+            ${item.description ? `<p class="text-[10px] text-neutral-400 leading-snug">${item.description}</p>` : ''}
+            <div class="flex flex-wrap gap-1 pt-0.5">
               ${linkButtons}
-              ${item.id === 'dancing' ? `<button onclick="if(window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm('original')" class="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-[#00f0ff] font-cyber text-[10px] rounded transition">▶ PLAY IN WORLD</button>` : ''}
+              ${item.id === 'dancing' ? `<button onclick="if(window.AudioEngine && typeof AudioEngine.setTrackBgm === 'function') AudioEngine.setTrackBgm('original')" class="px-2 py-1 bg-neutral-800 text-[#00f0ff] font-cyber text-[9px] rounded active:scale-95 transition">▶ PLAY IN WORLD</button>` : ''}
             </div>
           </div>
         `;
