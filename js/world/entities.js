@@ -80,8 +80,8 @@ const Entities = {
     this.updatePlayerHealthUI();
     this.spawnWastelandBosses();
 
-    // Tamed initial Wasteland density (12 instead of 40) so player has breathing room to explore
-    for (let i = 0; i < 12; i++) {
+    // Tamed initial Wasteland density (30 instead of 40) so player has breathing room to explore
+    for (let i = 0; i < 30; i++) {
       this.spawnWastelandCombatant(true);
     }
     // Extended respawn timer to 18 seconds (18000ms) instead of 3 seconds
