@@ -19,11 +19,11 @@ const Entities = {
 
   friendlyNpcs: {
     underground: [
-      { id: 'u_mech', x: 360, y: 260, width: 26, height: 38, name: 'HYPE MECHANIC', role: 'STREET CREW', coat: '#10b981', visor: '#facc15', pants: '#064e3b', icon: '🔧', dialogue: "The trunk pop truck is unlocked in Bay 1. Grab code WASTELAND15 for 15% off official merch." },
+      { id: 'u_mech', x: 360, y: 260, width: 26, height: 38, name: 'HYPE MECHANIC', role: 'STREET CREW', coat: '#10b981', visor: '#facc15', pants: '#064e3b', icon: '🔧', dialogue: "The trunk pop truck is unlocked in Bay 1. Grab code LOWLIFEWORLD15 for 15% off official merch." },
       { id: 'u_tech', x: 1600, y: 150, width: 26, height: 38, name: 'ARCADE TECH', role: 'NEO-GEO REPAIR', coat: '#0284c7', visor: '#00f0ff', pants: '#0c4a6e', icon: '🕹️', dialogue: "We keep these cabinets calibrated. Grid Runner's purple drone predicts your turns—steer early!" },
-      { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is cut for massive club systems and earbuds alike. Take a listen in the vault." },
+      { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is summed to pure mono below 100 Hz for massive club systems and earbuds alike." },
       { id: 'u_drifter1', x: 250, y: 650, width: 26, height: 38, name: 'GARAGE DRIFTER', role: 'OUTLAW', coat: '#475569', visor: '#38bdf8', pants: '#1e293b', icon: '🕶️', dialogue: "The night shift underground is the only place immune to the syndicate signal." },
-      { id: 'u_drifter2', x: 1900, y: 750, width: 26, height: 38, name: 'SUBWAY RUNNER', role: 'COURIER', coat: '#7c3aed', visor: '#e879f9', pants: '#4c1d95', icon: '👟', dialogue: "I deliver cassettes across dimensions. You can find rare tapes in the wasteland ruins." },
+      { id: 'u_drifter2', x: 1900, y: 750, width: 26, height: 38, name: 'SUBWAY RUNNER', role: 'COURIER', coat: '#7c3aed', visor: '#e879f9', pants: '#4c1d95', icon: '👟', dialogue: "I deliver cassettes across dimensions. Check Martian University and Sector 777 in the Wasteland for rare stashes." },
       { id: 'u_sentry', x: 2150, y: 840, width: 26, height: 38, name: 'RIFT SENTRY', role: 'GATE WATCHER', coat: '#dc2626', visor: '#ff003c', pants: '#7f1d1d', icon: '🛡️', dialogue: "Beyond this warp lies District 84 Retrocade. Keep your tokens ready." }
     ],
     retrocade: [
@@ -80,57 +80,97 @@ const Entities = {
     this.updatePlayerHealthUI();
     this.spawnWastelandBosses();
 
-    for (let i = 0; i < 40; i++) {
+    // Tamed initial Wasteland density (12 instead of 40) so player has breathing room to explore
+    for (let i = 0; i < 12; i++) {
       this.spawnWastelandCombatant(true);
     }
-    setInterval(() => this.spawnWastelandCombatant(false), 3000);
+    // Extended respawn timer to 18 seconds (18000ms) instead of 3 seconds
+    setInterval(() => this.spawnWastelandCombatant(false), 18000);
   },
 
   spawnWastelandBosses() {
     this.hostileNpcs = [];
+    const defeated = (window.State && State.userProfile && Array.isArray(State.userProfile.bossesDefeated))
+      ? State.userProfile.bossesDefeated
+      : [];
 
-    this.hostileNpcs.push({
-      id: 'boss_blade_zero', tier: 'boss', name: 'HIGH EXECUTIONER "BLADE-ZERO"',
-      x: 3200, y: 4100, width: 42, height: 52,
-      hp: 1600, maxHp: 1600, speed: 3.8,
-      alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-      knockbackVx: 0, knockbackVy: 0,
-      coat: '#050507', visor: '#ff003c', pants: '#000000'
-    });
+    if (!defeated.includes('boss_blade_zero')) {
+      this.hostileNpcs.push({
+        id: 'boss_blade_zero', tier: 'boss', name: 'HIGH EXECUTIONER "BLADE-ZERO"',
+        x: 3200, y: 4100, width: 42, height: 52,
+        hp: 1600, maxHp: 1600, speed: 3.8,
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
+        knockbackVx: 0, knockbackVy: 0,
+        coat: '#050507', visor: '#ff003c', pants: '#000000'
+      });
+    }
 
-    this.hostileNpcs.push({
-      id: 'boss_chem_enforcer', tier: 'boss', name: 'CHEM-ENFORCER UNIT 09',
-      x: 1400, y: 2200, width: 40, height: 50,
-      hp: 750, maxHp: 750, speed: 2.7,
-      alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-      knockbackVx: 0, knockbackVy: 0,
-      coat: '#365314', visor: '#84cc16', pants: '#1a2e05'
-    });
+    if (!defeated.includes('boss_chem_enforcer')) {
+      this.hostileNpcs.push({
+        id: 'boss_chem_enforcer', tier: 'boss', name: 'CHEM-ENFORCER UNIT 09',
+        x: 1400, y: 2200, width: 40, height: 50,
+        hp: 750, maxHp: 750, speed: 2.7,
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
+        knockbackVx: 0, knockbackVy: 0,
+        coat: '#365314', visor: '#84cc16', pants: '#1a2e05'
+      });
+    }
 
-    this.hostileNpcs.push({
-      id: 'boss_drone_queen', tier: 'boss', name: 'THE HOLLOW DRONE QUEEN',
-      x: 4800, y: 800, width: 44, height: 48,
-      hp: 850, maxHp: 850, speed: 3.2,
-      alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-      knockbackVx: 0, knockbackVy: 0,
-      coat: '#0c4a6e', visor: '#00f0ff', pants: '#082f49'
-    });
+    if (!defeated.includes('boss_drone_queen')) {
+      this.hostileNpcs.push({
+        id: 'boss_drone_queen', tier: 'boss', name: 'THE HOLLOW DRONE QUEEN',
+        x: 4800, y: 800, width: 44, height: 48,
+        hp: 850, maxHp: 850, speed: 3.2,
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
+        knockbackVx: 0, knockbackVy: 0,
+        coat: '#0c4a6e', visor: '#00f0ff', pants: '#082f49'
+      });
+    }
   },
 
   spawnWastelandCombatant(force = false) {
     if (!force && (!window.State || State.currentDimension !== 'wasteland')) return;
 
     const livingRegularAndMid = this.hostileNpcs.filter(n => n.alive && n.tier !== 'boss');
-    if (livingRegularAndMid.length >= 60) return;
+    // Capped at 18 active roamers so the map feels atmospheric rather than overcrowded
+    if (livingRegularAndMid.length >= 18) return;
 
-    let spawnX, spawnY;
-    if (Math.random() < 0.40) {
-      spawnX = 700 + Math.random() * 1200;
-      spawnY = 700 + Math.random() * 900;
-    } else {
-      spawnX = 400 + Math.random() * (6400 - 800);
-      spawnY = 400 + Math.random() * (4800 - 800);
+    const p = this.player;
+    const obstacles = (window.Dimensions && Dimensions.worldObstacles) ? Dimensions.worldObstacles : [];
+
+    let spawnX = 0, spawnY = 0;
+    let validSpawn = false;
+    let attempts = 0;
+
+    // Off-Screen & Wall-Free Spawn Verification
+    while (!validSpawn && attempts < 20) {
+      spawnX = 350 + Math.random() * (6400 - 700);
+      spawnY = 350 + Math.random() * (4800 - 700);
+
+      const distToPlayer = Math.hypot(spawnX - p.x, spawnY - p.y);
+      const testBox = { x: spawnX - 10, y: spawnY - 10, width: 52, height: 64 };
+
+      let insideWall = false;
+      for (let o of obstacles) {
+        if (
+          testBox.x < o.x + o.width &&
+          testBox.x + testBox.width > o.x &&
+          testBox.y < o.y + o.height &&
+          testBox.y + testBox.height > o.y
+        ) {
+          insideWall = true;
+          break;
+        }
+      }
+
+      // Must be at least 680px away from player (off-screen) and not inside any wall
+      if (distToPlayer > 680 && !insideWall) {
+        validSpawn = true;
+      }
+      attempts++;
     }
+
+    if (!validSpawn) return;
 
     const isMidTier = Math.random() < 0.35;
 
@@ -293,7 +333,6 @@ const Entities = {
       ? Dimensions.getActiveObstacles() 
       : [];
 
-    // 1. Player Knockback Resolution
     if (Math.abs(p.knockbackVx) > 0.05 || Math.abs(p.knockbackVy) > 0.05) {
       const testBoxX = { x: p.x + p.knockbackVx, y: p.y, width: p.width, height: p.height };
       let hitWallX = false;
@@ -322,7 +361,6 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
-      // 2. Player Standard Input Velocity
       let currentSpeed = (window.Input && Input.keys && Input.keys.shift) ? p.sprintSpeed : p.baseSpeed;
       
       if (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.environmentalHazards) {
@@ -385,14 +423,12 @@ const Entities = {
       }
     }
 
-    // 3. Keep Player Within Dimension Boundaries
     const cfg = (window.State && State.DIMENSIONS) ? State.DIMENSIONS[State.currentDimension] : null;
     if (cfg) {
       p.x = Math.max(10, Math.min(cfg.width - p.width - 10, p.x));
       p.y = Math.max(10, Math.min(cfg.height - p.height - 10, p.y));
     }
 
-    // 4. Retrocade Dance Floor Passive Yield
     if (window.State && State.currentDimension === 'retrocade' && p.x > 980 && p.x < 1400 && p.y > 420 && p.y < 740) {
       p.danceTimer++;
       if (p.danceTimer % 150 === 0) {
@@ -427,7 +463,6 @@ const Entities = {
         n.aggroTimer = 350;
       }
 
-      // 1. Knockback with Wall Resolution
       if (Math.abs(n.knockbackVx) > 0.1 || Math.abs(n.knockbackVy) > 0.1) {
         const testX = { x: n.x + n.knockbackVx, y: n.y, width: n.width, height: n.height };
         let hitX = false;
@@ -458,7 +493,6 @@ const Entities = {
 
       if (n.attackCooldown > 0) n.attackCooldown--;
 
-      // 2. Aggro Pathing / Movement
       if (n.state === 'aggro') {
         n.aggroTimer--;
         if (n.aggroTimer <= 0 && dist > 600) n.state = 'peaceful';
@@ -467,7 +501,6 @@ const Entities = {
         let vx = Math.cos(angle) * n.speed;
         let vy = Math.sin(angle) * n.speed;
 
-        // Boss Projectile Attacks
         if (n.tier === 'boss') {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
@@ -496,7 +529,6 @@ const Entities = {
           }
         }
 
-        // Melee Strike
         if (dist < 42 && n.attackCooldown <= 0) {
           n.attackCooldown = 48;
           if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
@@ -504,7 +536,6 @@ const Entities = {
           this.damagePlayer(dmg, Math.cos(angle) > 0 ? 'right' : 'left');
         }
 
-        // Independent AABB Collision on Enemy X
         const nextBoxX = { x: n.x + vx, y: n.y, width: n.width, height: n.height };
         let colX = false;
         for (let o of obstacles) {
@@ -515,7 +546,6 @@ const Entities = {
         }
         if (!colX) n.x += vx;
 
-        // Independent AABB Collision on Enemy Y
         const nextBoxY = { x: n.x, y: n.y + vy, width: n.width, height: n.height };
         let colY = false;
         for (let o of obstacles) {
@@ -527,7 +557,6 @@ const Entities = {
         if (!colY) n.y += vy;
 
       } else {
-        // 3. Peaceful Wandering with Wall Physics
         n.moveTimer--;
         if (n.moveTimer <= 0) {
           n.moveTimer = 40 + Math.floor(Math.random() * 60);
