@@ -20,44 +20,44 @@ const State = {
     {
       id: "lore_sub_bass",
       dim: "underground",
-      x: 1050, y: 300,
+      x: 960, y: 215, // Aligned directly in front of Mastering Console
       title: "TAPE 01: 808 SUB HARMONICS",
-      text: "The low-end sub on 'DANCING' is summed to pure mono below 100 Hz. When sub-frequencies spread into stereo, they cause severe phase cancellation on massive club sound systems and mobile speakers alike[cite: 1, 13]."
+      text: "The low-end sub on 'DANCING' is summed to pure mono below 100 Hz. When sub-frequencies spread into stereo, they cause severe phase cancellation on massive club sound systems and mobile speakers alike[cite: 1, 14]."
     },
     {
       id: "lore_fl_peak",
       dim: "underground",
-      x: 1720, y: 160,
+      x: 1530, y: 150, // Positioned safely west of the 3 arcade cabinets
       title: "TAPE 02: THE FRUITY PEAK SIDECHAIN",
-      text: "Instead of heavy compressor sidechaining that muddies the mix, linking the bass fader to Fruity Peak Controller with an inverted peak formula drops the bass instantly with zero pumping artifacts[cite: 13]."
+      text: "Instead of heavy compressor sidechaining that muddies the mix, linking the bass fader to Fruity Peak Controller with an inverted peak formula drops the bass instantly with zero pumping artifacts[cite: 14]."
     },
     {
       id: "lore_retrocade_era",
       dim: "retrocade",
       x: 350, y: 310,
       title: "TAPE 03: THE RETROCADE ERA",
-      text: "The original Retrocade sound was vibrant, upbeat electronic trap filled with electric cyan and magenta synths[cite: 14]. In this new chapter, that era is held hostage as the sound mutates into darker industrial melodic rap[cite: 14]."
+      text: "The original Retrocade sound was vibrant, upbeat electronic trap filled with electric cyan and magenta synths[cite: 15]. In this new chapter, that era is held hostage as the sound mutates into darker industrial melodic rap[cite: 15]."
     },
     {
       id: "lore_vip_techno",
       dim: "retrocade",
       x: 1950, y: 310,
       title: "TAPE 04: EXTENDED ALBUM CUTS",
-      text: "The physical cassette giveaway features exclusive, unreleased VIP edits and extended tracks for 'Retro Cade Evolved' that were held back from mainstream streaming platforms[cite: 16]."
+      text: "The physical cassette giveaway features exclusive, unreleased VIP edits and extended tracks for 'Retro Cade Evolved' that were held back from mainstream streaming platforms[cite: 17]."
     },
     {
       id: "lore_bonfire",
       dim: "wasteland",
       x: 2300, y: 2850,
       title: "TAPE 05: CONNER CADE'S SAFE ZONE",
-      text: "Conner Cade's creative bonfire is a sanctuary in the center of the Corruption. Here, Milwaukee underground creatives gather to trade stems, test unreleased visualizers, and escape the syndicate signal[cite: 12, 14]."
+      text: "Conner Cade's creative bonfire is a sanctuary in the center of the Corruption. Here, Milwaukee underground creatives gather to trade stems, test unreleased visualizers, and escape the syndicate signal[cite: 14, 15]."
     },
     {
       id: "lore_blade_rebrand",
       dim: "wasteland",
       x: 3680, y: 3950,
       title: "TAPE 06: BLADE X CASSHERN SINS",
-      text: "The visual aesthetic for this new era was conceptualized as Blade walking through Casshern Sins—stark contrast, sweeping dusters, blacked-out helmets, and harsh CRT static[cite: 14]."
+      text: "The visual aesthetic for this new era was conceptualized as Blade walking through Casshern Sins—stark contrast, sweeping dusters, blacked-out helmets, and harsh CRT static[cite: 15]."
     }
   ],
 
@@ -69,7 +69,7 @@ const State = {
       status: "OUT NOW",
       badgeColor: "pink",
       highlight: true,
-      description: "Transition single bridging the Retrocade era into the dark dystopia. Includes alternate nightcore, slowed + reverb, and club VIP edits[cite: 14, 16].",
+      description: "Transition single bridging the Retrocade era into the dark dystopia. Includes alternate nightcore, slowed + reverb, and club VIP edits[cite: 15, 17].",
       links: [
         { platform: "SPOTIFY", url: "https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg?si=0d4c1e54e1fd4ee2", color: "emerald" },
         { platform: "APPLE MUSIC", url: "https://music.apple.com/us/song/dancing/6824158392", color: "rose" },
@@ -84,7 +84,7 @@ const State = {
       status: "STREAMING",
       badgeColor: "cyan",
       highlight: false,
-      description: "Extended edition featuring exclusive bonus tracks not found on standard streaming platforms[cite: 16].",
+      description: "Extended edition featuring exclusive bonus tracks not found on standard streaming platforms[cite: 17].",
       links: [
         { platform: "STREAM ALBUM", url: "https://clublowlife.dimensions.fm/retrocade-evolved", color: "cyan" },
         { platform: "LOWLIFE CASSETTE", url: "https://www.clublowlife.com", color: "purple" }
@@ -100,33 +100,28 @@ const State = {
   },
 
   SKINS_DATA: [
-    // 01-10: Founders & Street Enforcers
-    { id: 'enforcer', name: 'THE NEW ERA ENFORCER', desc: 'Default tactical duster with neon cyan visor[cite: 14].', rarity: 'common', coat: '#090b10', trim: '#161d2a', visor: '#00f0ff', pants: '#06080c' },
+    { id: 'enforcer', name: 'THE NEW ERA ENFORCER', desc: 'Default tactical duster with neon cyan visor[cite: 15].', rarity: 'common', coat: '#090b10', trim: '#161d2a', visor: '#00f0ff', pants: '#06080c' },
     { id: 'recruit', name: 'SYNDICATE RECRUIT', desc: 'Gray combat vest with amber target optics.', rarity: 'common', coat: '#1f242e', trim: '#2d3748', visor: '#f59e0b', pants: '#11141a' },
     { id: 'vanguard', name: 'STREET VANGUARD', desc: 'Heavy street hoodie and crimson breather mask.', rarity: 'uncommon', coat: '#18181b', trim: '#ef4444', visor: '#ff003c', pants: '#09090b' },
     { id: 'alley_runner', name: 'ALLEY RUNNER', desc: 'Lightweight runner windbreaker with acid-green stripes.', rarity: 'uncommon', coat: '#14532d', trim: '#22c55e', visor: '#10b981', pants: '#052e16' },
     { id: 'concrete_ghost', name: 'CONCRETE GHOST', desc: 'Matte-white winter trench and smoked visor.', rarity: 'rare', coat: '#e2e8f0', trim: '#94a3b8', visor: '#38bdf8', pants: '#475569' },
     { id: 'tactical_op', name: 'TACTICAL OPERATIVE', desc: 'Ballistic harness and reinforced knee struts.', rarity: 'uncommon', coat: '#27272a', trim: '#3f3f46', visor: '#a855f7', pants: '#18181b' },
     { id: 'midnight_patrol', name: 'MIDNIGHT PATROL', desc: 'Deep-navy stealth slicker with electric blue optic.', rarity: 'rare', coat: '#0c1322', trim: '#1e3a8a', visor: '#3b82f6', pants: '#080d1a' },
-    { id: 'night_drive', name: 'NIGHT-DRIVE DRIFTER', desc: 'Leather bomber jacket and polarized sunset lenses[cite: 13, 16].', rarity: 'rare', coat: '#451a03', trim: '#d97706', visor: '#f97316', pants: '#1c1917' },
+    { id: 'night_drive', name: 'NIGHT-DRIVE DRIFTER', desc: 'Leather bomber jacket and polarized sunset lenses[cite: 14, 17].', rarity: 'rare', coat: '#451a03', trim: '#d97706', visor: '#f97316', pants: '#1c1917' },
     { id: 'asphalt_raider', name: 'ASPHALT RAIDER', desc: 'Road-burned biker leathers with spiked cuffs.', rarity: 'rare', coat: '#1c1917', trim: '#78350f', visor: '#fbbf24', pants: '#0c0a09' },
     { id: 'lowlife_prime', name: 'LOWLIFE PRIME', desc: 'Chrome-trimmed syndicate trench with violet energy veins.', rarity: 'legendary', coat: '#1e1b4b', trim: '#6366f1', visor: '#c084fc', pants: '#0f172a' },
-
-    // 11-20: Retrocade Vintage Era
-    { id: 'old_self', name: 'THE OLD SELF (CAPTIVE)', desc: 'Saturated vintage graphic tee from the upbeat trap era[cite: 14].', rarity: 'legendary', coat: '#ec4899', trim: '#06b6d4', visor: '#facc15', pants: '#3b82f6' },
+    { id: 'old_self', name: 'THE OLD SELF (CAPTIVE)', desc: 'Saturated vintage graphic tee from the upbeat trap era[cite: 15].', rarity: 'legendary', coat: '#ec4899', trim: '#06b6d4', visor: '#facc15', pants: '#3b82f6' },
     { id: 'pixel_kid', name: '8-BIT PIXEL KID', desc: 'Cyan and magenta high-res pixel grid windbreaker.', rarity: 'uncommon', coat: '#0891b2', trim: '#f43f5e', visor: '#22d3ee', pants: '#0e7490' },
     { id: 'arcade_geeker', name: 'ARCADE GEEKER', desc: 'Oversized mustard coat with vintage neck cans.', rarity: 'common', coat: '#ca8a04', trim: '#eab308', visor: '#fef08a', pants: '#713f12' },
     { id: 'retrowave_rider', name: 'RETROWAVE RIDER', desc: 'Sunset gradient track coat and mirror aviator shades.', rarity: 'rare', coat: '#be185d', trim: '#fb7185', visor: '#f43f5e', pants: '#881337' },
     { id: 'synth_phantom', name: 'SYNTHWAVE PHANTOM', desc: 'Electric-violet grid trench with flowing wire ribbons.', rarity: 'rare', coat: '#581c87', trim: '#a855f7', visor: '#e879f9', pants: '#3b0764' },
     { id: 'joystick_brawler', name: 'JOYSTICK BRAWLER', desc: 'Sleeveless denim cut-off and tournament headband.', rarity: 'uncommon', coat: '#1d4ed8', trim: '#dc2626', visor: '#ef4444', pants: '#1e3a8a' },
-    { id: 'crt_glitch', name: 'CRT GLITCH ECHO', desc: 'Body constantly strobing with interlaced TV scanlines[cite: 14].', rarity: 'epic', coat: '#334155', trim: '#64748b', visor: '#e2e8f0', pants: '#1e293b' },
+    { id: 'crt_glitch', name: 'CRT GLITCH ECHO', desc: 'Body constantly strobing with interlaced TV scanlines[cite: 15].', rarity: 'epic', coat: '#334155', trim: '#64748b', visor: '#e2e8f0', pants: '#1e293b' },
     { id: 'tape_head', name: 'TAPE HEAD OPERATIVE', desc: 'Wears a battle cassette deck harnessed to chest.', rarity: 'epic', coat: '#713f12', trim: '#eab308', visor: '#fde047', pants: '#451a03' },
     { id: 'neon_qb', name: 'NEON QUARTERBACK', desc: 'Heavy sports varsity wool in radioactive pink/teal.', rarity: 'uncommon', coat: '#db2777', trim: '#06b6d4', visor: '#67e8f9', pants: '#9d174d' },
     { id: 'high_score_king', name: 'HIGH-SCORE KING', desc: 'Golden crown chassis and iridescent champion mantle.', rarity: 'legendary', coat: '#eab308', trim: '#fef08a', visor: '#ffffff', pants: '#854d0e' },
-
-    // 21-30: Dystopian Hunters & Boss Drops
-    { id: 'blade_zero', name: 'BLADE-ZERO // EXECUTIONER', desc: 'The dreaded trench duster dropped by the Holding Chamber Boss[cite: 14].', rarity: 'mythic', coat: '#050507', trim: '#ff003c', visor: '#ff003c', pants: '#000000' },
-    { id: 'casshern_android', name: 'CASSHERN ANDROID', desc: 'Matte-white battle chassis with gold helmet crest[cite: 14].', rarity: 'mythic', coat: '#f8fafc', trim: '#e2e8f0', visor: '#eab308', pants: '#0f172a' },
+    { id: 'blade_zero', name: 'BLADE-ZERO // EXECUTIONER', desc: 'The dreaded trench duster dropped by the Holding Chamber Boss[cite: 15].', rarity: 'mythic', coat: '#050507', trim: '#ff003c', visor: '#ff003c', pants: '#000000' },
+    { id: 'casshern_android', name: 'CASSHERN ANDROID', desc: 'Matte-white battle chassis with gold helmet crest[cite: 15].', rarity: 'mythic', coat: '#f8fafc', trim: '#e2e8f0', visor: '#eab308', pants: '#0f172a' },
     { id: 'sub_level_slayer', name: 'SUB-LEVEL SLAYER', desc: 'Armored external spine brace and dual optics.', rarity: 'epic', coat: '#1e293b', trim: '#0284c7', visor: '#38bdf8', pants: '#0f172a' },
     { id: 'drone_whisperer', name: 'DRONE QUEEN SLAYER', desc: 'Turbine drone chassis worn as a shoulder pauldron.', rarity: 'epic', coat: '#0f172a', trim: '#00f0ff', visor: '#00f0ff', pants: '#020617' },
     { id: 'chem_enforcer', name: 'CHEM-ENFORCER UNIT 09', desc: 'Sludge-sealed chemical hazmat dropped by Silo Boss.', rarity: 'epic', coat: '#3f6212', trim: '#84cc16', visor: '#a3e635', pants: '#1a2e05' },
@@ -135,8 +130,6 @@ const State = {
     { id: 'carbon_enforcer', name: 'CARBON ENFORCER', desc: 'Woven carbon fiber chestplate with glowing orange heat vents.', rarity: 'rare', coat: '#1c1917', trim: '#ea580c', visor: '#ff7700', pants: '#0c0a09' },
     { id: 'phase_assassin', name: 'PHASE-SHIFT ASSASSIN', desc: 'Vibrating translucent silhouette with after-image trails.', rarity: 'legendary', coat: '#4c1d95', trim: '#8b5cf6', visor: '#ddd6fe', pants: '#2e1065' },
     { id: 'syndicate_warlord', name: 'SYNDICATE WARLORD', desc: 'Heavy fur-lined tactical mantle with gilded bionic arm.', rarity: 'legendary', coat: '#292524', trim: '#ca8a04', visor: '#facc15', pants: '#1c1917' },
-
-    // 31-40: Wasteland Drifters & Cave Nomads
     { id: 'drifter', name: 'WASTELAND DRIFTER', desc: 'Torn hooded poncho over a weathered tactical rig.', rarity: 'rare', coat: '#292524', trim: '#78716c', visor: '#ff7700', pants: '#1c1917' },
     { id: 'sludge_scavenger', name: 'SLUDGE SCAVENGER', desc: 'Heavy rubberized boots and patched chemical tarp coat.', rarity: 'common', coat: '#365314', trim: '#4d7c0f', visor: '#84cc16', pants: '#1a2e05' },
     { id: 'rust_belt_nomad', name: 'RUST-BELT NOMAD', desc: 'Shoulder pads forged from scrap metal highway signs.', rarity: 'uncommon', coat: '#7c2d12', trim: '#9a3412', visor: '#fdba74', pants: '#431407' },
@@ -147,8 +140,6 @@ const State = {
     { id: 'dune_strider', name: 'DUNE STRIDER', desc: 'Linen dust cloaks and polarized sandstorm blast goggles.', rarity: 'uncommon', coat: '#78716c', trim: '#a8a29e', visor: '#38bdf8', pants: '#57534e' },
     { id: 'silo_survivor', name: 'SILO SURVIVOR', desc: 'Lead-lined lab coat over industrial steel-toe trousers.', rarity: 'rare', coat: '#334155', trim: '#64748b', visor: '#facc15', pants: '#1e293b' },
     { id: 'obsidian_scout', name: 'OBSIDIAN SCOUT', desc: 'Chiseled black stone armor that deflects sniper lasers.', rarity: 'epic', coat: '#09090b', trim: '#27272a', visor: '#a855f7', pants: '#000000' },
-
-    // 41-50: Casino VIP & Dance Floor Highlights
     { id: 'velvet_vip', name: 'VELVET VIP', desc: 'Burgundy silk tailored trench and wireframe sunglasses.', rarity: 'rare', coat: '#881337', trim: '#9f1239', visor: '#fecdd3', pants: '#4c0519' },
     { id: 'jackpot_777', name: 'JACKPOT 777', desc: 'Shimmering gold sequin tuxedo with holographic coins.', rarity: 'epic', coat: '#ca8a04', trim: '#eab308', visor: '#fef08a', pants: '#713f12' },
     { id: 'dj_resident', name: 'DJ RESIDENT', desc: 'Turntable slipmat cape and active visualizer headphones.', rarity: 'rare', coat: '#4c1d95', trim: '#7c3aed', visor: '#c084fc', pants: '#2e1065' },
@@ -159,16 +150,14 @@ const State = {
     { id: 'bassline_groover', name: 'BASSLINE GROOVER', desc: 'Puffer coat that vibrates and bounces to the live BGM bass.', rarity: 'uncommon', coat: '#9d174d', trim: '#db2777', visor: '#f472b6', pants: '#700736' },
     { id: 'discotheque_diva', name: 'DISCOTHEQUE DIVA', desc: 'Silver mirror-ball fragmented crop jacket and combat boots.', rarity: 'rare', coat: '#94a3b8', trim: '#e2e8f0', visor: '#ec4899', pants: '#334155' },
     { id: 'high_stakes_ghost', name: 'HIGH-STAKES GHOST', desc: 'Emerald translucent silhouette shuffling neon deck cards.', rarity: 'epic', coat: '#065f46', trim: '#10b981', visor: '#6ee7b7', pants: '#022c22' },
-
-    // 51-60: Secret, Mythic & Link-in-Bio Exclusives
     { id: 'spotify_streamer', name: 'SPOTIFY STREAMER', desc: 'Unlocked by streaming DANCING. Mint-green frequency aura.', rarity: 'legendary', coat: '#052e16', trim: '#10b981', visor: '#1db954', pants: '#022c22' },
     { id: 'apple_lossless', name: 'APPLE LOSSLESS MASTER', desc: 'Minimalist white titanium shell with spatial audio rings.', rarity: 'legendary', coat: '#f1f5f9', trim: '#ffffff', visor: '#ff003c', pants: '#0f172a' },
     { id: 'redbull_rebel', name: 'REDBULL SETLIST REBEL', desc: 'Rally-style bomber jacket sporting the Chicago underground patch.', rarity: 'rare', coat: '#1e3a8a', trim: '#dc2626', visor: '#facc15', pants: '#172554' },
-    { id: 'bonfire_chronicler', name: 'BONFIRE CHRONICLER', desc: 'Wool-lined parka with live embers trailing your footprints[cite: 12].', rarity: 'rare', coat: '#7c2d12', trim: '#ea580c', visor: '#f97316', pants: '#431407' },
+    { id: 'bonfire_chronicler', name: 'BONFIRE CHRONICLER', desc: 'Wool-lined parka with live embers trailing your footprints[cite: 14].', rarity: 'rare', coat: '#7c2d12', trim: '#ea580c', visor: '#f97316', pants: '#431407' },
     { id: 'sound_designer', name: 'THE SOUND DESIGNER', desc: 'Active 10-band graphic equalizer animated on back of trench.', rarity: 'epic', coat: '#0f172a', trim: '#00f0ff', visor: '#a855f7', pants: '#020617' },
-    { id: 'fl_alchemist', name: 'FL STUDIO ALCHEMIST', desc: 'Orange mixer cap with physical volume faders on arm sleeves[cite: 13].', rarity: 'rare', coat: '#9a3412', trim: '#ea580c', visor: '#fb923c', pants: '#431407' },
-    { id: 'tape_winner', name: 'THE 6-WINNER CLAIMANT', desc: 'Unlocked via Google Form claim. Pure gold cassette aura[cite: 16].', rarity: 'mythic', coat: '#713f12', trim: '#facc15', visor: '#ffffff', pants: '#451a03' },
-    { id: 'static_nightmare', name: 'STATIC NIGHTMARE', desc: 'Grainy black-and-white silhouette torn from the CRT monitor[cite: 14].', rarity: 'mythic', coat: '#18181b', trim: '#71717a', visor: '#ffffff', pants: '#09090b' },
+    { id: 'fl_alchemist', name: 'FL STUDIO ALCHEMIST', desc: 'Orange mixer cap with physical volume faders on arm sleeves[cite: 14].', rarity: 'rare', coat: '#9a3412', trim: '#ea580c', visor: '#fb923c', pants: '#431407' },
+    { id: 'tape_winner', name: 'THE 6-WINNER CLAIMANT', desc: 'Unlocked via Google Form claim. Pure gold cassette aura[cite: 17].', rarity: 'mythic', coat: '#713f12', trim: '#facc15', visor: '#ffffff', pants: '#451a03' },
+    { id: 'static_nightmare', name: 'STATIC NIGHTMARE', desc: 'Grainy black-and-white silhouette torn from the CRT monitor[cite: 15].', rarity: 'mythic', coat: '#18181b', trim: '#71717a', visor: '#ffffff', pants: '#09090b' },
     { id: 'horizon_celestial', name: 'HORIZON CELESTIAL', desc: 'Prismatic duster shimmering with distant dimension stars.', rarity: 'mythic', coat: '#312e81', trim: '#ec4899', visor: '#00f0ff', pants: '#1e1b4b' },
     { id: 'the_creator', name: 'THE CREATOR // OMG LOWLIFE', desc: 'The signature crown, open trench, and master sound processor.', rarity: 'mythic', coat: '#000000', trim: '#facc15', visor: '#00f0ff', pants: '#09090b' }
   ],
@@ -192,6 +181,9 @@ const State = {
       if (saved) {
         const parsed = JSON.parse(saved);
         this.userProfile = { ...this.userProfile, ...parsed };
+        if (!Array.isArray(this.userProfile.discoveredLoreTapes)) {
+          this.userProfile.discoveredLoreTapes = [];
+        }
         if (this.userProfile.lastDimension) {
           this.currentDimension = this.userProfile.lastDimension;
         }
@@ -266,8 +258,10 @@ const State = {
     this.save();
   },
 
-  // Inspect Lore Cassette (Phase 2 Trivia Trigger)
   inspectLoreTape(tape) {
+    if (!Array.isArray(this.userProfile.discoveredLoreTapes)) {
+      this.userProfile.discoveredLoreTapes = [];
+    }
     if (!this.userProfile.discoveredLoreTapes.includes(tape.id)) {
       this.userProfile.discoveredLoreTapes.push(tape.id);
       this.userProfile.collectedRareTapes++;
