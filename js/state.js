@@ -840,7 +840,7 @@ const State = {
   },
 
   closeModals() {
-    document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+    document.querySelectorAll('[id$="Modal"]').forEach(m => m.classList.add('hidden'));
     if (this.activeMiniGame && typeof this.activeMiniGame.stop === 'function') {
       this.activeMiniGame.stop();
     }
