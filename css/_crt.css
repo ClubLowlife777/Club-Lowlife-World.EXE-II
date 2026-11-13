@@ -1,1 +1,41 @@
+/* ==========================================================================
+   CLUB LOWLIFE // CRT SCANLINES & VIGNETTE SHADER EMULATION
+   File: css/_crt.css
+   ========================================================================== */
 
+.crt-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 6px 100%;
+  transition: opacity 0.2s ease;
+}
+
+.crt-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  box-shadow: inset 0 0 95px rgba(0, 0, 0, 0.85);
+  transition: opacity 0.2s ease;
+}
+
+/* Clean Screen Toggle State: Disables CRT Scanlines & Vignette */
+body.crt-disabled .crt-overlay,
+body.crt-disabled .crt-vignette {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+/* Mobile Viewport Optimization: Keep dark dimensions readable on phone screens */
+@media (max-width: 640px) {
+  .crt-overlay {
+    opacity: 0.75;
+  }
+  .crt-vignette {
+    box-shadow: inset 0 0 55px rgba(0, 0, 0, 0.75);
+  }
+}
