@@ -1,7 +1,7 @@
 /**
  * CLUB LOWLIFE // GLOBAL STATE, 120-SKIN CATALOG & PROGRESSION ENGINE
  * File: js/state.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.00)
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.10)
  */
 
 const NEW_STORE_SKINS = [
@@ -11,7 +11,7 @@ const NEW_STORE_SKINS = [
   { id: 'cactus_club_drifter', name: 'CACTUS CLUB DRIFTER', desc: 'Bay View underground punk jacket covered in DIY tour patches.', rarity: 'rare', price: 110, category: 'store', coat: '#14532d', trim: '#dc2626', visor: '#4ade80', pants: '#052e16' },
   { id: 'hoan_bridge_glider', name: 'HOAN BRIDGE GLIDER', desc: 'High-span suspension yellow harness with harbor-beacon optics.', rarity: 'rare', price: 125, category: 'store', coat: '#713f12', trim: '#facc15', visor: '#fef08a', pants: '#1c1917' },
   { id: 'menomonee_rust_stalker', name: 'MENOMONEE VALLEY STALKER', desc: 'Foundry-ash trench coat forged in the industrial valley yards.', rarity: 'uncommon', price: 90, category: 'store', coat: '#431407', trim: '#9a3412', visor: '#fb923c', pants: '#1c1917' },
-  { id: 'riverwest_courier', name: 'RIVERWEST NIGHT COURIER', desc: 'Spoke-cardmessenger vest built for late-night cassette drops.', rarity: 'uncommon', price: 80, category: 'store', coat: '#1e1b4b', trim: '#ec4899', visor: '#00f0ff', pants: '#09090b' },
+  { id: 'riverwest_courier', name: 'RIVERWEST NIGHT COURIER', desc: 'Spoke-card messenger vest built for late-night cassette drops.', rarity: 'uncommon', price: 80, category: 'store', coat: '#1e1b4b', trim: '#ec4899', visor: '#00f0ff', pants: '#09090b' },
   { id: 'kinnickinnic_mechanic', name: 'KK AVE TUNER', desc: 'Grease-stained midnight coveralls with neon underglow strips.', rarity: 'uncommon', price: 95, category: 'store', coat: '#18181b', trim: '#10b981', visor: '#34d399', pants: '#09090b' },
   { id: 'walkers_point_ghost', name: 'WALKERS POINT PHANTOM', desc: 'Warehouse-district stealth parka with cold-storage frost visor.', rarity: 'rare', price: 130, category: 'store', coat: '#334155', trim: '#94a3b8', visor: '#e0f2fe', pants: '#0f172a' },
   { id: 'third_ward_broker', name: 'THIRD WARD SYNDICATE', desc: 'Tailored charcoal wool overcoat with concealed studio drive pockets.', rarity: 'rare', price: 150, category: 'store', coat: '#1f2937', trim: '#d97706', visor: '#fbbf24', pants: '#111827' },
@@ -30,7 +30,7 @@ const NEW_STORE_SKINS = [
   { id: 'neo_tokyo_purger', name: 'CAPSULE SYNDICATE DRIFTER', desc: 'Crimson biomorphic biker jacket with high-output laser targeter.', rarity: 'epic', price: 340, category: 'store', coat: '#991b1b', trim: '#dc2626', visor: '#fef08a', pants: '#450a0a' },
   { id: 'amber_vial_chemist', name: 'SUBSTANCE ALCHEMIST', desc: 'Bandolier of glowing amber dropper bottles strapped to a black lab trench.', rarity: 'epic', price: 290, category: 'store', coat: '#1c1917', trim: '#f59e0b', visor: '#fbbf24', pants: '#0c0a09' },
   { id: 'holding_cell_warden', name: 'INTERROGATION WARDEN', desc: 'Heavy rubberized apron and high-voltage stun gauntlets.', rarity: 'rare', price: 230, category: 'store', coat: '#27272a', trim: '#ef4444', visor: '#f87171', pants: '#18181b' },
-  { id: 'casshern_ruin_guard', name: 'NEO-SAPIEN SENTINEL', desc: 'Porcelain-white angular armor plates with mournfulscarlet optics.', rarity: 'epic', price: 360, category: 'store', coat: '#f1f5f9', trim: '#dc2626', visor: '#ff003c', pants: '#1e293b' },
+  { id: 'casshern_ruin_guard', name: 'NEO-SAPIEN SENTINEL', desc: 'Porcelain-white angular armor plates with mournful scarlet optics.', rarity: 'epic', price: 360, category: 'store', coat: '#f1f5f9', trim: '#dc2626', visor: '#ff003c', pants: '#1e293b' },
   { id: 'daywalker_vanguard', name: 'BLOOD RAVE VANGUARD', desc: 'Titanium body-armor vest over a black tactical trench and UV shades.', rarity: 'epic', price: 390, category: 'store', coat: '#0a0a0a', trim: '#991b1b', visor: '#ff003c', pants: '#000000' },
   { id: 'cracked_mirror_double', name: 'DOPPELGANGER SHARD', desc: 'Reflective glass-fragmented coat showing the face behind the mask.', rarity: 'epic', price: 320, category: 'store', coat: '#475569', trim: '#e2e8f0', visor: '#38bdf8', pants: '#1e293b' },
   { id: 'rain_haze_sniper', name: 'DOWNPOUR MARKSMAN', desc: 'Hydrophobic gill-cloak designed for Acid Wasteland roof perches.', rarity: 'rare', price: 250, category: 'store', coat: '#0c4a6e', trim: '#0284c7', visor: '#00f0ff', pants: '#082f49' },
@@ -288,7 +288,7 @@ const State = {
     unlockedSkins: ["enforcer"],
     collectedRareTapes: 0,
     discoveredLoreTapes: [],
-    // RPG Relic & Consumable Inventory (Phase 3 + Rev 5.0)
+    // RPG Relic & Consumable Inventory (Phase 3 + Rev 5.10)
     unlockedRelics: [],
     equippedRelics: [],
     amberVials: 1,
@@ -297,6 +297,7 @@ const State = {
     djOverdriveTimer: 0, // 3-min buff from DJ booth (10,800 frames @ 60fps)
     casinoTokens: 100,
     bossesDefeated: [],
+    bossKillCounts: {}, // Tracks how many times each World Boss has been defeated
     chestsOpened: [],
     lastDimension: "underground",
     lastPosition: { x: 350, y: 750 }
@@ -313,6 +314,16 @@ const State = {
         if (!Array.isArray(this.userProfile.discoveredLoreTapes)) this.userProfile.discoveredLoreTapes = [];
         if (!Array.isArray(this.userProfile.unlockedRelics)) this.userProfile.unlockedRelics = [];
         if (!Array.isArray(this.userProfile.equippedRelics)) this.userProfile.equippedRelics = [];
+        if (!Array.isArray(this.userProfile.bossesDefeated)) this.userProfile.bossesDefeated = [];
+        if (!this.userProfile.bossKillCounts || typeof this.userProfile.bossKillCounts !== 'object') {
+          this.userProfile.bossKillCounts = {};
+        }
+        // Backfill kill counts for any bosses defeated in older save states
+        this.userProfile.bossesDefeated.forEach(bossId => {
+          if (typeof this.userProfile.bossKillCounts[bossId] !== 'number' || this.userProfile.bossKillCounts[bossId] < 1) {
+            this.userProfile.bossKillCounts[bossId] = 1;
+          }
+        });
         if (typeof this.userProfile.amberVials !== 'number') this.userProfile.amberVials = 1;
         if (typeof this.userProfile.djOverdriveTimer !== 'number') this.userProfile.djOverdriveTimer = 0;
         if (this.userProfile.lastDimension) this.currentDimension = this.userProfile.lastDimension;
