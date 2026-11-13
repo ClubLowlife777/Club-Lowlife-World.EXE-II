@@ -1,7 +1,7 @@
 /**
  * CLUB LOWLIFE // CORE COMBAT & TARGETING ENGINE
  * File: js/world/combat.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Physics
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.00)
  */
 
 const Combat = {
@@ -19,6 +19,15 @@ const Combat = {
   isChargingShoot: false,
   shootChargeStartTime: 0,
   shootCooldown: 0,
+
+  // Dossier Section 5.1: Player Offense Scaling (+5.0% damage per level)
+  getPlayerLevelDamageMult() {
+    if (window.State && typeof State.getPlayerDamageMultiplier === 'function') {
+      return State.getPlayerDamageMultiplier();
+    }
+    const lvl = (window.State && State.userProfile && State.userProfile.level) ? State.userProfile.level : 1;
+    return 1 + Math.max(0, lvl - 1) * 0.05;
+  },
 
   checkCollision(r1, r2) {
     return (
@@ -50,6 +59,7 @@ const Combat = {
 
     const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
     const hasTapeSaturator = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_tape_saturator'));
+    const lvlMult = this.getPlayerLevelDamageMult();
 
     const holdSeconds = (Date.now() - this.shootChargeStartTime) / 1000;
     const requiredHold = isHypercharged ? 0.5 : 1.0;
@@ -63,8 +73,8 @@ const Combat = {
     else if (dir === 'right') vx = 1;
     else vy = 1;
 
-    // Analog Tape Saturator boosts damage by 35% and alters color to warm orange[cite: 2, 6, 14]
-    const damageMultiplier = (hasTapeSaturator ? 1.35 : 1.0) * (isHypercharged ? 1.5 : 1.0);
+    // Analog Tape Saturator (+35%) * Hypercharge (1.5x) * Level Multiplier (1 + (L-1)*0.05)
+    const damageMultiplier = (hasTapeSaturator ? 1.35 : 1.0) * (isHypercharged ? 1.5 : 1.0) * lvlMult;
     const plasmaColor = hasTapeSaturator ? '#f97316' : '#00f0ff';
 
     if (holdSeconds >= requiredHold) {
@@ -77,7 +87,7 @@ const Combat = {
         vx: vx * 9.5, vy: vy * 9.5, speed: 9.5, radius: 14,
         isCharged: true, damage: dmg, aoeRadius: 150, life: 85, color: plasmaColor
       });
-      if (window.State && typeof State.showToast === 'function') State.showToast("RELEASED CHARGED PLASMA ORB! 💥");
+      if (window.State && typeof State.showToast === 'function') State.showToast("RELEASED CHARGED PLASMA ORB! ☄️");
     } else {
       this.shootCooldown = Date.now() + 180;
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
@@ -139,7 +149,7 @@ const Combat = {
     const offset = 34;
 
     const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
-    const dmgMult = isHypercharged ? 1.6 : 1.0;
+    const dmgMult = (isHypercharged ? 1.6 : 1.0) * this.getPlayerLevelDamageMult();
 
     if (p.direction === 'up') slashY -= offset;
     else if (p.direction === 'down') slashY += offset;
@@ -178,7 +188,7 @@ const Combat = {
     const offset = 38;
 
     const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
-    const dmg = Math.round(115 * (isHypercharged ? 1.6 : 1.0));
+    const dmg = Math.round(115 * (isHypercharged ? 1.6 : 1.0) * this.getPlayerLevelDamageMult());
 
     if (p.direction === 'up') slashY -= offset;
     else if (p.direction === 'down') slashY += offset;
@@ -199,10 +209,10 @@ const Combat = {
     const hasSubWoofer = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_sub_woofer'));
     const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
 
-    // Sub-Woofer Relic Expands Shockwave Radius to 310px & Deals 225 Damage[cite: 2, 6, 14]
+    // Sub-Woofer Relic Expands Shockwave Radius to 310px & Deals 225 Base Damage
     const aoeRadius = hasSubWoofer ? 310 : 220;
     const baseDmg = hasSubWoofer ? 225 : 185;
-    const dmg = Math.round(baseDmg * (isHypercharged ? 1.5 : 1.0));
+    const dmg = Math.round(baseDmg * (isHypercharged ? 1.5 : 1.0) * this.getPlayerLevelDamageMult());
 
     if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
     if (window.State && typeof State.triggerScreenShake === 'function') State.triggerScreenShake(18, 30);
@@ -235,7 +245,7 @@ const Combat = {
 
     this.checkDestructibleDoors(slashX, slashY, 130, dmg, true);
     if (window.State && typeof State.showToast === 'function') {
-      State.showToast(hasSubWoofer ? "PURE MONO SUB-BASS SHOCKWAVE DISCHARGED! 🔊⚡[cite: 1, 14]" : "DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💜[cite: 2]");
+      State.showToast(hasSubWoofer ? "PURE MONO SUB-BASS SHOCKWAVE DISCHARGED! 🔊⚡" : "DEVASTATING COSMIC SHOCKWAVE DISCHARGED! ⚡💥");
     }
   },
 
@@ -283,14 +293,14 @@ const Combat = {
               if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
               if (window.State) {
                 State.triggerScreenShake(14, 24);
-                State.showToast("BREACH DESTROYED // SECRET PATH OPENED! 🚪🔓");
+                State.showToast("BREACH DESTROYED // SECRET PATH OPENED! 🔓💥");
                 State.save();
               }
             } else {
               if (window.State) State.showToast(`DOOR INTEGRITY: ${d.hp}/${d.maxHp} HP`);
             }
           } else {
-            if (window.State) State.showToast("ARMORED: REQUIRES CHARGED ATTACK!");
+            if (window.State) State.showToast("ARMORED: REQUIRES CHARGED ATTACK OR 50🪙 BYPASS!");
           }
         }
       }
