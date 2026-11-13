@@ -1,7 +1,7 @@
 /**
- * CLUB LOWLIFE // ENTITY MANAGEMENT & COMBAT AI
+ * CLUB LOWLIFE // ENTITY MANAGEMENT, ASYMMETRIC SCALING & COMBAT AI
  * File: js/world/entities.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Physics
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.00)
  */
 
 const Entities = {
@@ -17,19 +17,28 @@ const Entities = {
     danceTimer: 0
   },
 
+  // Dossier Section 5.1: Enemy NPC Scaling (+3.75% HP & damage per level, 0% speed scaling)
+  getEnemyLevelScaleMult() {
+    if (window.State && typeof State.getEnemyScaleMultiplier === 'function') {
+      return State.getEnemyScaleMultiplier();
+    }
+    const lvl = (window.State && State.userProfile && State.userProfile.level) ? State.userProfile.level : 1;
+    return 1 + Math.max(0, lvl - 1) * 0.0375;
+  },
+
   friendlyNpcs: {
     underground: [
       { id: 'u_mech', x: 360, y: 260, width: 26, height: 38, name: 'HYPE MECHANIC', role: 'STREET CREW', coat: '#10b981', visor: '#facc15', pants: '#064e3b', icon: '🔧', dialogue: "The trunk pop truck is unlocked in Bay 1. Grab code LOWLIFEWORLD15 for 15% off official merch." },
       { id: 'u_tech', x: 1600, y: 150, width: 26, height: 38, name: 'ARCADE TECH', role: 'NEO-GEO REPAIR', coat: '#0284c7', visor: '#00f0ff', pants: '#0c4a6e', icon: '🕹️', dialogue: "We keep these cabinets calibrated. Grid Runner's purple drone predicts your turns—steer early!" },
-      { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is summed to pure mono below 100 Hz for massive club systems and earbuds alike[cite: 1, 14]." },
+      { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is summed to pure mono below 100 Hz for massive club systems and earbuds alike." },
       { id: 'u_drifter1', x: 250, y: 650, width: 26, height: 38, name: 'GARAGE DRIFTER', role: 'OUTLAW', coat: '#475569', visor: '#38bdf8', pants: '#1e293b', icon: '🕶️', dialogue: "The night shift underground is the only place immune to the syndicate signal." },
       { id: 'u_drifter2', x: 1900, y: 750, width: 26, height: 38, name: 'SUBWAY RUNNER', role: 'COURIER', coat: '#7c3aed', visor: '#e879f9', pants: '#4c1d95', icon: '👟', dialogue: "I deliver cassettes across dimensions. Check Martian University and Sector 777 in the Wasteland for rare stashes." },
       { id: 'u_sentry', x: 2150, y: 840, width: 26, height: 38, name: 'RIFT SENTRY', role: 'GATE WATCHER', coat: '#dc2626', visor: '#ff003c', pants: '#7f1d1d', icon: '🛡️', dialogue: "Beyond this warp lies District 84 Retrocade. Keep your tokens ready." }
     ],
     retrocade: [
-      { id: 'r_dj', x: 1180, y: 180, width: 30, height: 40, name: 'DJ LOWLIFE', role: 'RESIDENT RECORD CUTTER', coat: '#701a75', visor: '#f472b6', pants: '#4a044e', icon: '🎧', dialogue: "Broadcast live! Groove on beat on the dance floor to extract sound tokens." },
+      { id: 'r_dj', x: 1180, y: 180, width: 30, height: 40, name: 'DJ LOWLIFE', role: 'RESIDENT RECORD CUTTER', coat: '#701a75', visor: '#f472b6', pants: '#4a044e', icon: '🎧', dialogue: "Broadcast live! Groove on beat on the dance floor to extract sound tokens, or tip 25 tokens in the Store for 3 minutes of Overdrive!" },
       { id: 'r_bartender', x: 480, y: 180, width: 26, height: 38, name: 'BAR MASTER', role: 'LOUNGE HOST', coat: '#0f766e', visor: '#2dd4bf', pants: '#134e4a', icon: '🍸', dialogue: "Welcome to Nirvana Lounge. Check the interactive Music Kiosk on the north wall." },
-      { id: 'r_curator', x: 230, y: 220, width: 26, height: 38, name: 'KIOSK CURATOR', role: 'CATALOG ARCHIVIST', coat: '#c2410c', visor: '#fed7aa', pants: '#7c2d12', icon: '💿', dialogue: "Here you can audition original, sped-up, and slowed cuts of the single[cite: 15]." },
+      { id: 'r_curator', x: 230, y: 220, width: 26, height: 38, name: 'KIOSK CURATOR', role: 'CATALOG ARCHIVIST', coat: '#c2410c', visor: '#fed7aa', pants: '#7c2d12', icon: '💿', dialogue: "Here you can audition original, sped-up, and slowed cuts of the single." },
       { id: 'r_croupier', x: 2020, y: 180, width: 26, height: 38, name: 'HIGH-ROLLER CROUPIER', role: 'VIP DEALER', coat: '#a16207', visor: '#fef08a', pants: '#713f12', icon: '🎰', dialogue: "The 5-lane slots on the right are for serious players: 25 tokens per roll with massive multiplier yields." },
       { id: 'd1', x: 1040, y: 460, width: 26, height: 38, name: 'NEON GROOVER', role: 'CLUBBER', coat: '#06b6d4', visor: '#ec4899', pants: '#0891b2', icon: '💃', dancePhase: 0, dialogue: "The bassline in this place is unmatched." },
       { id: 'd2', x: 1120, y: 520, width: 26, height: 38, name: 'CYBER VIP', role: 'CLUBBER', coat: '#8b5cf6', visor: '#a855f7', pants: '#5b21b6', icon: '🕺', dancePhase: 1, dialogue: "District 84 is the peak of the Retrocade era." },
@@ -41,9 +50,9 @@ const Entities = {
       { id: 'd8', x: 1320, y: 670, width: 26, height: 38, name: 'VAPOR ENFORCER', role: 'CLUBBER', coat: '#d946ef', visor: '#fdf4ff', pants: '#86198f', icon: '🕺', dancePhase: 7, dialogue: "Enjoy the rhythm while the rifts are stable." }
     ],
     wasteland: [
-      { id: 'w_conner', x: 2260, y: 2890, width: 28, height: 40, name: 'CONNER CADE', role: 'BONFIRE HOST & PRODUCER', coat: '#9a3412', visor: '#fb923c', pants: '#431407', icon: '🔥', dialogue: "Welcome to the bonfire[cite: 14]. Pull up a seat. Out here in the Corruption, you need a safe circle to test raw mixes and build real ideas[cite: 14]. The enforcers won't cross this perimeter." },
-      { id: 'w_visualist', x: 2340, y: 2880, width: 26, height: 38, name: 'MKE DIRECTOR', role: 'CINEMATOGRAPHER', coat: '#1e293b', visor: '#38bdf8', pants: '#0f172a', icon: '🎥', dialogue: "The lighting on this short film had to be grim—tube lights, handheld smoke, and rain[cite: 16]. Check the mirror in the washroom down south if you want to see the mask come off[cite: 16]." },
-      { id: 'w_producer', x: 2310, y: 2950, width: 26, height: 38, name: 'CREATIVE HOMIE', role: 'BEATSMITH', coat: '#15803d', visor: '#86efac', pants: '#14532d', icon: '🎹', dialogue: "Conner's 808s always cut through because of that mono sum trick[cite: 14]. Make sure you find all 6 catalog tapes and loot the studio gear relics[cite: 15]." }
+      { id: 'w_conner', x: 2260, y: 2890, width: 28, height: 40, name: 'CONNER CADE', role: 'BONFIRE HOST & PRODUCER', coat: '#9a3412', visor: '#fb923c', pants: '#431407', icon: '🔥', dialogue: "Welcome to the bonfire. Pull up a seat. Out here in the Corruption, you need a safe circle to test raw mixes and build real ideas. The enforcers won't cross this perimeter." },
+      { id: 'w_visualist', x: 2340, y: 2880, width: 26, height: 38, name: 'MKE DIRECTOR', role: 'CINEMATOGRAPHER', coat: '#1e293b', visor: '#38bdf8', pants: '#0f172a', icon: '🎥', dialogue: "The lighting on this short film had to be grim—tube lights, handheld smoke, and rain. Check the mirror in the washroom down south if you want to see the mask come off." },
+      { id: 'w_producer', x: 2310, y: 2950, width: 26, height: 38, name: 'CREATIVE HOMIE', role: 'BEATSMITH', coat: '#15803d', visor: '#86efac', pants: '#14532d', icon: '🎹', dialogue: "Conner's 808s always cut through because of that mono sum trick. Make sure you find all 6 catalog tapes and loot the studio gear relics." }
     ]
   },
 
@@ -62,6 +71,11 @@ const Entities = {
         const cfg = State.DIMENSIONS ? State.DIMENSIONS[State.currentDimension] : null;
         const badge = document.getElementById('dimensionBadge');
         if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
+      }
+      // Sync Player Max HP with Level on boot (+10 HP per level)
+      if (typeof State.getPlayerMaxHp === 'function') {
+        this.player.maxHp = State.getPlayerMaxHp();
+        this.player.hp = this.player.maxHp;
       }
     }
 
@@ -96,12 +110,14 @@ const Entities = {
     const defeated = (window.State && State.userProfile && Array.isArray(State.userProfile.bossesDefeated))
       ? State.userProfile.bossesDefeated
       : [];
+    const scale = this.getEnemyLevelScaleMult();
 
     if (!defeated.includes('boss_blade_zero')) {
+      const scaledHp = Math.round(1600 * scale);
       this.hostileNpcs.push({
         id: 'boss_blade_zero', tier: 'boss', name: 'HIGH EXECUTIONER "BLADE-ZERO"',
         x: 3200, y: 4100, width: 42, height: 52,
-        hp: 1600, maxHp: 1600, speed: 3.8,
+        hp: scaledHp, maxHp: scaledHp, speed: 3.8, // Speed permanently capped at base value
         alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
         knockbackVx: 0, knockbackVy: 0,
         coat: '#050507', visor: '#ff003c', pants: '#000000'
@@ -109,10 +125,11 @@ const Entities = {
     }
 
     if (!defeated.includes('boss_chem_enforcer')) {
+      const scaledHp = Math.round(750 * scale);
       this.hostileNpcs.push({
         id: 'boss_chem_enforcer', tier: 'boss', name: 'CHEM-ENFORCER UNIT 09',
         x: 1400, y: 2200, width: 40, height: 50,
-        hp: 750, maxHp: 750, speed: 2.7,
+        hp: scaledHp, maxHp: scaledHp, speed: 2.7,
         alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
         knockbackVx: 0, knockbackVy: 0,
         coat: '#365314', visor: '#84cc16', pants: '#1a2e05'
@@ -120,10 +137,11 @@ const Entities = {
     }
 
     if (!defeated.includes('boss_drone_queen')) {
+      const scaledHp = Math.round(850 * scale);
       this.hostileNpcs.push({
         id: 'boss_drone_queen', tier: 'boss', name: 'THE HOLLOW DRONE QUEEN',
         x: 4800, y: 800, width: 44, height: 48,
-        hp: 850, maxHp: 850, speed: 3.2,
+        hp: scaledHp, maxHp: scaledHp, speed: 3.2,
         alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
         knockbackVx: 0, knockbackVy: 0,
         coat: '#0c4a6e', visor: '#00f0ff', pants: '#082f49'
@@ -173,6 +191,7 @@ const Entities = {
 
     if (!validSpawn) return;
 
+    const scale = this.getEnemyLevelScaleMult();
     const isMidTier = Math.random() < 0.35;
 
     if (isMidTier) {
@@ -182,9 +201,10 @@ const Entities = {
         { type: 'phase_stalker', name: 'PHASE STALKER', coat: '#4c1d95', visor: '#c084fc', pants: '#2e1065', hp: 220, speed: 3.4 }
       ];
       const template = midTypes[Math.floor(Math.random() * midTypes.length)];
+      const scaledHp = Math.round(template.hp * scale);
       this.hostileNpcs.push({
         id: Math.random().toString(36).substr(2, 9), tier: 'mid', name: template.name, type: template.type,
-        x: spawnX, y: spawnY, width: 32, height: 44, hp: template.hp, maxHp: template.hp, speed: template.speed,
+        x: spawnX, y: spawnY, width: 32, height: 44, hp: scaledHp, maxHp: scaledHp, speed: template.speed,
         coat: template.coat, visor: template.visor, pants: template.pants,
         alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
         dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 30 + Math.floor(Math.random() * 40)
@@ -196,9 +216,10 @@ const Entities = {
         { type: 'patrol', name: 'OUTPOST PATROL', coat: '#334155', visor: '#ff003c', pants: '#1e293b', hp: 80, speed: 2.8 }
       ];
       const template = regTypes[Math.floor(Math.random() * regTypes.length)];
+      const scaledHp = Math.round(template.hp * scale);
       this.hostileNpcs.push({
         id: Math.random().toString(36).substr(2, 9), tier: 'regular', name: template.name, type: template.type,
-        x: spawnX, y: spawnY, width: 24, height: 36, hp: template.hp, maxHp: template.hp, speed: template.speed,
+        x: spawnX, y: spawnY, width: 24, height: 36, hp: scaledHp, maxHp: scaledHp, speed: template.speed,
         coat: template.coat, visor: template.visor, pants: template.pants,
         alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
         dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 25 + Math.floor(Math.random() * 45)
@@ -222,12 +243,19 @@ const Entities = {
     if (npc.hp <= 0 && npc.hp !== 99999) {
       npc.alive = false;
       this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id);
+
+      // Dossier Section 5.2: XP Distribution on Hostile Elimination
+      if (window.State && typeof State.addXp === 'function') {
+        const xpReward = npc.tier === 'boss' ? 500 : npc.tier === 'mid' ? 65 : 20;
+        State.addXp(xpReward, `${npc.name} ELIMINATED`);
+      }
+
       if (npc.tier === 'boss' && window.State) {
         State.userProfile.bossesDefeated = State.userProfile.bossesDefeated || [];
         if (!State.userProfile.bossesDefeated.includes(npc.id)) {
           State.userProfile.bossesDefeated.push(npc.id);
         }
-        State.showToast(`BOSS DEFEATED: ${npc.name}! 🏆`);
+        State.showToast(`BOSS DEFEATED: ${npc.name} (+500 XP)! 🏆`);
         State.triggerScreenShake(20, 35);
 
         // Bosses Drop Exclusive Relics & VIP Stem in Phase 3
@@ -250,7 +278,7 @@ const Entities = {
       this.lootPickups.push({ x: lx + (Math.random() * 40 - 20), y: ly + (Math.random() * 40 - 20), type: 'coin', value: 5, radius: 6, floatOffset: Math.random() * Math.PI * 2 });
     }
 
-    // Mid-tier Chem Brutes can drop Amber Dropper Vials[cite: 16]
+    // Mid-tier Chem Brutes can drop Amber Dropper Vials
     if (tier === 'mid' && Math.random() < 0.40) {
       this.lootPickups.push({ x: lx, y: ly, type: 'amber_vial', radius: 8, floatOffset: Math.random() * Math.PI * 2 });
     }
@@ -285,28 +313,33 @@ const Entities = {
     if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
     if (window.State) State.triggerScreenShake(6, 12);
 
+    // Dossier Section 5.2: Chest XP & Token Rewards
     if (c.type === 'supply' && window.State) {
       State.addTokens(35); State.addRareTape();
-      State.showToast("SUPPLY CRATE: +35 TOKENS, +1 RARE CASSETTE! 📦");
+      if (typeof State.addXp === 'function') State.addXp(35, "SUPPLY CRATE");
+      State.showToast("SUPPLY CRATE: +35 TOKENS, +35 XP & +1 RARE CASSETTE! 📦");
     } else if (c.type === 'biohazard' && window.State) {
       State.addTokens(75); State.addRareTape(); State.addRareTape();
       State.userProfile.amberVials = (State.userProfile.amberVials || 0) + 1;
       this.player.hp = this.player.maxHp;
       this.updatePlayerHealthUI();
-      State.showToast("HAZMAT CACHE: +75 TOKENS, +2 TAPES, FULL HEAL & +1 AMBER VIAL! 🧪[cite: 16]");
+      if (typeof State.addXp === 'function') State.addXp(50, "HAZMAT CACHE");
+      State.showToast("HAZMAT CACHE: +75 TOKENS, +50 XP, FULL HEAL & +1 AMBER VIAL! 🧪");
     } else if (c.type === 'vault' && window.State) {
       State.addTokens(150); State.addRareTape(); State.addRareTape(); State.addRareTape();
       if (c.relicReward) {
         State.unlockRelic(c.relicReward);
       }
       State.unlockSkin(c.skinReward || 'drifter');
-      State.showToast(`VAULT UNLOCKED: +150 TOKENS, +3 TAPES & NEW HARDWARE RELIC! 💎🎛️`);
+      if (typeof State.addXp === 'function') State.addXp(85, "VAULT BREACH");
+      State.showToast(`VAULT UNLOCKED: +150 TOKENS, +85 XP, +3 TAPES & HARDWARE RELIC! 💎🎛️`);
     } else if (c.type === 'master_holding' && window.State) {
       State.addTokens(300);
       for (let i = 0; i < 10; i++) State.addRareTape();
       State.unlockRelic('relic_sub_woofer');
       State.unlockSkin('static_nightmare');
-      State.showToast("GOLDEN MASTER VAULT: SUB-100HZ MONO SUB-WOOFER & MYTHIC SKIN UNLOCKED! 💿⚡[cite: 1, 14]");
+      if (typeof State.addXp === 'function') State.addXp(120, "MASTER VAULT BREACH");
+      State.showToast("GOLDEN MASTER VAULT: +300 TOKENS, +120 XP, SUB-WOOFER RELIC & MYTHIC SKIN! 💿⚡");
     }
     if (window.State) State.save();
   },
@@ -315,7 +348,7 @@ const Entities = {
     const p = this.player;
     if (p.iFrames > 0) return;
 
-    // Fruity Peak Controller Relic reduces all incoming damage by 20%[cite: 4, 14]
+    // Fruity Peak Controller Relic reduces all incoming damage by 20%
     const hasPeakController = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_peak_controller'));
     const finalDamage = hasPeakController ? Math.max(1, Math.round(amount * 0.80)) : amount;
 
@@ -358,9 +391,10 @@ const Entities = {
     const p = this.player;
     if (p.iFrames > 0) p.iFrames--;
 
-    // Countdown Hypercharge Timer
-    if (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0) {
-      State.userProfile.hyperchargeTimer--;
+    // Countdown Hypercharge & DJ Overdrive Timers
+    if (window.State && State.userProfile) {
+      if (State.userProfile.hyperchargeTimer > 0) State.userProfile.hyperchargeTimer--;
+      if (State.userProfile.djOverdriveTimer > 0) State.userProfile.djOverdriveTimer--;
     }
 
     const activeObs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
@@ -395,11 +429,13 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
-      // Gross Beat Time-Shifter Relic grants +20% sprint speed[cite: 2, 4, 14]
+      // Gross Beat Relic (+20% sprint) & DJ Booth Overdrive (+15% all movement speed)
       const hasGrossBeat = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_gross_beat'));
-      const speedMult = hasGrossBeat ? 1.20 : 1.0;
+      const hasDjOverdrive = (window.State && State.userProfile && State.userProfile.djOverdriveTimer > 0);
+      const sprintRelicMult = hasGrossBeat ? 1.20 : 1.0;
+      const overdriveMult = hasDjOverdrive ? 1.15 : 1.0;
 
-      let currentSpeed = (window.Input && Input.keys && Input.keys.shift) ? (p.sprintSpeed * speedMult) : p.baseSpeed;
+      let currentSpeed = ((window.Input && Input.keys && Input.keys.shift) ? (p.sprintSpeed * sprintRelicMult) : p.baseSpeed) * overdriveMult;
       
       if (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.environmentalHazards) {
         Dimensions.environmentalHazards.forEach(h => {
@@ -470,9 +506,10 @@ const Entities = {
     if (window.State && State.currentDimension === 'retrocade' && p.x > 980 && p.x < 1400 && p.y > 420 && p.y < 740) {
       p.danceTimer++;
       if (p.danceTimer % 150 === 0) {
-        State.addTokens(1);
+        const yieldTokens = (State.userProfile && State.userProfile.djOverdriveTimer > 0) ? 2 : 1;
+        State.addTokens(yieldTokens);
         if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('coin');
-        State.showToast("DANCE FLOOR GROOVE: +1 TOKEN! 💃");
+        State.showToast(`DANCE FLOOR GROOVE: +${yieldTokens} TOKEN${yieldTokens > 1 ? 'S (2X OVERDRIVE)' : ''}! 💃`);
       }
     }
 
@@ -483,6 +520,7 @@ const Entities = {
   updateHostileAI() {
     if (!window.State || State.currentDimension !== 'wasteland') return;
     const p = this.player;
+    const enemyDmgScale = this.getEnemyLevelScaleMult();
 
     const obstacles = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
       ? Dimensions.getActiveObstacles() 
@@ -549,12 +587,13 @@ const Entities = {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
+            const scaledBossProjDmg = Math.round(24 * enemyDmgScale);
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
               if (window.Combat && Combat.enemyProjectiles) {
                 Combat.enemyProjectiles.push({
                   x: n.x + n.width / 2, y: n.y + n.height / 2,
                   vx: Math.cos(angle + spread) * 7.5, vy: Math.sin(angle + spread) * 7.5,
-                  radius: 6, damage: 24, life: 60
+                  radius: 6, damage: scaledBossProjDmg, life: 60
                 });
               }
             }
@@ -563,11 +602,12 @@ const Entities = {
           if (dist < 260 && n.attackCooldown <= 0) {
             n.attackCooldown = 70;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
+            const scaledMidProjDmg = Math.round(18 * enemyDmgScale);
             if (window.Combat && Combat.enemyProjectiles) {
               Combat.enemyProjectiles.push({
                 x: n.x + n.width / 2, y: n.y + n.height / 2,
                 vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7,
-                radius: 5, damage: 18, life: 55
+                radius: 5, damage: scaledMidProjDmg, life: 55
               });
             }
           }
@@ -576,8 +616,9 @@ const Entities = {
         if (dist < 42 && n.attackCooldown <= 0) {
           n.attackCooldown = 48;
           if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
-          const dmg = n.tier === 'boss' ? 28 : n.tier === 'mid' ? 19 : 12;
-          this.damagePlayer(dmg, Math.cos(angle) > 0 ? 'right' : 'left');
+          const baseMeleeDmg = n.tier === 'boss' ? 28 : n.tier === 'mid' ? 19 : 12;
+          const scaledMeleeDmg = Math.round(baseMeleeDmg * enemyDmgScale);
+          this.damagePlayer(scaledMeleeDmg, Math.cos(angle) > 0 ? 'right' : 'left');
         }
 
         const nextBoxX = { x: n.x + vx, y: n.y, width: n.width, height: n.height };
@@ -664,7 +705,7 @@ const Entities = {
           if (window.State) {
             State.userProfile.amberVials = (State.userProfile.amberVials || 0) + 1;
             State.save();
-            State.showToast("AMBER DROPPER VIAL ACQUIRED! (+1 VIAL [Q]) 🧪[cite: 16]");
+            State.showToast("AMBER DROPPER VIAL ACQUIRED! (+1 VIAL [Q]) 🧪");
           }
           if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
         }
