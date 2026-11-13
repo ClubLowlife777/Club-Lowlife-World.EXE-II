@@ -299,6 +299,7 @@ const State = {
     bossesDefeated: [],
     bossKillCounts: {}, // Tracks how many times each World Boss has been defeated
     chestsOpened: [],
+    crtEnabled: true, // Persists CRT Scanlines On/Off preference
     lastDimension: "underground",
     lastPosition: { x: 350, y: 750 }
   },
@@ -326,6 +327,7 @@ const State = {
         });
         if (typeof this.userProfile.amberVials !== 'number') this.userProfile.amberVials = 1;
         if (typeof this.userProfile.djOverdriveTimer !== 'number') this.userProfile.djOverdriveTimer = 0;
+        if (typeof this.userProfile.crtEnabled !== 'boolean') this.userProfile.crtEnabled = true;
         if (this.userProfile.lastDimension) this.currentDimension = this.userProfile.lastDimension;
 
         // Wasteland Pillar Rescue Subroutine (Dossier Section 1)
@@ -346,6 +348,7 @@ const State = {
 
     this.checkLevelSkinUnlocks(false);
     this.syncPlayerLevelStats(false);
+    this.syncCrtState();
     this.updateHud();
     this.renderSkins();
 
@@ -376,6 +379,30 @@ const State = {
     }
 
     this.updateHud();
+  },
+
+  // =========================================================================
+  // CRT SCANLINES ON / OFF TOGGLE
+  // =========================================================================
+  toggleCrt() {
+    this.userProfile.crtEnabled = !this.userProfile.crtEnabled;
+    this.syncCrtState();
+    this.save();
+    this.showToast(this.userProfile.crtEnabled ? "CRT SCANLINES: ONLINE 📺" : "CLEAN SCREEN MODE: CRT OFF ✨");
+  },
+
+  syncCrtState() {
+    const enabled = this.userProfile.crtEnabled !== false;
+    if (document.body) {
+      document.body.classList.toggle('crt-disabled', !enabled);
+    }
+    const btn = document.getElementById('crtToggleBtn');
+    if (btn) {
+      btn.innerText = enabled ? 'CRT: ON' : 'CRT: OFF';
+      btn.className = enabled
+        ? 'px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition'
+        : 'px-1.5 py-0.5 bg-[#0e1117] border border-neutral-700 rounded text-[10px] sm:text-xs text-neutral-400 font-mono active:scale-95 transition';
+    }
   },
 
   // =========================================================================
