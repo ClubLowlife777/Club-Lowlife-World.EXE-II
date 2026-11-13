@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-[#07080b] text-white antialiased flex flex-col justify-between">
+<body class="h-screen w-screen overflow-hidden fixed inset-0 bg-[#07080b] text-white antialiased flex flex-col justify-between">
   <div id="crtOverlay" class="crt-overlay pointer-events-none"></div>
   <div class="crt-vignette pointer-events-none"></div>
 
@@ -103,8 +103,8 @@
     </div>
   </header>
 
-  <!-- GAME CANVAS CONTAINER -->
-  <main class="relative w-full h-full flex items-center justify-center bg-black overflow-hidden">
+<!-- GAME CANVAS CONTAINER -->
+  <main class="relative w-screen h-screen flex-1 flex items-center justify-center bg-black overflow-hidden">
     <canvas id="gameCanvas" class="w-full h-full block cursor-crosshair"></canvas>
     
     <!-- Proximity Interaction Banner (Large Tap Target for Phones) -->
