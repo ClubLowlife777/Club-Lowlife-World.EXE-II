@@ -1,1 +1,30 @@
+/* ==========================================================================
+   CLUB LOWLIFE // MODAL CONTAINERS, SCROLLBARS & TOUCH SCROLLING
+   File: css/_modals.css
+   ========================================================================== */
 
+/* Ensure modal dialogs and lists maintain smooth native vertical scrolling */
+.overflow-y-auto {
+  touch-action: pan-y !important;
+  user-select: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Cyberpunk Scrollbars for Skins Locker & Discography Terminals */
+::-webkit-scrollbar { 
+  width: 5px; 
+  height: 5px; 
+}
+
+::-webkit-scrollbar-track { 
+  background: var(--bg-scrollbar); 
+}
+
+::-webkit-scrollbar-thumb { 
+  background: var(--neon-cyan); 
+  border-radius: 4px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--neon-cyan-hover); 
+}
