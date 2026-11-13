@@ -9,20 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <style>
-    /* Prevent all mobile pull-to-refresh, bounce-scrolling, and double-tap zoom */
-    html, body {
-      touch-action: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-      overscroll-behavior: none;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      position: fixed;
-    }
-  </style>
 </head>
 <body class="bg-[#07080b] text-white antialiased flex flex-col justify-between">
   <div id="crtOverlay" class="crt-overlay pointer-events-none"></div>
@@ -110,6 +96,9 @@
       </button>
       <button id="openSkinsBtn" onclick="openSkinLockerModal('all')" class="px-1.5 py-0.5 bg-[#0e1117] border border-amber-500/50 rounded text-[10px] sm:text-xs text-amber-300 font-cyber font-bold active:scale-95 transition">
         SKINS / STORE
+      </button>
+      <button id="crtToggleBtn" onclick="if(window.State && typeof State.toggleCrt === 'function') State.toggleCrt();" class="px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition" title="Toggle CRT Scanlines & Vignette">
+        CRT: ON
       </button>
     </div>
   </header>
