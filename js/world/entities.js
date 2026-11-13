@@ -1,7 +1,7 @@
 /**
- * CLUB LOWLIFE // ENTITY MANAGEMENT, ASYMMETRIC SCALING & COMBAT AI
+ * CLUB LOWLIFE // ENTITY MANAGEMENT, ESCALATING WORLD BOSSES & COMBAT AI
  * File: js/world/entities.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.00)
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.10)
  */
 
 const Entities = {
@@ -17,6 +17,33 @@ const Entities = {
     danceTimer: 0
   },
 
+  // Canonical World Boss Definitions for Initial Spawn & Timed Respawns
+  BOSS_TEMPLATES: {
+    boss_blade_zero: {
+      id: 'boss_blade_zero',
+      baseName: 'HIGH EXECUTIONER "BLADE-ZERO"',
+      x: 3200, y: 4100, width: 42, height: 52,
+      baseHp: 1600, speed: 3.8,
+      coat: '#050507', visor: '#ff003c', pants: '#000000'
+    },
+    boss_chem_enforcer: {
+      id: 'boss_chem_enforcer',
+      baseName: 'CHEM-ENFORCER UNIT 09',
+      x: 1400, y: 2200, width: 40, height: 50,
+      baseHp: 750, speed: 2.7,
+      coat: '#365314', visor: '#84cc16', pants: '#1a2e05'
+    },
+    boss_drone_queen: {
+      id: 'boss_drone_queen',
+      baseName: 'THE HOLLOW DRONE QUEEN',
+      x: 4800, y: 800, width: 44, height: 48,
+      baseHp: 850, speed: 3.2,
+      coat: '#0c4a6e', visor: '#00f0ff', pants: '#082f49'
+    }
+  },
+
+  bossRespawnTimers: {},
+
   // Dossier Section 5.1: Enemy NPC Scaling (+3.75% HP & damage per level, 0% speed scaling)
   getEnemyLevelScaleMult() {
     if (window.State && typeof State.getEnemyScaleMultiplier === 'function') {
@@ -24,6 +51,22 @@ const Entities = {
     }
     const lvl = (window.State && State.userProfile && State.userProfile.level) ? State.userProfile.level : 1;
     return 1 + Math.max(0, lvl - 1) * 0.0375;
+  },
+
+  // Returns how many times a specific World Boss has been defeated
+  getBossKillCount(bossId) {
+    if (!window.State || !State.userProfile) return 0;
+    if (!State.userProfile.bossKillCounts || typeof State.userProfile.bossKillCounts !== 'object') {
+      State.userProfile.bossKillCounts = {};
+    }
+    if (typeof State.userProfile.bossKillCounts[bossId] === 'number') {
+      return State.userProfile.bossKillCounts[bossId];
+    }
+    if (Array.isArray(State.userProfile.bossesDefeated) && State.userProfile.bossesDefeated.includes(bossId)) {
+      State.userProfile.bossKillCounts[bossId] = 1;
+      return 1;
+    }
+    return 0;
   },
 
   friendlyNpcs: {
@@ -52,7 +95,7 @@ const Entities = {
     wasteland: [
       { id: 'w_conner', x: 2260, y: 2890, width: 28, height: 40, name: 'CONNER CADE', role: 'BONFIRE HOST & PRODUCER', coat: '#9a3412', visor: '#fb923c', pants: '#431407', icon: '🔥', dialogue: "Welcome to the bonfire. Pull up a seat. Out here in the Corruption, you need a safe circle to test raw mixes and build real ideas. The enforcers won't cross this perimeter." },
       { id: 'w_visualist', x: 2340, y: 2880, width: 26, height: 38, name: 'MKE DIRECTOR', role: 'CINEMATOGRAPHER', coat: '#1e293b', visor: '#38bdf8', pants: '#0f172a', icon: '🎥', dialogue: "The lighting on this short film had to be grim—tube lights, handheld smoke, and rain. Check the mirror in the washroom down south if you want to see the mask come off." },
-      { id: 'w_producer', x: 2310, y: 2950, width: 26, height: 38, name: 'CREATIVE HOMIE', role: 'BEATSMITH', coat: '#15803d', visor: '#86efac', pants: '#14532d', icon: '🎹', dialogue: "Conner's 808s always cut through because of that mono sum trick. Make sure you find all 6 catalog tapes and loot the studio gear relics." }
+      { id: 'w_producer', x: 2310, y: 2950, width: 26, height: 38, name: 'CREATIVE HOMIE', role: 'BEATSMITH', coat: '#15803d', visor: '#86efac', pants: '#14532d', icon: '🎹', dialogue: "Conner's 808s always cut through because of that mono sum trick. Every time you take down a World Boss out here, they reconstruct stronger with bigger token and XP bounties." }
     ]
   },
 
@@ -62,6 +105,9 @@ const Entities = {
 
   init() {
     if (window.State && State.userProfile) {
+      if (!State.userProfile.bossKillCounts || typeof State.userProfile.bossKillCounts !== 'object') {
+        State.userProfile.bossKillCounts = {};
+      }
       if (State.userProfile.lastPosition) {
         this.player.x = State.userProfile.lastPosition.x || 350;
         this.player.y = State.userProfile.lastPosition.y || 750;
@@ -105,48 +151,58 @@ const Entities = {
     setInterval(() => this.spawnWastelandCombatant(false), 18000);
   },
 
+  // Spawns or Respawns a single World Boss scaled by Player Level AND Prior Defeat Count
+  spawnSingleBoss(bossId, isRespawn = false) {
+    const t = this.BOSS_TEMPLATES[bossId];
+    if (!t) return;
+
+    // Remove any dead/stale entry for this boss ID
+    this.hostileNpcs = this.hostileNpcs.filter(n => n.id !== bossId);
+
+    const kills = this.getBossKillCount(bossId);
+    const playerLevelScale = this.getEnemyLevelScaleMult();
+
+    // Bosses gain +45% compounding Max HP and +25% attack damage per prior defeat
+    const bossKillHpMult = Math.pow(1.45, kills);
+    const bossKillDmgMult = 1 + (kills * 0.25);
+
+    const scaledHp = Math.round(t.baseHp * playerLevelScale * bossKillHpMult);
+    const markSuffix = kills > 0 ? ` [MK ${kills + 1}]` : '';
+
+    this.hostileNpcs.push({
+      id: t.id,
+      tier: 'boss',
+      name: `${t.baseName}${markSuffix}`,
+      x: t.x, y: t.y, width: t.width, height: t.height,
+      hp: scaledHp, maxHp: scaledHp, speed: t.speed, // Speed permanently capped at base value
+      dmgMult: bossKillDmgMult,
+      killTier: kills,
+      alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
+      knockbackVx: 0, knockbackVy: 0,
+      coat: t.coat, visor: t.visor, pants: t.pants
+    });
+
+    if (isRespawn && window.State && State.currentDimension === 'wasteland') {
+      State.showToast(`⚠️ SYNDICATE REINFORCEMENT: ${t.baseName}${markSuffix} HAS RESPAWNED!`);
+    }
+  },
+
   spawnWastelandBosses() {
-    this.hostileNpcs = [];
-    const defeated = (window.State && State.userProfile && Array.isArray(State.userProfile.bossesDefeated))
-      ? State.userProfile.bossesDefeated
-      : [];
-    const scale = this.getEnemyLevelScaleMult();
+    this.hostileNpcs = this.hostileNpcs.filter(n => n.tier !== 'boss');
+    Object.keys(this.BOSS_TEMPLATES).forEach(bossId => {
+      this.spawnSingleBoss(bossId, false);
+    });
+  },
 
-    if (!defeated.includes('boss_blade_zero')) {
-      const scaledHp = Math.round(1600 * scale);
-      this.hostileNpcs.push({
-        id: 'boss_blade_zero', tier: 'boss', name: 'HIGH EXECUTIONER "BLADE-ZERO"',
-        x: 3200, y: 4100, width: 42, height: 52,
-        hp: scaledHp, maxHp: scaledHp, speed: 3.8, // Speed permanently capped at base value
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-        knockbackVx: 0, knockbackVy: 0,
-        coat: '#050507', visor: '#ff003c', pants: '#000000'
-      });
+  scheduleBossRespawn(bossId) {
+    if (this.bossRespawnTimers[bossId]) {
+      clearTimeout(this.bossRespawnTimers[bossId]);
     }
-
-    if (!defeated.includes('boss_chem_enforcer')) {
-      const scaledHp = Math.round(750 * scale);
-      this.hostileNpcs.push({
-        id: 'boss_chem_enforcer', tier: 'boss', name: 'CHEM-ENFORCER UNIT 09',
-        x: 1400, y: 2200, width: 40, height: 50,
-        hp: scaledHp, maxHp: scaledHp, speed: 2.7,
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-        knockbackVx: 0, knockbackVy: 0,
-        coat: '#365314', visor: '#84cc16', pants: '#1a2e05'
-      });
-    }
-
-    if (!defeated.includes('boss_drone_queen')) {
-      const scaledHp = Math.round(850 * scale);
-      this.hostileNpcs.push({
-        id: 'boss_drone_queen', tier: 'boss', name: 'THE HOLLOW DRONE QUEEN',
-        x: 4800, y: 800, width: 44, height: 48,
-        hp: scaledHp, maxHp: scaledHp, speed: 3.2,
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
-        knockbackVx: 0, knockbackVy: 0,
-        coat: '#0c4a6e', visor: '#00f0ff', pants: '#082f49'
-      });
-    }
+    // Respawn World Boss 45 seconds after defeat
+    this.bossRespawnTimers[bossId] = setTimeout(() => {
+      delete this.bossRespawnTimers[bossId];
+      this.spawnSingleBoss(bossId, true);
+    }, 45000);
   },
 
   spawnWastelandCombatant(force = false) {
@@ -242,40 +298,70 @@ const Entities = {
 
     if (npc.hp <= 0 && npc.hp !== 99999) {
       npc.alive = false;
-      this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id);
-
-      // Dossier Section 5.2: XP Distribution on Hostile Elimination
-      if (window.State && typeof State.addXp === 'function') {
-        const xpReward = npc.tier === 'boss' ? 500 : npc.tier === 'mid' ? 65 : 20;
-        State.addXp(xpReward, `${npc.name} ELIMINATED`);
-      }
 
       if (npc.tier === 'boss' && window.State) {
         State.userProfile.bossesDefeated = State.userProfile.bossesDefeated || [];
+        State.userProfile.bossKillCounts = State.userProfile.bossKillCounts || {};
+
+        const prevKills = this.getBossKillCount(npc.id);
+        const isFirstKill = prevKills === 0 && !State.userProfile.bossesDefeated.includes(npc.id);
+
         if (!State.userProfile.bossesDefeated.includes(npc.id)) {
           State.userProfile.bossesDefeated.push(npc.id);
         }
-        State.showToast(`BOSS DEFEATED: ${npc.name} (+500 XP)! 🏆`);
-        State.triggerScreenShake(20, 35);
+        State.userProfile.bossKillCounts[npc.id] = prevKills + 1;
 
-        // Bosses Drop Exclusive Relics & VIP Stem in Phase 3
-        if (npc.id === 'boss_blade_zero') {
-          State.unlockVipStem();
-        } else if (npc.id === 'boss_chem_enforcer') {
-          State.unlockRelic('relic_tape_saturator');
-        } else if (npc.id === 'boss_drone_queen') {
-          State.unlockRelic('relic_gross_beat');
+        // Spawn Boss Loot (First kill drops Skins/Relics/Tapes; repeat kills drop escalating Tokens)
+        this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, 'boss', npc.id, isFirstKill, prevKills);
+
+        // Escalating Boss XP: 500 base + 250 XP per previous takedown
+        const bossXpReward = 500 + (prevKills * 250);
+        if (typeof State.addXp === 'function') {
+          State.addXp(bossXpReward, `${npc.name} DEFEATED`);
         }
 
+        // First-Kill Exclusive Unlocks (VIP Stem & Studio Hardware Relics)
+        if (isFirstKill) {
+          if (npc.id === 'boss_blade_zero') {
+            State.unlockVipStem();
+          } else if (npc.id === 'boss_chem_enforcer') {
+            State.unlockRelic('relic_tape_saturator');
+          } else if (npc.id === 'boss_drone_queen') {
+            State.unlockRelic('relic_gross_beat');
+          }
+          State.showToast(`BOSS VANQUISHED: ${npc.name} (+${bossXpReward} XP & FIRST-KILL LOOT)! 🏆`);
+        } else {
+          State.showToast(`${npc.name} VANQUISHED (+${bossXpReward} XP & BONUS BOUNTY)! REINFORCING IN 45S... 🔥`);
+        }
+
+        State.triggerScreenShake(20, 35);
         State.save();
+
+        // Schedule stronger MK respawn in 45 seconds
+        this.scheduleBossRespawn(npc.id);
+      } else {
+        // Regular & Mid-Tier Hostile Elimination
+        this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id, false, 0);
+        if (window.State && typeof State.addXp === 'function') {
+          const xpReward = npc.tier === 'mid' ? 65 : 20;
+          State.addXp(xpReward, `${npc.name} ELIMINATED`);
+        }
       }
     }
   },
 
-  spawnLoot(lx, ly, tier, bossId) {
-    const tokenCount = tier === 'boss' ? 25 : tier === 'mid' ? 8 : 3;
+  spawnLoot(lx, ly, tier, bossId, isFirstKill = true, prevKills = 0) {
+    // Boss coin count increases by +10 coins (+50 tokens) per prior defeat
+    const tokenCount = tier === 'boss' ? (25 + prevKills * 10) : (tier === 'mid' ? 8 : 3);
     for (let i = 0; i < tokenCount; i++) {
-      this.lootPickups.push({ x: lx + (Math.random() * 40 - 20), y: ly + (Math.random() * 40 - 20), type: 'coin', value: 5, radius: 6, floatOffset: Math.random() * Math.PI * 2 });
+      this.lootPickups.push({
+        x: lx + (Math.random() * 44 - 22),
+        y: ly + (Math.random() * 44 - 22),
+        type: 'coin',
+        value: 5,
+        radius: 6,
+        floatOffset: Math.random() * Math.PI * 2
+      });
     }
 
     // Mid-tier Chem Brutes can drop Amber Dropper Vials
@@ -284,16 +370,19 @@ const Entities = {
     }
 
     if (tier === 'boss') {
-      for (let t = 0; t < 6; t++) {
-        this.lootPickups.push({ x: lx + (Math.random() * 50 - 25), y: ly + (Math.random() * 50 - 25), type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
-      }
-      this.lootPickups.push({ x: lx + 15, y: ly, type: 'amber_vial', radius: 8, floatOffset: Math.random() * Math.PI * 2 });
-      this.lootPickups.push({ x: lx - 15, y: ly, type: 'amber_vial', radius: 8, floatOffset: Math.random() * Math.PI * 2 });
+      // Unique Boss Skins, 6 Rare Cassettes, and double Vial cache only drop on First Kill
+      if (isFirstKill) {
+        for (let t = 0; t < 6; t++) {
+          this.lootPickups.push({ x: lx + (Math.random() * 50 - 25), y: ly + (Math.random() * 50 - 25), type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
+        }
+        this.lootPickups.push({ x: lx + 15, y: ly, type: 'amber_vial', radius: 8, floatOffset: Math.random() * Math.PI * 2 });
+        this.lootPickups.push({ x: lx - 15, y: ly, type: 'amber_vial', radius: 8, floatOffset: Math.random() * Math.PI * 2 });
 
-      if (window.State) {
-        if (bossId === 'boss_blade_zero') State.unlockSkin('blade_zero');
-        else if (bossId === 'boss_chem_enforcer') State.unlockSkin('chem_enforcer');
-        else if (bossId === 'boss_drone_queen') State.unlockSkin('drone_whisperer');
+        if (window.State) {
+          if (bossId === 'boss_blade_zero') State.unlockSkin('blade_zero');
+          else if (bossId === 'boss_chem_enforcer') State.unlockSkin('chem_enforcer');
+          else if (bossId === 'boss_drone_queen') State.unlockSkin('drone_whisperer');
+        }
       }
     } else if (tier === 'mid') {
       if (Math.random() < 0.65) this.lootPickups.push({ x: lx, y: ly, type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
@@ -582,12 +671,13 @@ const Entities = {
         const angle = Math.atan2(p.y - n.y, p.x - n.x);
         let vx = Math.cos(angle) * n.speed;
         let vy = Math.sin(angle) * n.speed;
+        const bossMarkDmgMult = n.dmgMult || 1.0;
 
         if (n.tier === 'boss') {
           if (dist < 340 && n.attackCooldown <= 0) {
             n.attackCooldown = 55;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
-            const scaledBossProjDmg = Math.round(24 * enemyDmgScale);
+            const scaledBossProjDmg = Math.round(24 * enemyDmgScale * bossMarkDmgMult);
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
               if (window.Combat && Combat.enemyProjectiles) {
                 Combat.enemyProjectiles.push({
@@ -617,7 +707,7 @@ const Entities = {
           n.attackCooldown = 48;
           if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('slash');
           const baseMeleeDmg = n.tier === 'boss' ? 28 : n.tier === 'mid' ? 19 : 12;
-          const scaledMeleeDmg = Math.round(baseMeleeDmg * enemyDmgScale);
+          const scaledMeleeDmg = Math.round(baseMeleeDmg * enemyDmgScale * bossMarkDmgMult);
           this.damagePlayer(scaledMeleeDmg, Math.cos(angle) > 0 ? 'right' : 'left');
         }
 
