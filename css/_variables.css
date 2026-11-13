@@ -1,1 +1,78 @@
+/* ==========================================================================
+   CLUB LOWLIFE // DESIGN TOKENS, TYPOGRAPHY & TOUCH CONTAINMENT
+   File: css/_variables.css
+   ========================================================================== */
 
+:root {
+  /* Core Backgrounds & Surfaces */
+  --bg-void: #050608;
+  --bg-body-alt: #07080b;
+  --bg-panel: #0e1117;
+  --bg-surface: #161922;
+  --bg-scrollbar: #080a0f;
+  --border-muted: #262c3d;
+  --text-base: #e2e8f0;
+
+  /* Syndicate Neon Accent Palette */
+  --neon-cyan: #00f0ff;
+  --neon-cyan-hover: #38bdf8;
+  --neon-purple: #a855f7;
+  --neon-pink: #ec4899;
+  --hazard-red: #ff003c;
+  --amber-gold: #ffb300;
+  --token-yellow: #facc15;
+  --sludge-green: #10b981;
+
+  /* Typography */
+  --font-cyber: 'Chakra Petch', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+
+  /* Tactical Glow Shadows */
+  --glow-cyan-idle: 0 0 15px rgba(0, 240, 255, 0.25);
+  --glow-purple-active: 0 0 25px rgba(168, 85, 247, 0.8), inset 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  overscroll-behavior: none;
+  touch-action: none;
+  background-color: var(--bg-void);
+  font-family: var(--font-mono);
+  color: var(--text-base);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Typography Classes */
+.font-cyber {
+  font-family: var(--font-cyber);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Allow text entry and selection inside forms and modals */
+input, textarea, select {
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+}
+
+/* Touch action containment: Prevent bounce on game canvas & controls */
+#gameCanvas,
+#arcadeCanvas,
+#joystickZone,
+#touchControls {
+  touch-action: none;
+}
