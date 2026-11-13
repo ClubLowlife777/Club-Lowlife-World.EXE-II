@@ -1,7 +1,7 @@
 /**
  * CLUB LOWLIFE // UNIVERSE RENDER & MAIN ENGINE LOOP
  * File: js/main.js
- * Engine: Vanilla HTML5 Canvas + Web Audio API
+ * Engine: Vanilla HTML5 Canvas + Web Audio API (Rev 5.00)
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -19,6 +19,9 @@ for (let i = 0; i < MAX_RAIN; i++) {
     speed: 14 + Math.random() * 8
   });
 }
+
+// Gross Beat Relic After-Image Trail Buffer
+const playerEchoTrail = [];
 
 function resizeCanvas() {
   canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
@@ -106,7 +109,7 @@ function drawUnderground() {
 
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 11px "Chakra Petch"';
-  ctx.fillText("TUNING BAY 01 // MERCH EXTRACTION", 60, 65);
+  ctx.fillText("TUNING BAY 01 // MERCH & BLACK MARKET", 60, 65);
   ctx.fillText("MASTERING SUITE // DISCOGRAPHY VAULT", 830, 65);
   ctx.fillStyle = '#c084fc';
   ctx.fillText("NEO-ARCADE CONCOURSE // 3-CABINET ALLEY", 1480, 65);
@@ -346,7 +349,7 @@ function drawWasteland() {
   ctx.fillText("EXTRACTION VAN [E]", 472, 1116);
   ctx.restore();
 
-  // Conner Cade's Creative Bonfire Safe Zone (Phase 2)
+  // Conner Cade's Creative Bonfire Safe Zone
   drawConnerCadeBonfire();
 
   if (typeof Dimensions !== 'undefined' && Dimensions.environmentalHazards) {
@@ -395,7 +398,6 @@ function drawWasteland() {
   drawPortalsAndEntities('wasteland');
 }
 
-// Renders the animated bonfire, ember glow ring, and safe zone aura
 function drawConnerCadeBonfire() {
   const bx = 2300, by = 2900;
   const time = Date.now() / 150;
@@ -403,7 +405,6 @@ function drawConnerCadeBonfire() {
 
   ctx.save();
 
-  // Safe Zone Perimeter Glow Ring (Radius 180px)
   ctx.strokeStyle = 'rgba(249, 115, 22, 0.35)';
   ctx.lineWidth = 2;
   ctx.setLineDash([8, 6]);
@@ -411,7 +412,6 @@ function drawConnerCadeBonfire() {
   ctx.arc(bx, by, 180 + Math.sin(time * 0.4) * 4, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Warm Amber Ground Ambience
   const grad = ctx.createRadialGradient(bx, by, 15, bx, by, 180);
   grad.addColorStop(0, 'rgba(251, 146, 60, 0.22)');
   grad.addColorStop(0.7, 'rgba(234, 88, 12, 0.08)');
@@ -421,7 +421,6 @@ function drawConnerCadeBonfire() {
   ctx.arc(bx, by, 180, 0, Math.PI * 2);
   ctx.fill();
 
-  // Stone Fire Ring
   ctx.fillStyle = '#44403c';
   for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
     const sx = bx + Math.cos(a) * 26;
@@ -431,7 +430,6 @@ function drawConnerCadeBonfire() {
     ctx.fill();
   }
 
-  // Cross Logs
   ctx.strokeStyle = '#292524';
   ctx.lineWidth = 6;
   ctx.beginPath();
@@ -439,7 +437,6 @@ function drawConnerCadeBonfire() {
   ctx.moveTo(bx - 16, by + 8); ctx.lineTo(bx + 16, by - 8);
   ctx.stroke();
 
-  // Animated Pixel Fire Core
   ctx.fillStyle = '#ea580c';
   ctx.beginPath();
   ctx.arc(bx, by - 4, 16 + pulse * 0.3, 0, Math.PI * 2);
@@ -455,7 +452,6 @@ function drawConnerCadeBonfire() {
   ctx.arc(bx, by - 10, 5 + pulse * 0.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Rising Sparks & Embers
   for (let e = 0; e < 5; e++) {
     const emberOffset = (time * 8 + e * 35) % 60;
     const ex = bx + Math.sin(time + e) * 14;
@@ -464,7 +460,6 @@ function drawConnerCadeBonfire() {
     ctx.fillRect(ex, ey, 2.5, 2.5);
   }
 
-  // Banner Header
   ctx.setLineDash([]);
   ctx.fillStyle = '#fb923c';
   ctx.font = 'bold 10px "Chakra Petch"';
@@ -537,7 +532,7 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Interactive Lore Cassettes Rendering (Phase 2 Glowing Tapes)
+  // Interactive Lore Cassettes Rendering
   if (window.State && Array.isArray(State.loreTapes)) {
     State.loreTapes.forEach(t => {
       if (t.dim === dim) {
@@ -545,20 +540,17 @@ function drawPortalsAndEntities(dim) {
         const floatBob = Math.sin(Date.now() / 200 + t.x) * 4;
 
         ctx.save();
-        // Pulsing Gold Aura
         ctx.fillStyle = isFound ? 'rgba(156, 163, 175, 0.35)' : 'rgba(245, 158, 11, 0.45)';
         ctx.beginPath();
         ctx.arc(t.x, t.y + floatBob, 14 + Math.sin(Date.now() / 150) * 3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Cassette Body
         ctx.fillStyle = isFound ? '#374151' : '#b45309';
         ctx.fillRect(t.x - 12, t.y - 8 + floatBob, 24, 16);
         ctx.strokeStyle = isFound ? '#9ca3af' : '#fbbf24';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(t.x - 12, t.y - 8 + floatBob, 24, 16);
 
-        // Tape Spools
         ctx.fillStyle = '#000000';
         ctx.beginPath();
         ctx.arc(t.x - 5, t.y + floatBob, 3, 0, Math.PI * 2);
@@ -598,13 +590,30 @@ function drawPortalsAndEntities(dim) {
     });
   }
 
-  // Loot Pickups
+  // Loot Pickups (Coin, Rare Tape, Amber Vial)
   if (typeof Entities !== 'undefined' && Entities.lootPickups) {
     Entities.lootPickups.forEach(p => {
-      ctx.fillStyle = p.type === 'coin' ? '#facc15' : '#eab308';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y + Math.sin(Date.now() / 180 + p.floatOffset) * 3, p.radius, 0, Math.PI * 2);
-      ctx.fill();
+      const floatY = p.y + Math.sin(Date.now() / 180 + p.floatOffset) * 3;
+      ctx.save();
+      if (p.type === 'amber_vial') {
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(p.x - 4, floatY - 6, 8, 12);
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(p.x - 4, floatY - 6, 8, 12);
+      } else if (p.type === 'rare_tape') {
+        ctx.fillStyle = '#a855f7';
+        ctx.fillRect(p.x - 7, floatY - 5, 14, 10);
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(p.x - 7, floatY - 5, 14, 10);
+      } else {
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(p.x, floatY, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
     });
   }
 
@@ -690,18 +699,42 @@ function drawPortalsAndEntities(dim) {
     Combat.renderDamageNumbers(ctx);
   }
 
+  // Player & Gross Beat Motion-Blur Echoes
   if (typeof Entities !== 'undefined' && Entities.player) {
     const p = Entities.player;
     const skinId = State.userProfile && State.userProfile.activeSkin ? State.userProfile.activeSkin : 'enforcer';
     const currentSkin = (State.SKINS_DATA || []).find(s => s.id === skinId) || (State.SKINS_DATA ? State.SKINS_DATA[0] : { coat: '#090b10', visor: '#00f0ff', pants: '#06080c' });
+
+    const hasGrossBeat = window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_gross_beat');
+    if (hasGrossBeat && p.isMoving) {
+      playerEchoTrail.push({ x: p.x, y: p.y, dir: p.direction, life: 8 });
+      if (playerEchoTrail.length > 5) playerEchoTrail.shift();
+    }
+
+    for (let i = playerEchoTrail.length - 1; i >= 0; i--) {
+      const echo = playerEchoTrail[i];
+      echo.life--;
+      if (echo.life <= 0) {
+        playerEchoTrail.splice(i, 1);
+      } else {
+        ctx.save();
+        ctx.globalAlpha = (echo.life / 10) * 0.35;
+        drawPixelCharacter(echo.x, echo.y, '#00f0ff', '#a855f7', currentSkin.pants, echo.dir || 'down', false, 0, 1.0);
+        ctx.restore();
+      }
+    }
+
     if ((p.iFrames || 0) % 4 < 2) {
       drawPixelCharacter(p.x, p.y, currentSkin.coat, currentSkin.visor, currentSkin.pants, p.direction || 'down', p.isMoving || false, p.animTimer || 0, 1.0);
-      renderPlayerCallsign(ctx, p.x, p.y, State.userProfile && State.userProfile.handle ? State.userProfile.handle : "UNREGISTERED");
+      const lvl = (State.userProfile && State.userProfile.level) ? State.userProfile.level : 1;
+      const handleStr = (State.userProfile && State.userProfile.handle) ? State.userProfile.handle : "UNREGISTERED";
+      renderPlayerCallsign(ctx, p.x, p.y, handleStr, lvl);
     }
   }
 }
 
-function renderPlayerCallsign(ctx, px, py, handle) {
+// Dossier Section 7 Step 4: Render Level Tag in Overhead Player Callsign
+function renderPlayerCallsign(ctx, px, py, handle, level = 1) {
   ctx.save();
 
   const headCenterX = px + 13;
@@ -711,20 +744,25 @@ function renderPlayerCallsign(ctx, px, py, handle) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
 
-  const text = (handle || "").toUpperCase();
+  const cleanHandle = (handle || "UNREGISTERED").toUpperCase();
+  const text = `[LVL ${level}] ${cleanHandle}`;
   const textWidth = ctx.measureText(text).width;
   const paddingX = 6;
   const pillHeight = 14;
   const pillY = tagY - pillHeight - 2;
 
-  ctx.fillStyle = 'rgba(7, 8, 11, 0.85)';
+  const isHypercharged = window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0;
+  const isOverdrive = window.State && State.userProfile && State.userProfile.djOverdriveTimer > 0;
+  const borderColor = isHypercharged ? '#f59e0b' : (isOverdrive ? '#ec4899' : '#00f0ff');
+
+  ctx.fillStyle = 'rgba(7, 8, 11, 0.88)';
   ctx.fillRect(headCenterX - (textWidth / 2) - paddingX, pillY, textWidth + (paddingX * 2), pillHeight);
 
-  ctx.strokeStyle = '#00f0ff';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 1.2;
   ctx.strokeRect(headCenterX - (textWidth / 2) - paddingX, pillY, textWidth + (paddingX * 2), pillHeight);
 
-  ctx.fillStyle = '#00f0ff';
+  ctx.fillStyle = borderColor;
   ctx.beginPath();
   ctx.moveTo(headCenterX - 3, pillY + pillHeight);
   ctx.lineTo(headCenterX + 3, pillY + pillHeight);
