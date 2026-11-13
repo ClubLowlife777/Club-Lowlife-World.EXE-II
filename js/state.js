@@ -382,7 +382,7 @@ const State = {
   },
 
   // =========================================================================
-  // CRT SCANLINES ON / OFF TOGGLE
+  // CRT SCANLINES ON / OFF TOGGLE (Direct DOM & Class Control)
   // =========================================================================
   toggleCrt() {
     this.userProfile.crtEnabled = !this.userProfile.crtEnabled;
@@ -396,6 +396,18 @@ const State = {
     if (document.body) {
       document.body.classList.toggle('crt-disabled', !enabled);
     }
+
+    const overlay = document.getElementById('crtOverlay') || document.querySelector('.crt-overlay');
+    const vignette = document.getElementById('crtVignette') || document.querySelector('.crt-vignette');
+    if (overlay) {
+      overlay.style.display = enabled ? 'block' : 'none';
+      overlay.style.opacity = enabled ? '1' : '0';
+    }
+    if (vignette) {
+      vignette.style.display = enabled ? 'block' : 'none';
+      vignette.style.opacity = enabled ? '1' : '0';
+    }
+
     const btn = document.getElementById('crtToggleBtn');
     if (btn) {
       btn.innerText = enabled ? 'CRT: ON' : 'CRT: OFF';
