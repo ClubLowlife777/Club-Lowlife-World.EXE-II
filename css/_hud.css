@@ -1,1 +1,42 @@
+/* ==========================================================================
+   CLUB LOWLIFE // TACTICAL HUD, PROMPTS & MOBILE TOUCH CONTROLS
+   File: css/_hud.css
+   ========================================================================== */
 
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 0.95; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.6; 
+    transform: scale(0.96); 
+  }
+}
+
+.prompt-pulse { 
+  animation: pulse-glow 1.3s infinite ease-in-out; 
+}
+
+/* Mobile & Proximity Action Button States ([E] Node) */
+.btn-action-idle {
+  border-color: var(--neon-cyan); 
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.15);
+  box-shadow: var(--glow-cyan-idle);
+}
+
+.btn-action-active {
+  border-color: var(--neon-purple) !important; 
+  color: #ffffff !important;
+  background: rgba(168, 85, 247, 0.45) !important;
+  box-shadow: var(--glow-purple-active) !important;
+  animation: pulse-glow 1s infinite alternate ease-in-out;
+}
+
+/* Hardware Acceleration for High-Frequency HUD Elements */
+#toastMessage,
+#interactionPrompt,
+#joystickKnob {
+  will-change: transform, opacity;
+}
