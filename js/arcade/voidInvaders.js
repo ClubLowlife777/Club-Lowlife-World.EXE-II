@@ -16,6 +16,7 @@ const VoidInvaders = {
   diveCooldown: 120,
   score: 0,
   wave: 1,
+  MAX_WAVES: 300,
   fleetTime: 0,
   lastShot: 0,
   lastMissileTime: 0,
@@ -118,44 +119,155 @@ const VoidInvaders = {
     this.start();
   },
 
+  createEnemySlot(type, homeX, homeY, waveNum, entryMode = 'top', slotIdx = 0) {
+    const tierBoost = Math.min(4, Math.floor(waveNum / 45));
+    const catalog = {
+      dreadnought: { hp: Math.min(110, Math.round(12 + waveNum * 0.40)), pts: 600 + waveNum * 25, color: '#ec4899', w: 64, h: 32 },
+      titan:       { hp: Math.min(12, 3 + Math.floor(waveNum / 35)),   pts: 220, color: '#f97316', w: 30, h: 22 },
+      commander:   { hp: Math.min(9, 2 + Math.floor(waveNum / 28)),    pts: 150, color: '#facc15', w: 28, h: 20 },
+      hornet:      { hp: Math.min(5, 1 + Math.floor(waveNum / 45)),    pts: 85,  color: '#ff003c', w: 24, h: 16 },
+      interceptor: { hp: Math.min(4, 1 + Math.floor(waveNum / 60)),    pts: 65,  color: '#00f0ff', w: 24, h: 16 },
+      drone:       { hp: 1 + tierBoost,                                pts: 50,  color: '#a855f7', w: 24, h: 16 }
+    };
+    const spec = catalog[type] || catalog.drone;
+
+    let startX = homeX;
+    let startY = homeY - 120 - (slotIdx % 6) * 20;
+    if (entryMode === 'left') { startX = -40 - (slotIdx % 5) * 25; startY = homeY - 40; }
+    else if (entryMode === 'right') { startX = 640 + (slotIdx % 5) * 25; startY = homeY - 40; }
+    else if (entryMode === 'split') { startX = (slotIdx % 2 === 0 ? -40 : 640); startY = homeY - 50; }
+
+    return {
+      type,
+      homeX,
+      homeY,
+      x: startX,
+      y: startY,
+      width: spec.w,
+      height: spec.h,
+      hp: spec.hp,
+      maxHp: spec.hp,
+      pts: spec.pts,
+      color: spec.color,
+      alive: true,
+      state: 'entering',
+      flashTimer: 95,
+      diveTimer: type === 'dreadnought' ? 99999 : (150 + (slotIdx % 5) * 38 + Math.random() * 260),
+      divePhase: 0,
+      diveOriginX: homeX,
+      firedOnDive: false,
+      bossShotCd: 75
+    };
+  },
+
   spawnWave(waveNum) {
     this.enemies = [];
     this.fleetTime = 0;
-    this.diveCooldown = 150;
-    const cmdHp = waveNum >= 2 ? 3 : 2;
-    const rows = [
-      { type: 'commander', hp: cmdHp, pts: 150, color: '#facc15', count: 4, startX: 165, spacing: 82, y: 54 },
-      { type: 'hornet',    hp: 1,     pts: 80,  color: '#ff003c', count: 7, startX: 105, spacing: 62, y: 94 },
-      { type: 'interceptor', hp: 1,   pts: 60,  color: '#00f0ff', count: 7, startX: 105, spacing: 62, y: 132 },
-      { type: 'drone',     hp: 1,     pts: 50,  color: '#a855f7', count: 7, startX: 105, spacing: 62, y: 170 }
-    ];
+    this.diveCooldown = Math.max(70, 150 - waveNum * 2);
 
-    rows.forEach((r, rIdx) => {
-      for (let c = 0; c < r.count; c++) {
-        const homeX = r.startX + c * r.spacing;
-        const homeY = r.y;
-        this.enemies.push({
-          type: r.type,
-          homeX,
-          homeY,
-          x: homeX,
-          y: homeY - 120 - rIdx * 20,
-          width: r.type === 'commander' ? 28 : 24,
-          height: r.type === 'commander' ? 20 : 16,
-          hp: r.hp,
-          maxHp: r.hp,
-          pts: r.pts,
-          color: r.color,
-          alive: true,
-          state: 'entering',
-          flashTimer: 95, // Raiden III Flash Shot bonus window while entering/right after settling
-          diveTimer: 180 + (rIdx * 45) + Math.random() * 280,
-          divePhase: 0,
-          diveOriginX: homeX,
-          firedOnDive: false
-        });
+    const entryModes = ['top', 'left', 'right', 'split'];
+    const entryMode = waveNum === 1 ? 'top' : entryModes[Math.floor(Math.random() * entryModes.length)];
+    const pool = waveNum >= 10
+      ? ['titan', 'commander', 'hornet', 'interceptor', 'drone']
+      : (waveNum >= 3 ? ['commander', 'hornet', 'interceptor', 'drone'] : ['hornet', 'interceptor', 'drone']);
+    const pickType = (biasHigh = false) => {
+      if (biasHigh && Math.random() < 0.55) return waveNum >= 10 && Math.random() < 0.4 ? 'titan' : 'commander';
+      return pool[Math.floor(Math.random() * pool.length)];
+    };
+
+    // Every 5th wave: Raiden-style Dreadnought Boss + Random Escort Squadron
+    if (waveNum % 5 === 0) {
+      this.enemies.push(this.createEnemySlot('dreadnought', 268, 56, waveNum, 'top', 0));
+      const escortCount = Math.min(18, 10 + Math.floor(waveNum / 10) * 2);
+      for (let i = 0; i < escortCount; i++) {
+        const col = i % 6;
+        const row = Math.floor(i / 6);
+        const hx = 100 + col * 76;
+        const hy = 112 + row * 38;
+        this.enemies.push(this.createEnemySlot(pickType(row === 0), hx, hy, waveNum, entryMode, i + 1));
       }
-    });
+      this.spawnPopup(300, 215, `⚠️ WAVE ${waveNum} // DREADNOUGHT BOSS!`, '#ec4899');
+      return;
+    }
+
+    const formations = waveNum === 1
+      ? ['classic_grid']
+      : ['classic_grid', 'v_wedge', 'diamond', 'twin_flanks', 'crescent_arc'];
+    const formation = formations[Math.floor(Math.random() * formations.length)];
+    const labelMap = {
+      classic_grid: 'GALAGA PHALANX',
+      v_wedge: 'V-WING VANGUARD',
+      diamond: 'DIAMOND CORE',
+      twin_flanks: 'PINCER FLANKS',
+      crescent_arc: 'NEBULA CRESCENT'
+    };
+
+    let idx = 0;
+    if (formation === 'classic_grid') {
+      const rowCount = Math.min(5, 4 + (waveNum >= 12 && Math.random() < 0.5 ? 1 : 0));
+      for (let r = 0; r < rowCount; r++) {
+        const count = r === 0 ? 4 + Math.floor(Math.random() * 3) : 6 + Math.floor(Math.random() * 2);
+        const spacing = Math.min(80, Math.floor(430 / Math.max(1, count - 1)));
+        const startX = Math.round(300 - ((count - 1) * spacing) / 2 - 12);
+        const rowType = waveNum === 1
+          ? ['commander', 'hornet', 'interceptor', 'drone'][r]
+          : pickType(r === 0);
+        for (let c = 0; c < count; c++) {
+          this.enemies.push(this.createEnemySlot(rowType, startX + c * spacing, 52 + r * 36, waveNum, entryMode, idx++));
+        }
+      }
+    } else if (formation === 'v_wedge') {
+      const arms = 6;
+      for (let a = 0; a < arms; a++) {
+        const t = a === 0 ? (waveNum >= 10 ? 'titan' : 'commander') : pickType(a < 2);
+        if (a === 0) {
+          this.enemies.push(this.createEnemySlot(t, 286, 52, waveNum, entryMode, idx++));
+          this.enemies.push(this.createEnemySlot('commander', 286, 92, waveNum, entryMode, idx++));
+        } else {
+          this.enemies.push(this.createEnemySlot(t, 286 - a * 38, 52 + a * 26, waveNum, entryMode, idx++));
+          this.enemies.push(this.createEnemySlot(t, 286 + a * 38, 52 + a * 26, waveNum, entryMode, idx++));
+          if (a <= 4) {
+            this.enemies.push(this.createEnemySlot(pickType(false), 286 - a * 34, 96 + a * 22, waveNum, entryMode, idx++));
+            this.enemies.push(this.createEnemySlot(pickType(false), 286 + a * 34, 96 + a * 22, waveNum, entryMode, idx++));
+          }
+        }
+      }
+    } else if (formation === 'diamond') {
+      const rings = [1, 3, 5, 7, 5, 3];
+      rings.forEach((cnt, r) => {
+        const startX = Math.round(300 - ((cnt - 1) * 56) / 2 - 12);
+        const rType = (r === 1 || r === 2) ? pickType(true) : pickType(false);
+        for (let c = 0; c < cnt; c++) {
+          this.enemies.push(this.createEnemySlot(rType, startX + c * 56, 46 + r * 30, waveNum, entryMode, idx++));
+        }
+      });
+    } else if (formation === 'twin_flanks') {
+      for (let side = 0; side < 2; side++) {
+        const baseX = side === 0 ? 75 : 375;
+        for (let r = 0; r < 4; r++) {
+          const rType = pickType(r === 0);
+          for (let c = 0; c < 3; c++) {
+            this.enemies.push(this.createEnemySlot(rType, baseX + c * 54, 54 + r * 36, waveNum, entryMode, idx++));
+          }
+        }
+      }
+    } else {
+      // crescent_arc
+      for (let r = 0; r < 3; r++) {
+        const count = 8;
+        const rType = pickType(r === 0);
+        for (let c = 0; c < count; c++) {
+          const norm = (c / (count - 1)) * 2 - 1;
+          const hx = 95 + c * 56;
+          const hy = 60 + r * 36 + Math.round((1 - norm * norm) * 42);
+          this.enemies.push(this.createEnemySlot(rType, hx, hy, waveNum, entryMode, idx++));
+        }
+      }
+    }
+
+    if (waveNum > 1) {
+      this.spawnPopup(300, 215, `WAVE ${waveNum} // ${labelMap[formation]}`, '#00f0ff');
+    }
   },
 
   stop() {
@@ -204,8 +316,14 @@ const VoidInvaders = {
   },
 
   maybeDropRaidenPowerup(enemy) {
+    if (enemy.type === 'dreadnought') {
+      const wList = ['vulcan', 'laser', 'proton'];
+      this.powerups.push({ x: enemy.x + 12, y: enemy.y + 8, vy: 1.85, kind: 'crystal', weapon: wList[Math.floor(Math.random() * 3)], cycleTimer: 0 });
+      this.powerups.push({ x: enemy.x + 36, y: enemy.y + 8, vy: 1.85, kind: Math.random() < 0.6 ? 'radar' : 'bomb', weapon: 'vulcan', cycleTimer: 0 });
+      return;
+    }
     const roll = Math.random();
-    const isCmd = enemy.type === 'commander';
+    const isCmd = enemy.type === 'commander' || enemy.type === 'titan';
     const isHornet = enemy.type === 'hornet';
     const dropChance = isCmd ? 0.85 : (isHornet ? 0.28 : 0.08);
     if (roll > dropChance) return;
@@ -523,12 +641,14 @@ const VoidInvaders = {
       }
     }
 
-    // Update Galaga Fleet & Controlled Dive-Bombers
+    // Update Galaga Fleet & Controlled Dive-Bombers (Smooth 100-Wave Scaling)
     const swayOffset = Math.sin(this.fleetTime) * 30;
     let aliveCount = 0;
     let activeDivers = this.enemies.filter(e => e.alive && e.state === 'diving').length;
-    const maxDivers = this.wave === 1 ? 1 : 2;
-    const maxEnemyLasers = 2 + this.wave;
+    const maxDivers = this.wave === 1 ? 1 : (this.wave < 9 ? 2 : (this.wave < 25 ? 3 : (this.wave < 60 ? 4 : 5)));
+    const maxEnemyLasers = Math.min(12, 2 + Math.ceil(this.wave * 0.35));
+    const laserSpeed = Math.min(5.6, 3.1 + this.wave * 0.04);
+    const diveSpeed = Math.min(3.8, 1.75 + this.wave * 0.035);
 
     this.enemies.forEach(e => {
       if (!e.alive) return;
@@ -547,22 +667,37 @@ const VoidInvaders = {
       } else if (e.state === 'formation') {
         e.x = targetHomeX;
         e.y = targetHomeY;
+        if (e.type === 'dreadnought') {
+          e.bossShotCd--;
+          if (e.bossShotCd <= 0 && this.enemyLasers.length < maxEnemyLasers + 2) {
+            e.bossShotCd = Math.max(45, 95 - Math.floor(this.wave * 0.4));
+            const aim = Math.atan2(p.y - e.y, (p.x + 14) - (e.x + e.width / 2));
+            [-0.22, 0, 0.22].forEach(off => {
+              this.enemyLasers.push({
+                x: e.x + e.width / 2, y: e.y + e.height,
+                vx: Math.cos(aim + off) * (laserSpeed * 0.8),
+                vy: Math.max(2.6, Math.sin(aim + off) * laserSpeed)
+              });
+            });
+          }
+          return;
+        }
         e.diveTimer--;
         if (e.diveTimer <= 0 && activeDivers < maxDivers && this.diveCooldown <= 0) {
           e.state = 'diving';
           e.divePhase = 0;
           e.diveOriginX = e.x;
           e.firedOnDive = false;
-          e.flashTimer = 75; // Fresh Flash Shot window on dive initiation
+          e.flashTimer = 75;
           activeDivers++;
-          this.diveCooldown = Math.max(85, 165 - this.wave * 20);
+          this.diveCooldown = Math.max(42, 155 - this.wave * 2);
         }
-        if (this.enemyLasers.length < maxEnemyLasers && Math.random() < (0.00055 + this.wave * 0.0002)) {
-          this.enemyLasers.push({ x: e.x + e.width / 2, y: e.y + e.height, vx: 0, vy: 3.1 + this.wave * 0.25 });
+        if (this.enemyLasers.length < maxEnemyLasers && Math.random() < Math.min(0.0045, 0.00055 + this.wave * 0.00006)) {
+          this.enemyLasers.push({ x: e.x + e.width / 2, y: e.y + e.height, vx: 0, vy: laserSpeed });
         }
       } else if (e.state === 'diving') {
         e.divePhase += 0.042;
-        e.y += 1.75 + this.wave * 0.22;
+        e.y += diveSpeed;
         e.x = Math.max(18, Math.min(554, e.diveOriginX + Math.sin(e.divePhase * 1.9) * 44 + ((p.x - e.diveOriginX) * 0.16)));
 
         if (!e.firedOnDive && e.y > 140 && e.y < 230 && this.enemyLasers.length < maxEnemyLasers) {
@@ -617,11 +752,20 @@ const VoidInvaders = {
     }
 
     if (aliveCount === 0) {
-      this.score += 300 * this.wave;
+      this.score += 300 + this.wave * 75;
       if (window.AudioEngine) AudioEngine.playSfx('win');
-      if (this.wave >= 3) {
+      if (this.wave >= this.MAX_WAVES) {
         this.endGame(true);
       } else {
+        if (this.wave % 10 === 0) {
+          if (p.lives < 6) {
+            p.lives++;
+            this.spawnPopup(300, 185, `WAVE ${this.wave} CLEAR! +1 EXTRA LIFE ▲`, '#4ade80');
+          } else {
+            p.bombs = Math.min(4, p.bombs + 1);
+            this.spawnPopup(300, 185, `WAVE ${this.wave} CLEAR! +1 808 BOMB 💣`, '#facc15');
+          }
+        }
         this.wave++;
         this.enemyLasers = [];
         this.spawnWave(this.wave);
@@ -747,19 +891,33 @@ const VoidInvaders = {
       ctx.restore();
     }
 
-    // Galaga Alien Fleet
+    // Galaga Alien Fleet & Dreadnought Bosses
     this.enemies.forEach(e => {
       if (!e.alive) return;
       ctx.save();
       ctx.translate(e.x, e.y);
-      const wingFlap = Math.sin(this.fleetTime * 3 + e.homeX) > 0 ? 2 : -2;
-      ctx.fillStyle = e.color;
-      ctx.fillRect(4, 2, e.width - 8, e.height - 4);
-      ctx.fillRect(0, 4 + wingFlap, 4, e.height - 6);
-      ctx.fillRect(e.width - 4, 4 + wingFlap, 4, e.height - 6);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(7, 6, 3, 3);
-      ctx.fillRect(e.width - 10, 6, 3, 3);
+      if (e.type === 'dreadnought') {
+        ctx.fillStyle = e.color;
+        ctx.fillRect(6, 4, e.width - 12, e.height - 8);
+        ctx.fillStyle = '#a855f7';
+        ctx.fillRect(0, 8, 12, e.height - 12);
+        ctx.fillRect(e.width - 12, 8, 12, e.height - 12);
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillRect(e.width / 2 - 8, 10, 16, 6);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(4, -7, e.width - 8, 4);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(4, -7, (e.width - 8) * Math.max(0, e.hp / e.maxHp), 4);
+      } else {
+        const wingFlap = Math.sin(this.fleetTime * 3 + e.homeX) > 0 ? 2 : -2;
+        ctx.fillStyle = e.color;
+        ctx.fillRect(4, 2, e.width - 8, e.height - 4);
+        ctx.fillRect(0, 4 + wingFlap, 4, e.height - 6);
+        ctx.fillRect(e.width - 4, 4 + wingFlap, 4, e.height - 6);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(7, 6, 3, 3);
+        ctx.fillRect(e.width - 10, 6, 3, 3);
+      }
       ctx.restore();
     });
 
@@ -809,13 +967,13 @@ const VoidInvaders = {
     ctx.font = 'bold 11px "Share Tech Mono"';
     ctx.fillText(`SCORE:${this.score}`, 8, 19);
     ctx.fillStyle = '#a855f7';
-    ctx.fillText(`W${this.wave}/3`, 112, 19);
+    ctx.fillText(`W${this.wave}/${this.MAX_WAVES}`, 108, 19);
     ctx.fillStyle = activeMeta.color;
-    ctx.fillText(`${activeMeta.label} L${p.weaponLevel}${p.missileLevel > 0 ? `+R${p.missileLevel}` : ''}`, 158, 19);
+    ctx.fillText(`${activeMeta.label} L${p.weaponLevel}${p.missileLevel > 0 ? `+R${p.missileLevel}` : ''}`, 166, 19);
     ctx.fillStyle = '#facc15';
-    ctx.fillText(`💣${p.bombs}`, 265, 19);
+    ctx.fillText(`💣${p.bombs}`, 275, 19);
     ctx.fillStyle = '#4ade80';
-    ctx.fillText(`+${est.xp}XP/+${est.tokens}🪙`, 312, 19);
+    ctx.fillText(`+${est.xp}XP/+${est.tokens}🪙`, 322, 19);
     ctx.fillStyle = '#00f0ff';
     ctx.fillText(`LIVES:${'▲'.repeat(Math.max(0, p.lives))}`, 492, 19);
 
@@ -830,7 +988,7 @@ const VoidInvaders = {
       ctx.textAlign = 'center';
       ctx.fillStyle = p.lives > 0 ? '#4ade80' : '#ff003c';
       ctx.font = 'bold 20px "Chakra Petch"';
-      ctx.fillText(p.lives > 0 ? "VOID FLEET ANNIHILATED!" : "STARFIGHTER DESTROYED", 300, 158);
+      ctx.fillText(p.lives > 0 ? "300 WAVES ANNIHILATED!" : "STARFIGHTER DESTROYED", 300, 158);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 14px "Share Tech Mono"';
