@@ -2,10 +2,19 @@ const CasinoGame = {
   currentMode: 'classic', // 'classic' (3 reels, 5 tokens) or 'highroller' (5 reels, 25 tokens)
   reels: ['📼', '7️⃣', '💿', '💀', '🪙', '💎'],
   isSpinning: false,
+  spinInterval: null,
+
+  stop() {
+    if (this.spinInterval) {
+      clearInterval(this.spinInterval);
+      this.spinInterval = null;
+    }
+    this.isSpinning = false;
+  },
 
   open(mode = 'classic') {
+    this.stop();
     this.currentMode = mode;
-    this.isSpinning = false;
     const modal = document.getElementById('casinoModal');
     if (modal) modal.classList.remove('hidden');
 
@@ -91,7 +100,7 @@ const CasinoGame = {
     if (msg) msg.innerText = "SPINNING CYBER REELS...";
 
     let counter = 0;
-    const interval = setInterval(() => {
+    this.spinInterval = setInterval(() => {
       if (r1) r1.innerText = this.reels[Math.floor(Math.random() * this.reels.length)];
       if (r2) r2.innerText = this.reels[Math.floor(Math.random() * this.reels.length)];
       if (r3) r3.innerText = this.reels[Math.floor(Math.random() * this.reels.length)];
@@ -101,7 +110,8 @@ const CasinoGame = {
       }
       counter++;
       if (counter > 14) {
-        clearInterval(interval);
+        clearInterval(this.spinInterval);
+        this.spinInterval = null;
         this.isSpinning = false;
         if (this.currentMode === 'highroller' && r4 && r5) {
           this.evaluateHighRoller([r1.innerText, r2.innerText, r3.innerText, r4.innerText, r5.innerText]);

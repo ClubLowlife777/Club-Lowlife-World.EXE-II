@@ -83,8 +83,9 @@ for (let i = 0; i < MAX_RAIN; i++) {
   });
 }
 
-// Gross Beat Relic After-Image Trail Buffer
+// Gross Beat & Rarity-Tiered Skin Trail Buffers
 const playerEchoTrail = [];
+const playerSkinParticles = [];
 
 function resizeCanvas() {
   canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
@@ -175,8 +176,12 @@ canvas.addEventListener('touchend', (e) => {
 canvas.addEventListener('mousedown', (e) => {
   if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
 
-  if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+  if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
     document.activeElement.blur();
+  }
+
+  if (window.State && typeof State.isModalOpen === 'function' && State.isModalOpen()) {
+    return;
   }
 
   if (e.button === 0 && handleCanvasHudTap(e.clientX, e.clientY)) {
@@ -229,6 +234,8 @@ function draw() {
 
   if (dim === 'wasteland') {
     drawRainOverlay();
+  } else if (dim === 'horizon') {
+    drawNirvanaSkyParticles();
   }
   drawOffscreenThreatIndicators(dim);
   drawTacticalRadar(dim);
@@ -239,10 +246,10 @@ function draw() {
 // 1. UNDERGROUND NIGHT SHIFT (2400 x 1200)
 // =========================================================================
 function drawUnderground() {
-  ctx.fillStyle = '#161d2f';
+  ctx.fillStyle = '#23304c';
   ctx.fillRect(0, 0, 2400, 1200);
 
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+  ctx.strokeStyle = 'rgba(0, 240, 255, 0.13)';
   ctx.lineWidth = 1;
   for (let x = 0; x < 2400; x += 60) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1200); ctx.stroke();
@@ -251,10 +258,10 @@ function drawUnderground() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke();
   }
 
-  ctx.fillStyle = '#121929'; ctx.fillRect(35, 35, 600, 415);
-  ctx.fillStyle = '#171a2a'; ctx.fillRect(800, 35, 500, 320);
-  ctx.fillStyle = '#1b1730'; ctx.fillRect(1450, 35, 915, 445);
-  ctx.fillStyle = '#131824'; ctx.fillRect(1450, 505, 915, 660);
+  ctx.fillStyle = '#1e2b45'; ctx.fillRect(35, 35, 600, 415);
+  ctx.fillStyle = '#252b4a'; ctx.fillRect(800, 35, 500, 320);
+  ctx.fillStyle = '#2e2450'; ctx.fillRect(1450, 35, 915, 445);
+  ctx.fillStyle = '#1f2b3f'; ctx.fillRect(1450, 505, 915, 660);
 
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 11px "Chakra Petch"';
@@ -262,14 +269,14 @@ function drawUnderground() {
   ctx.fillText("MASTERING SUITE // DISCOGRAPHY VAULT", 830, 65);
   ctx.fillStyle = '#c084fc';
   ctx.fillText("NEO-ARCADE CONCOURSE // 3-CABINET ALLEY", 1480, 65);
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = '#94a3b8';
   ctx.fillText("SUBTERRANEAN GENERATOR ANNEX", 1780, 535);
 
-  ctx.fillStyle = '#222b40';
+  ctx.fillStyle = '#344466';
   if (typeof Dimensions !== 'undefined' && Dimensions.undergroundObstacles) {
     Dimensions.undergroundObstacles.forEach(o => {
       ctx.fillRect(o.x, o.y, o.width, o.height);
-      ctx.strokeStyle = '#384869';
+      ctx.strokeStyle = '#60a5fa';
       ctx.lineWidth = 2;
       ctx.strokeRect(o.x, o.y, o.width, o.height);
     });
@@ -390,20 +397,20 @@ function drawUndergroundDoorways() {
 // 2. RETROCADE / NIRVANA COMPLEX (2400 x 1200)
 // =========================================================================
 function drawRetrocade() {
-  ctx.fillStyle = '#24143a'; ctx.fillRect(0, 0, 2400, 1200);
+  ctx.fillStyle = '#351d54'; ctx.fillRect(0, 0, 2400, 1200);
 
-  ctx.strokeStyle = 'rgba(236, 72, 153, 0.12)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(244, 114, 182, 0.16)'; ctx.lineWidth = 1;
   for (let x = 0; x < 2400; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1200); ctx.stroke(); }
   for (let y = 0; y < 1200; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(2400, y); ctx.stroke(); }
 
-  ctx.fillStyle = '#1e1430'; ctx.fillRect(35, 35, 645, 1130);
-  ctx.fillStyle = '#1e1430'; ctx.fillRect(1750, 35, 615, 1130);
+  ctx.fillStyle = '#2c1c48'; ctx.fillRect(35, 35, 645, 1130);
+  ctx.fillStyle = '#2c1c48'; ctx.fillRect(1750, 35, 615, 1130);
 
-  ctx.fillStyle = '#3b1d5c';
+  ctx.fillStyle = '#532882';
   if (typeof Dimensions !== 'undefined' && Dimensions.retrocadeObstacles) {
     Dimensions.retrocadeObstacles.forEach(o => {
       ctx.fillRect(o.x, o.y, o.width, o.height);
-      ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
+      ctx.strokeStyle = '#f472b6'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
     });
   }
 
@@ -463,7 +470,7 @@ function drawRetrocade() {
       const distFromCenter = Math.hypot(i - 4.5, j - 3.5);
       const ripple = audioTel.active && audioTel.onBeat && distFromCenter < 3.8 ? 0.28 : 0;
       ctx.fillStyle = palette[(i + j + stepIdx) % palette.length];
-      ctx.globalAlpha = Math.min(0.95, 0.32 + binEnergy * 0.48 + audioTel.subEnergy * 0.22 + ripple);
+      ctx.globalAlpha = Math.min(0.95, 0.46 + binEnergy * 0.44 + audioTel.subEnergy * 0.22 + ripple);
       const inset = audioTel.active && audioTel.onBeat ? 0 : 2;
       ctx.fillRect(980 + i * 42 + inset, 420 + j * 40 + inset, 38 - inset * 2, 36 - inset * 2);
       if (audioTel.active && (binEnergy > 0.45 || (audioTel.isVip && audioTel.onBeat && (i + j) % 2 === 0))) {
@@ -517,23 +524,23 @@ function drawRetrocade() {
 // 3. THE ASHEN WASTELAND (6400 x 4800 - High-Density Corruption Battleground)
 // =========================================================================
 function drawWasteland() {
-  ctx.fillStyle = '#181f2c'; ctx.fillRect(0, 0, 6400, 4800);
+  ctx.fillStyle = '#283448'; ctx.fillRect(0, 0, 6400, 4800);
 
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.09)'; ctx.lineWidth = 1;
   for (let x = 0; x < 6400; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 4800); ctx.stroke(); }
   for (let y = 0; y < 4800; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(6400, y); ctx.stroke(); }
 
-  // Interior Floor Tints (Original + New Dungeons, Caves, Castles & Safe Zones)
-  ctx.fillStyle = '#07241e'; ctx.fillRect(1685, 295, 830, 490); // Node 4: The Rust Sanctuary (Safe Zone)
-  ctx.fillStyle = '#111827'; ctx.fillRect(2135, 1235, 530, 430); // Martian University
-  ctx.fillStyle = '#091526'; ctx.fillRect(3040, 1240, 620, 670); // Node 5: Deep Void Data Vault
-  ctx.fillStyle = '#1e1b4b'; ctx.fillRect(3835, 2335, 530, 480); // Sector 777 Overlook
-  ctx.fillStyle = '#131c24'; ctx.fillRect(4815, 1615, 1170, 970); // Echo Cavern & Crystal Grotto
-  ctx.fillStyle = '#261008'; ctx.fillRect(390, 3140, 1220, 1170); // Node 3: The Furnace Foundry Dungeon
-  ctx.fillStyle = '#0b1922'; ctx.fillRect(1885, 3485, 700, 930); // Node 1: Undercity Transit Core ("The Drain")
-  ctx.fillStyle = '#0f172a'; ctx.fillRect(2835, 3835, 830, 530); // Holding Chamber
-  ctx.fillStyle = '#062e22'; ctx.fillRect(3700, 3935, 315, 330); // Industrial Washroom
-  ctx.fillStyle = '#1c0d1f'; ctx.fillRect(4495, 3195, 1560, 1260); // Node 2: Apex Signal Array & Syndicate Citadel
+  // Interior Floor Tints (Lightened for clear visibility across dungeons & safe zones)
+  ctx.fillStyle = '#0f3b31'; ctx.fillRect(1685, 295, 830, 490); // Node 4: The Rust Sanctuary (Safe Zone)
+  ctx.fillStyle = '#1c263b'; ctx.fillRect(2135, 1235, 530, 430); // Martian University
+  ctx.fillStyle = '#152842'; ctx.fillRect(3040, 1240, 620, 670); // Node 5: Deep Void Data Vault
+  ctx.fillStyle = '#2b2766'; ctx.fillRect(3835, 2335, 530, 480); // Sector 777 Overlook
+  ctx.fillStyle = '#1e2c38'; ctx.fillRect(4815, 1615, 1170, 970); // Echo Cavern & Crystal Grotto
+  ctx.fillStyle = '#3b1a10'; ctx.fillRect(390, 3140, 1220, 1170); // Node 3: The Furnace Foundry Dungeon
+  ctx.fillStyle = '#142d3b'; ctx.fillRect(1885, 3485, 700, 930); // Node 1: Undercity Transit Core ("The Drain")
+  ctx.fillStyle = '#1c2940'; ctx.fillRect(2835, 3835, 830, 530); // Holding Chamber
+  ctx.fillStyle = '#0e4736'; ctx.fillRect(3700, 3935, 315, 330); // Industrial Washroom
+  ctx.fillStyle = '#2d1736'; ctx.fillRect(4495, 3195, 1560, 1260); // Node 2: Apex Signal Array & Syndicate Citadel
 
   // Zone Header Titles & Architectural Landmarks
   ctx.font = 'bold 13px "Chakra Petch"';
@@ -611,10 +618,10 @@ function drawWasteland() {
 
   if (typeof Dimensions !== 'undefined' && Dimensions.worldObstacles) {
     Dimensions.worldObstacles.forEach(o => {
-      ctx.fillStyle = '#222d3d'; ctx.fillRect(o.x, o.y, o.width, o.height);
-      ctx.strokeStyle = '#384860'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
+      ctx.fillStyle = '#36465e'; ctx.fillRect(o.x, o.y, o.width, o.height);
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
       if (o.label) {
-        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px "Share Tech Mono"';
+        ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 10px "Share Tech Mono"';
         ctx.fillText(o.label, o.x + 10, o.y + 22);
       }
     });
@@ -642,72 +649,137 @@ function drawWasteland() {
     });
   }
 
-  drawPortal(650, 1020, '#a855f7', '#ec4899', "WARP: RETROCADE");
-  drawPortal(3120, 150, '#10b981', '#facc15', "NEURAL EXTRACTION GATE [50 TAPES]");
+  drawPortal(650, 1020, '#a855f7', '#ec4899', "WARP: RETROCADE NIRVANA");
+  drawPortal(3120, 150, '#ec4899', '#facc15', "NEURAL EXTRACTION GATE [100 TAPES]");
 
   drawPortalsAndEntities('wasteland');
 }
 
 // =========================================================================
-// 4. CHAPTER III // THE HORIZON DIMENSION (3600 x 2400 Astral Citadel)
+// 4. THE END NIRVANA (5400 x 4000 - Euphoric 8-Bit Pink & Purple Heaven)
 // =========================================================================
 function drawHorizon() {
-  ctx.fillStyle = '#090618'; ctx.fillRect(0, 0, 3600, 2400);
+  // Radiant 8-Bit Heaven Background Gradient (Luminous Purple & Pink Sky)
+  const skyGrad = ctx.createLinearGradient(0, 0, 5400, 4000);
+  skyGrad.addColorStop(0, '#4c1d95');
+  skyGrad.addColorStop(0.45, '#7e22ce');
+  skyGrad.addColorStop(0.75, '#9d174d');
+  skyGrad.addColorStop(1, '#581c87');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, 5400, 4000);
 
-  // Prismatic Astral Grid
-  ctx.strokeStyle = 'rgba(168, 85, 247, 0.12)'; ctx.lineWidth = 1;
-  for (let x = 0; x < 3600; x += 80) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 2400); ctx.stroke(); }
-  for (let y = 0; y < 2400; y += 80) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(3600, y); ctx.stroke(); }
+  // Euphoric 8-Bit Pastel Clouds tiled evenly across the sky floor
+  ctx.fillStyle = 'rgba(244, 114, 182, 0.14)';
+  for (let cy = 180; cy < 3900; cy += 420) {
+    for (let cx = 160; cx < 5200; cx += 520) {
+      const shift = Math.sin(Date.now() * 0.0007 + cx * 0.01) * 18;
+      ctx.fillRect(cx + shift, cy, 220, 44);
+      ctx.fillRect(cx + 35 + shift, cy - 28, 150, 32);
+      ctx.fillRect(cx + 75 + shift, cy - 48, 70, 24);
+    }
+  }
 
-  // Sanctum & Citadel Floor Tints
-  ctx.fillStyle = '#17103a'; ctx.fillRect(1240, 240, 1120, 670); // Astral Sovereign Keep
-  ctx.fillStyle = '#0e1b38'; ctx.fillRect(285, 785, 680, 680);   // Zero-G Mastering Sanctum
-  ctx.fillStyle = '#1f1033'; ctx.fillRect(2635, 785, 680, 680);  // Syndicate Archive Bastion
+  // Luminous 8-Bit Celestial Floor Grid
+  ctx.strokeStyle = 'rgba(249, 168, 212, 0.16)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 5400; x += 90) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 4000); ctx.stroke(); }
+  for (let y = 0; y < 4000; y += 90) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(5400, y); ctx.stroke(); }
 
-  // Prismatic Starlight Conduit Bridge
-  const bridgeGrad = ctx.createLinearGradient(1550, 950, 2050, 2100);
-  bridgeGrad.addColorStop(0, 'rgba(0, 240, 255, 0.18)');
-  bridgeGrad.addColorStop(0.5, 'rgba(236, 72, 153, 0.18)');
-  bridgeGrad.addColorStop(1, 'rgba(250, 204, 21, 0.18)');
+  // Stronghold Floor Tiles
+  ctx.fillStyle = '#5b21b6'; ctx.fillRect(375, 2185, 1170, 1030); // Seraphim Cathedral
+  ctx.fillStyle = '#6b21a8'; ctx.fillRect(375, 455, 1170, 1030);  // Chorus Conservatory
+  ctx.fillStyle = '#831843'; ctx.fillRect(3855, 2185, 1170, 1030); // Euphoria Citadel
+  ctx.fillStyle = '#581c87'; ctx.fillRect(3855, 455, 1170, 1030);  // Stellar Archive Bastion
+  ctx.fillStyle = '#701a75'; ctx.fillRect(1890, 260, 1620, 1060); // Throne of Eternity (CREATOR Sanctum)
+
+  // Glowing Prismatic Ascension Bridge (X: 2395..3005, Y: 1360..3420)
+  const bridgeGrad = ctx.createLinearGradient(2395, 1360, 3005, 3420);
+  bridgeGrad.addColorStop(0, 'rgba(250, 204, 21, 0.34)');
+  bridgeGrad.addColorStop(0.5, 'rgba(236, 72, 153, 0.36)');
+  bridgeGrad.addColorStop(1, 'rgba(192, 132, 252, 0.34)');
   ctx.fillStyle = bridgeGrad;
-  ctx.fillRect(1560, 950, 480, 1200);
+  ctx.fillRect(2395, 1360, 610, 2060);
+  ctx.strokeStyle = '#f9a8d4';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(2395, 1360, 610, 2060);
 
-  ctx.font = 'bold 15px "Chakra Petch"';
-  ctx.fillStyle = '#facc15';
-  ctx.fillText("ASTRAL SOVEREIGN KEEP // CHAPTER III SANCTUM", 1580, 285);
-  ctx.fillStyle = '#00f0ff';
-  ctx.fillText("ZERO-G MASTERING SANCTUM", 460, 835);
-  ctx.fillStyle = '#ec4899';
-  ctx.fillText("SYNDICATE ARCHIVE BASTION", 2820, 835);
+  // South Celestial Gateway Safe Plaza
+  ctx.fillStyle = 'rgba(236, 72, 153, 0.25)';
+  ctx.fillRect(2360, 3420, 680, 460);
+  ctx.strokeStyle = '#4ade80';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([8, 6]);
+  ctx.strokeRect(2360, 3420, 680, 460);
+  ctx.setLineDash([]);
 
-  // Zero-G Console
-  ctx.fillStyle = '#1e1b4b'; ctx.fillRect(520, 920, 180, 85);
-  ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 2; ctx.strokeRect(520, 920, 180, 85);
+  // Euphoric Fountain Shrine (Safe Zone Altar)
+  const fountainPulse = Math.sin(Date.now() / 160) * 6;
+  ctx.fillStyle = '#be185d'; ctx.fillRect(2610, 3530, 180, 85);
+  ctx.strokeStyle = '#fdf4ff'; ctx.lineWidth = 2.5; ctx.strokeRect(2610, 3530, 180, 85);
+  ctx.fillStyle = '#4ade80';
+  ctx.beginPath(); ctx.arc(2700, 3572, 18 + fountainPulse * 0.4, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono"';
-  ctx.fillText("🌌 ASTRAL CONSOLE [E]", 545, 968);
+  ctx.fillText("✨ FOUNTAIN SHRINE [E]", 2630, 3606);
 
+  // Cathedral & Citadel Lore Shrines
+  ctx.fillStyle = '#7e22ce'; ctx.fillRect(860, 2240, 120, 70);
+  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.strokeRect(860, 2240, 120, 70);
+  ctx.fillStyle = '#fef08a'; ctx.font = 'bold 8px "Share Tech Mono"';
+  ctx.fillText("🪽 CHOIR TABLET [E]", 868, 2280);
+
+  ctx.fillStyle = '#9d174d'; ctx.fillRect(4380, 2240, 120, 70);
+  ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.strokeRect(4380, 2240, 120, 70);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillText("🌸 HEAVEN MONOLITH [E]", 4385, 2280);
+
+  // Throne of Eternity Radiant Halo Floor Emblem behind CREATOR
+  ctx.save();
+  ctx.strokeStyle = 'rgba(250, 204, 21, 0.55)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(2700, 790, 180 + fountainPulse, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(236, 72, 153, 0.65)';
+  ctx.beginPath(); ctx.arc(2700, 790, 115 - fountainPulse * 0.5, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+
+  // Stronghold Header Labels
+  ctx.font = 'bold 16px "Chakra Petch"';
+  ctx.fillStyle = '#fde047';
+  ctx.fillText("THRONE OF ETERNITY // CREATOR'S SANCTUM [3-PHASE FINAL BOSS]", 2380, 305);
+  ctx.fillStyle = '#f9a8d4';
+  ctx.fillText("SERAPHIM CATHEDRAL", 810, 2215);
+  ctx.fillStyle = '#d8b4fe';
+  ctx.fillText("CHORUS CONSERVATORY", 810, 495);
+  ctx.fillStyle = '#f472b6';
+  ctx.fillText("EUPHORIA CITADEL OF LIGHT", 4280, 2215);
+  ctx.fillStyle = '#67e8f9';
+  ctx.fillText("STELLAR ARCHIVE BASTION", 4290, 495);
+  ctx.fillStyle = '#4ade80';
+  ctx.fillText("CELESTIAL GATEWAY // SAFE SANCTUARY", 2525, 3455);
+
+  // 8-Bit Heaven Pixel Architecture Walls (Violet-Pink Marble with Gold Trim)
   if (typeof Dimensions !== 'undefined' && Dimensions.horizonObstacles) {
     Dimensions.horizonObstacles.forEach(o => {
-      ctx.fillStyle = '#25174a'; ctx.fillRect(o.x, o.y, o.width, o.height);
-      ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
+      ctx.fillStyle = '#4a1d7a'; ctx.fillRect(o.x, o.y, o.width, o.height);
+      ctx.strokeStyle = '#f472b6'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.width, o.height);
       if (o.label) {
-        ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 9px "Share Tech Mono"';
+        ctx.fillStyle = '#fce7f3'; ctx.font = 'bold 9px "Share Tech Mono"';
         ctx.fillText(o.label, o.x + 10, o.y + 22);
       }
     });
   }
 
+  // Euphoric Chests (Golden / Pearl-Pink Vaults)
   if (typeof Dimensions !== 'undefined' && Dimensions.horizonChests) {
     Dimensions.horizonChests.forEach(c => {
-      ctx.fillStyle = c.opened ? '#334155' : (c.type === 'master_holding' ? '#701a75' : '#047857');
+      ctx.fillStyle = c.opened ? '#581c87' : (c.type === 'master_holding' ? '#be185d' : (c.type === 'vault' ? '#7c3aed' : '#db2777'));
       ctx.fillRect(c.x, c.y, c.width, c.height);
-      ctx.strokeStyle = c.type === 'master_holding' ? '#facc15' : '#00f0ff';
+      ctx.strokeStyle = c.type === 'master_holding' ? '#facc15' : '#fdf4ff';
       ctx.lineWidth = 2; ctx.strokeRect(c.x, c.y, c.width, c.height);
     });
   }
 
-  drawPortal(1760, 2180, '#00f0ff', '#10b981', "WARP: ASHEN WASTELAND");
-  drawPortal(1520, 2180, '#ec4899', '#facc15', "WARP: UNDERGROUND HUB");
+  drawPortal(2930, 3760, '#f472b6', '#4ade80', "WARP: ASHEN WASTELAND");
+  drawPortal(2390, 3760, '#00f0ff', '#facc15', "WARP: UNDERGROUND HUB");
 
   drawPortalsAndEntities('horizon');
 }
@@ -929,7 +1001,7 @@ function drawTacticalRadar(dim) {
       });
     }
 
-    // Portals: Retrocade Return (650, 1020) & 50-Tape Horizon Gate (3120, 150)
+    // Portals: Retrocade Return (650, 1020) & 100-Tape End Nirvana Gate (3120, 150)
     ctx.strokeStyle = '#ec4899';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -950,24 +1022,36 @@ function drawTacticalRadar(dim) {
       ctx.fillText('RIFT', rx + 3320 * sx, ry + 260 * sy);
     }
   } else if (dim === 'horizon') {
-    // Astral Keep, Zero-G Sanctum, Archive Bastion
-    ctx.fillStyle = 'rgba(168, 85, 247, 0.20)';
-    ctx.fillRect(rx + 1200 * sx, ry + 200 * sy, 1200 * sx, 750 * sy);
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
-    ctx.fillRect(rx + 250 * sx, ry + 750 * sy, 750 * sx, 750 * sy);
-    ctx.fillStyle = 'rgba(236, 72, 153, 0.18)';
-    ctx.fillRect(rx + 2600 * sx, ry + 750 * sy, 750 * sx, 750 * sy);
+    // End Nirvana Strongholds, Bridge & Safe Sanctuary on Radar (5400 x 4000)
+    ctx.fillStyle = 'rgba(250, 204, 21, 0.25)';
+    ctx.fillRect(rx + 1850 * sx, ry + 220 * sy, 1700 * sx, 1140 * sy); // Throne of Eternity
+    ctx.fillStyle = 'rgba(244, 114, 182, 0.22)';
+    ctx.fillRect(rx + 340 * sx, ry + 2150 * sy, 1240 * sx, 1100 * sy); // Cathedral
+    ctx.fillRect(rx + 3820 * sx, ry + 2150 * sy, 1240 * sx, 1100 * sy); // Euphoria Citadel
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.22)';
+    ctx.fillRect(rx + 340 * sx, ry + 420 * sy, 1240 * sx, 1100 * sy);  // Conservatory
+    ctx.fillRect(rx + 3820 * sx, ry + 420 * sy, 1240 * sx, 1100 * sy); // Bastion
+    // Safe Plaza
+    ctx.fillStyle = 'rgba(74, 222, 128, 0.35)';
+    ctx.fillRect(rx + 2360 * sx, ry + 3420 * sy, 680 * sx, 460 * sy);
 
-    // Return Portals (1760, 2180 & 1520, 2180)
-    ctx.strokeStyle = '#00f0ff';
+    // Return Portals
+    ctx.strokeStyle = '#f472b6';
     ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(rx + 1800 * sx, ry + 2220 * sy, 3.5, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeStyle = '#ec4899';
-    ctx.beginPath();
-    ctx.arc(rx + 1560 * sx, ry + 2220 * sy, 3.5, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(rx + 2970 * sx, ry + 3800 * sy, 3.5, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#00f0ff';
+    ctx.beginPath(); ctx.arc(rx + 2430 * sx, ry + 3800 * sy, 3.5, 0, Math.PI * 2); ctx.stroke();
+
+    if (camera.radarExpanded) {
+      ctx.fillStyle = '#fde047';
+      ctx.font = 'bold 7px "Share Tech Mono"';
+      ctx.fillText('CREATOR', rx + 2420 * sx, ry + 780 * sy);
+      ctx.fillStyle = '#f9a8d4';
+      ctx.fillText('CATHEDRAL', rx + 500 * sx, ry + 2700 * sy);
+      ctx.fillText('EUPHORIA', rx + 4020 * sx, ry + 2700 * sy);
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText('SAFE', rx + 2520 * sx, ry + 3650 * sy);
+    }
   }
 
   // 2. Obstacles / Walls
@@ -1050,7 +1134,7 @@ function drawTacticalRadar(dim) {
     underground: 'MAP // UNDERGROUND',
     retrocade: 'MAP // NIRVANA',
     wasteland: 'MAP // WASTELAND',
-    horizon: 'MAP // THE HORIZON'
+    horizon: 'MAP // END NIRVANA'
   };
   ctx.fillStyle = 'rgba(7, 10, 18, 0.75)';
   ctx.fillRect(rx + 2, ry + radarH - 12, radarW - 4, 10);
@@ -1164,10 +1248,25 @@ function drawConnerCadeBonfire() {
   ctx.restore();
 }
 
+function drawNirvanaSkyParticles() {
+  ctx.save();
+  const cols = ['#f9a8d4', '#facc15', '#c084fc', '#fdf4ff'];
+  for (let i = 0; i < 28; i++) {
+    const t = Date.now() * 0.0008 + i * 2.1;
+    const x = ((i * 97 + t * 28) % (canvas.width + 40)) - 20;
+    const y = canvas.height - (((i * 63 + t * 22) % (canvas.height + 40)) - 20);
+    ctx.globalAlpha = 0.28 + Math.sin(t * 2.5 + i) * 0.16;
+    ctx.fillStyle = cols[i % cols.length];
+    const sz = i % 3 === 0 ? 4 : 2.5;
+    ctx.fillRect(x, y, sz, sz);
+  }
+  ctx.restore();
+}
+
 function drawRainOverlay() {
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(125, 211, 252, 0.30)';
+  ctx.lineWidth = 1.2;
 
   rainDrops.forEach(r => {
     r.x += 2;
@@ -1307,13 +1406,36 @@ function drawPortalsAndEntities(dim) {
       const pantsCol = isHit ? '#e2e8f0' : n.pants;
 
       if (n.tier === 'boss') {
-        drawPixelCharacter(n.x, n.y, coatCol, visorCol, pantsCol, 'down', true, Date.now() * 0.02, 1.4, false);
-        ctx.fillStyle = '#000'; ctx.fillRect(n.x - 25, n.y - 18, n.width + 50, 7);
-        ctx.fillStyle = isHit ? '#ffffff' : '#ff003c';
-        ctx.fillRect(n.x - 25, n.y - 18, (n.width + 50) * (n.hp / n.maxHp), 7);
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(n.x - 25, n.y - 18, n.width + 50, 7);
+        const isCreator = n.id === 'boss_creator';
+        if (isCreator) {
+          const ph = n.phase || 1;
+          const haloCol = ph === 3 ? '#facc15' : (ph === 2 ? '#00f0ff' : '#ec4899');
+          const cMidX = n.x + n.width / 2;
+          const cMidY = n.y + n.height / 2;
+          ctx.save();
+          ctx.strokeStyle = haloCol;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(cMidX, cMidY, 44 + Math.sin(Date.now() * 0.008) * 6, 0, Math.PI * 2);
+          ctx.stroke();
+          if (ph >= 2) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.arc(cMidX, cMidY, 58, Date.now() * 0.003, Date.now() * 0.003 + Math.PI * 1.5);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+        drawPixelCharacter(n.x, n.y, coatCol, visorCol, pantsCol, 'down', true, Date.now() * 0.02, isCreator ? 1.55 : 1.4, false);
+        const barW = n.width + (isCreator ? 74 : 50);
+        const barX = n.x - (isCreator ? 37 : 25);
+        ctx.fillStyle = '#000'; ctx.fillRect(barX, n.y - 20, barW, 8);
+        ctx.fillStyle = isHit ? '#ffffff' : (isCreator ? (n.phase === 3 ? '#facc15' : (n.phase === 2 ? '#00f0ff' : '#ec4899')) : '#ff003c');
+        ctx.fillRect(barX, n.y - 20, barW * Math.max(0, n.hp / n.maxHp), 8);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(barX, n.y - 20, barW, 8);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 10px "Share Tech Mono"';
-        ctx.fillText(n.name, n.x - 30, n.y - 22);
+        ctx.fillText(n.name, barX - 4, n.y - 25);
       } else if (n.tier === 'mid') {
         drawPixelCharacter(n.x, n.y, coatCol, visorCol, pantsCol, 'down', true, Date.now() * 0.02, 1.15, false);
         ctx.fillStyle = visorCol;
@@ -1330,6 +1452,7 @@ function drawPortalsAndEntities(dim) {
   // Loot Pickups (Coin, Rare Tape, Amber Vial)
   if (typeof Entities !== 'undefined' && Entities.lootPickups) {
     Entities.lootPickups.forEach(p => {
+      if ((p.dim || 'wasteland') !== dim) return;
       const floatY = p.y + Math.sin(Date.now() / 180 + p.floatOffset) * 3;
       ctx.save();
       if (p.type === 'amber_vial') {
@@ -1618,37 +1741,139 @@ function drawPortalsAndEntities(dim) {
     Combat.renderDamageNumbers(ctx);
   }
 
-  // Player & Gross Beat Motion-Blur Echoes
+  // Player, Rarity-Tiered Expressive Trails, Walk Animations & Relics
   if (typeof Entities !== 'undefined' && Entities.player) {
     const p = Entities.player;
     const skinId = State.userProfile && State.userProfile.activeSkin ? State.userProfile.activeSkin : 'enforcer';
-    const currentSkin = (State.SKINS_DATA || []).find(s => s.id === skinId) || (State.SKINS_DATA ? State.SKINS_DATA[0] : { coat: '#090b10', visor: '#00f0ff', pants: '#06080c' });
-
+    const currentSkin = (State.SKINS_DATA || []).find(s => s.id === skinId) || (State.SKINS_DATA ? State.SKINS_DATA[0] : { id: 'enforcer', rarity: 'common', coat: '#090b10', trim: '#161d2a', visor: '#00f0ff', pants: '#06080c' });
+    const rarity = currentSkin.rarity || 'common';
     const hasGrossBeat = window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_gross_beat');
-    if (hasGrossBeat && p.isMoving) {
-      playerEchoTrail.push({ x: p.x, y: p.y, dir: p.direction, life: 8 });
-      if (playerEchoTrail.length > 5) playerEchoTrail.shift();
-    }
+    const hasHaloRelic = window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_master_bus_halo');
 
-    for (let i = playerEchoTrail.length - 1; i >= 0; i--) {
-      const echo = playerEchoTrail[i];
-      echo.life--;
-      if (echo.life <= 0) {
-        playerEchoTrail.splice(i, 1);
-      } else {
-        ctx.save();
-        ctx.globalAlpha = (echo.life / 10) * 0.35;
-        drawPixelCharacter(echo.x, echo.y, '#00f0ff', '#a855f7', currentSkin.pants, echo.dir || 'down', false, 0, 1.0);
-        ctx.restore();
-      }
+    // Emit Rarity-Scaled Skin Trail Particles & After-Image Silhouettes
+    updateAndDrawPlayerSkinTrail(p, currentSkin, rarity, hasGrossBeat);
+
+    // Orbiting 808 Master Bus Halo Relic Orb
+    if (hasHaloRelic) {
+      const orbAngle = Date.now() * 0.0045;
+      const orbX = p.x + p.width / 2 + Math.cos(orbAngle) * 58;
+      const orbY = p.y + p.height / 2 + Math.sin(orbAngle) * 58;
+      ctx.save();
+      ctx.shadowColor = '#facc15';
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath(); ctx.arc(orbX, orbY, 7.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(orbX, orbY, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(p.x + p.width / 2, p.y + p.height / 2, 58, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
     }
 
     if ((p.iFrames || 0) % 4 < 2) {
-      drawPixelCharacter(p.x, p.y, currentSkin.coat, currentSkin.visor, currentSkin.pants, p.direction || 'down', p.isMoving || false, p.animTimer || 0, 1.0, true);
+      drawPixelCharacter(p.x, p.y, currentSkin.coat, currentSkin.visor, currentSkin.pants, p.direction || 'down', p.isMoving || false, p.animTimer || 0, 1.0, true, currentSkin);
       const lvl = (State.userProfile && State.userProfile.level) ? State.userProfile.level : 1;
-      const handleStr = (State.userProfile && State.userProfile.handle) ? State.userProfile.handle : "UNREGISTERED";
+      const handleStr = (State.userProfile && State.userProfile.handle) ? State.userProfile.handle : "GUEST";
       renderPlayerCallsign(ctx, p.x, p.y, handleStr, lvl);
     }
+  }
+}
+
+function getSkinAnimationTheme(skin) {
+  const id = (skin && skin.id) ? skin.id : '';
+  if (/dancing|spotify|apple|bassline|dj_|music|retrowave|synth|vinyl/.test(id)) return 'music';
+  if (/bonfire|overdrive|highs|carbon|furnace/.test(id)) return 'ember';
+  if (/static|crt|zero_frame|phase|glitch/.test(id)) return 'glitch';
+  if (/creator|grandmaster|tape_winner|horizon|nirvana|blade|casshern|prime|legend/.test(id)) return 'celestial';
+  return 'standard';
+}
+
+function updateAndDrawPlayerSkinTrail(p, skin, rarity, hasGrossBeat) {
+  const pxMid = p.x + (p.width || 26) / 2;
+  const pyBase = p.y + (p.height || 38) - 4;
+  const primaryCol = skin.visor || '#00f0ff';
+  const secondaryCol = skin.trim || '#ec4899';
+  const theme = getSkinAnimationTheme(skin);
+
+  // 1. After-image echoes scale with rarity (Epic on sprint/random, Legendary frequent, Mythic continuous prismatic) + Gross Beat
+  const echoChance = hasGrossBeat ? 1 : (rarity === 'mythic' ? 0.65 : (rarity === 'legendary' ? 0.42 : (rarity === 'epic' && window.Input && Input.keys && Input.keys.shift ? 0.35 : 0)));
+  if (p.isMoving && Math.random() < echoChance) {
+    const echoLife = rarity === 'mythic' ? 14 : (rarity === 'legendary' ? 11 : 8);
+    const maxEchoes = rarity === 'mythic' ? 7 : (rarity === 'legendary' ? 5 : 4);
+    playerEchoTrail.push({
+      x: p.x, y: p.y, dir: p.direction, life: echoLife, maxLife: echoLife,
+      coat: hasGrossBeat ? '#00f0ff' : secondaryCol,
+      visor: primaryCol,
+      pants: skin.pants || '#0f172a',
+      isPrismatic: rarity === 'mythic'
+    });
+    while (playerEchoTrail.length > maxEchoes) playerEchoTrail.shift();
+  }
+
+  for (let i = playerEchoTrail.length - 1; i >= 0; i--) {
+    const echo = playerEchoTrail[i];
+    echo.life--;
+    if (echo.life <= 0) {
+      playerEchoTrail.splice(i, 1);
+    } else {
+      ctx.save();
+      const frac = echo.life / (echo.maxLife || 10);
+      ctx.globalAlpha = frac * (echo.isPrismatic ? 0.45 : 0.34);
+      const hueShiftCol = echo.isPrismatic ? ['#ec4899', '#00f0ff', '#facc15', '#a855f7'][i % 4] : echo.coat;
+      drawPixelCharacter(echo.x, echo.y, hueShiftCol, echo.visor, echo.pants, echo.dir || 'down', false, 0, 1.0, false, null);
+      ctx.restore();
+    }
+  }
+
+  // 2. Rarity-Scaled Particle Trails (Uncommon -> Mythic)
+  const rateByRarity = { common: 0, uncommon: 0.25, rare: 0.48, epic: 0.72, legendary: 1.0, mythic: 1.0 };
+  const spawnProb = rateByRarity[rarity] || 0;
+  const shouldEmit = p.isMoving ? Math.random() < spawnProb : ((rarity === 'mythic' || rarity === 'legendary') && Math.random() < (rarity === 'mythic' ? 0.45 : 0.22));
+
+  if (shouldEmit) {
+    const count = rarity === 'mythic' ? (p.isMoving ? 3 : 2) : (rarity === 'legendary' && p.isMoving ? 2 : 1);
+    for (let k = 0; k < count; k++) {
+      const colPool = rarity === 'mythic'
+        ? [primaryCol, secondaryCol, '#facc15', '#ec4899', '#00f0ff']
+        : (rarity === 'legendary' ? [primaryCol, secondaryCol, '#ffffff'] : [primaryCol, secondaryCol]);
+      const pCol = colPool[Math.floor(Math.random() * colPool.length)];
+      playerSkinParticles.push({
+        x: pxMid + (Math.random() - 0.5) * 18,
+        y: (theme === 'celestial' || rarity === 'mythic') ? p.y + 18 + (Math.random() - 0.5) * 18 : pyBase + (Math.random() - 0.5) * 6,
+        vx: (Math.random() - 0.5) * 1.4,
+        vy: theme === 'ember' || theme === 'music' ? -0.9 - Math.random() * 1.1 : (Math.random() - 0.5) * 0.9,
+        size: rarity === 'mythic' ? 3.5 : (rarity === 'legendary' ? 2.8 : 2.1),
+        color: pCol,
+        glyph: theme === 'music' && Math.random() < 0.35 ? '♪' : (rarity === 'mythic' && Math.random() < 0.3 ? '✦' : null),
+        life: rarity === 'mythic' ? 28 : (rarity === 'legendary' ? 22 : 15),
+        maxLife: rarity === 'mythic' ? 28 : (rarity === 'legendary' ? 22 : 15)
+      });
+    }
+    while (playerSkinParticles.length > 75) playerSkinParticles.shift();
+  }
+
+  for (let i = playerSkinParticles.length - 1; i >= 0; i--) {
+    const pt = playerSkinParticles[i];
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life--;
+    if (pt.life <= 0) {
+      playerSkinParticles.splice(i, 1);
+      continue;
+    }
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+    ctx.fillStyle = pt.color;
+    ctx.shadowColor = pt.color;
+    ctx.shadowBlur = 6;
+    if (pt.glyph) {
+      ctx.font = `bold ${Math.round(pt.size * 3.5)}px "Share Tech Mono"`;
+      ctx.fillText(pt.glyph, pt.x, pt.y);
+    } else {
+      ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+    }
+    ctx.restore();
   }
 }
 
@@ -1686,8 +1911,10 @@ function drawCombatStyleHud() {
   if (!window.Combat || typeof Combat.getStyleRankInfo !== 'function') return;
   const info = Combat.getStyleRankInfo();
   const now = Date.now();
+  const hasVamp = window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_vampire_limiter');
+  const activeCooldownMs = hasVamp ? 560 : (Combat.DASH_COOLDOWN_MS || 850);
   const dashRem = Math.max(0, Combat.dashCooldown - now);
-  const dashPct = 1 - Math.min(1, dashRem / (Combat.DASH_COOLDOWN_MS || 850));
+  const dashPct = 1 - Math.min(1, dashRem / activeCooldownMs);
   const beatActive = (now - (Combat.lastBeatSyncTime || 0)) < 450;
 
   const isMobile = canvas.width < 640;
@@ -1772,16 +1999,62 @@ function renderPlayerCallsign(ctx, px, py, handle, level = 1) {
   ctx.restore();
 }
 
-function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction, isMoving, animTimer, scale = 1.0, isPlayer = false) {
+function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction, isMoving, animTimer, scale = 1.0, isPlayer = false, skinMeta = null) {
   ctx.save();
   ctx.translate(px, py);
   ctx.scale(scale, scale);
 
-  const walkBob = isMoving ? Math.sin(animTimer * 0.35) * 3 : 0;
-  const legOffset = isMoving ? Math.sin(animTimer * 0.35) * 4 : 0;
+  const rarity = skinMeta && skinMeta.rarity ? skinMeta.rarity : 'common';
+  const theme = skinMeta ? getSkinAnimationTheme(skinMeta) : 'standard';
+  const trimColor = (skinMeta && skinMeta.trim) ? skinMeta.trim : visorColor;
+  const nowMs = Date.now();
+
+  // Rarity-scaled Expressive Walk Patterns (Glide/Float, Beat Groove, Agile Lean, Standard)
+  let walkBob = isMoving ? Math.sin(animTimer * 0.35) * 3 : 0;
+  let legOffset = isMoving ? Math.sin(animTimer * 0.35) * 4 : 0;
+  let leanTilt = 0;
+
+  if (skinMeta && (rarity === 'mythic' || rarity === 'legendary')) {
+    // Expressive hovering / buoyant stride even between steps
+    const floatWave = Math.sin(nowMs * 0.0065) * (rarity === 'mythic' ? 3.2 : 2.0);
+    walkBob = (isMoving ? Math.sin(animTimer * 0.32) * 2.5 : 0) + floatWave - (rarity === 'mythic' ? 2.5 : 1.0);
+    legOffset = isMoving ? Math.sin(animTimer * 0.42) * 5.2 : Math.sin(nowMs * 0.004) * 1.2;
+    if (isMoving) {
+      leanTilt = direction === 'right' ? 0.09 : (direction === 'left' ? -0.09 : Math.sin(animTimer * 0.3) * 0.05);
+    }
+  } else if (skinMeta && (rarity === 'epic' || rarity === 'rare')) {
+    walkBob = isMoving ? Math.sin(animTimer * 0.42) * 3.8 : Math.sin(nowMs * 0.004) * 0.8;
+    legOffset = isMoving ? Math.sin(animTimer * 0.42) * 4.8 : 0;
+    if (isMoving && rarity === 'epic') {
+      leanTilt = direction === 'right' ? 0.06 : (direction === 'left' ? -0.06 : 0);
+    }
+  }
 
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.beginPath(); ctx.ellipse(13, 37, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Mythic / Legendary Base Ring Aura under feet
+  if (isPlayer && (rarity === 'mythic' || rarity === 'legendary')) {
+    ctx.save();
+    ctx.strokeStyle = rarity === 'mythic' ? '#facc15' : visorColor;
+    ctx.globalAlpha = rarity === 'mythic' ? 0.65 : 0.40;
+    ctx.lineWidth = rarity === 'mythic' ? 2 : 1.3;
+    ctx.beginPath();
+    ctx.ellipse(13, 37, 17 + Math.sin(nowMs * 0.008) * 2, 6, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  if (leanTilt !== 0) {
+    ctx.translate(13, 24);
+    ctx.rotate(leanTilt);
+    ctx.translate(-13, -24);
+  }
+
+  // Glitch CRT slice shimmer on Glitch-theme skins
+  if (theme === 'glitch' && Math.random() < 0.22) {
+    ctx.translate((Math.random() - 0.5) * 3, 0);
+  }
 
   // Player Charge Aura Vortex & Spiraling Particles
   if (isPlayer && typeof Combat !== 'undefined' && (Combat.isHoldingSlash || Combat.isChargingShoot)) {
@@ -1805,6 +2078,16 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
     }
   }
 
+  // Expressive billowing cape / duster tails for Rare+ Skins
+  if (skinMeta && (rarity === 'mythic' || rarity === 'legendary' || rarity === 'epic')) {
+    const tailSway = isMoving ? Math.sin(animTimer * 0.45) * 4 : Math.sin(nowMs * 0.006) * 2;
+    ctx.fillStyle = trimColor;
+    ctx.globalAlpha = 0.72;
+    ctx.fillRect(1 + tailSway * 0.4, 24 + walkBob, 4, 9);
+    ctx.fillRect(21 - tailSway * 0.4, 24 + walkBob, 4, 9);
+    ctx.globalAlpha = 1.0;
+  }
+
   ctx.fillStyle = pantsColor;
   ctx.fillRect(5, 26 + legOffset, 6, 11 - legOffset);
   ctx.fillRect(15, 26 - legOffset, 6, 11 + legOffset);
@@ -1814,12 +2097,28 @@ function drawPixelCharacter(px, py, coatColor, visorColor, pantsColor, direction
 
   ctx.fillStyle = coatColor;
   ctx.fillRect(3, 12 + walkBob, 20, 18);
+  if (skinMeta && (rarity !== 'common')) {
+    // Expressive trim piping on torso
+    ctx.fillStyle = trimColor;
+    ctx.fillRect(3, 13 + walkBob, 2, 15);
+    ctx.fillRect(21, 13 + walkBob, 2, 15);
+    ctx.fillStyle = coatColor;
+  }
   if (direction === 'up') ctx.fillRect(4, 28 + walkBob, 18, 6);
   else if (direction === 'left') ctx.fillRect(16, 24 + walkBob, 8, 8);
   else if (direction === 'right') ctx.fillRect(2, 24 + walkBob, 8, 8);
 
   ctx.fillStyle = '#090b10';
   ctx.beginPath(); ctx.arc(13, 7 + walkBob, 9, 0, Math.PI * 2); ctx.fill();
+
+  // Mythic Golden Halo Crown Crest
+  if (isPlayer && rarity === 'mythic') {
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(13, -3 + walkBob, 8, 2.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   ctx.fillStyle = visorColor;
   if (direction === 'down') ctx.fillRect(8, 6 + walkBob, 10, 3);
@@ -1873,8 +2172,11 @@ function gameLoop() {
     return;
   }
 
-  if (typeof Entities !== 'undefined' && Entities.update) Entities.update();
-  if (typeof Combat !== 'undefined' && Combat.update) Combat.update();
+  const worldPaused = !!(window.State && ((typeof State.isModalOpen === 'function' && State.isModalOpen()) || State.activeMiniGame));
+  if (!worldPaused) {
+    if (typeof Entities !== 'undefined' && Entities.update) Entities.update();
+    if (typeof Combat !== 'undefined' && Combat.update) Combat.update();
+  }
 
   if (window.State && State.DIMENSIONS && State.currentDimension) {
     const cfg = State.DIMENSIONS[State.currentDimension];

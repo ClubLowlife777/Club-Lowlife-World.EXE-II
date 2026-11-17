@@ -34,6 +34,30 @@ const Combat = {
   // Hit-Stop Micro-Freeze Counter (Frames)
   hitStopFrames: 0,
 
+  cancelHeldInputs() {
+    this.isHoldingSlash = false;
+    this.isChargingShoot = false;
+    const ring = document.getElementById('btnSlashChargeRing');
+    if (ring) ring.style.opacity = '0';
+    const chargeFill = document.getElementById('btnShootChargeFill');
+    if (chargeFill) chargeFill.style.opacity = '0';
+  },
+
+  clearActiveEffects() {
+    this.projectiles = [];
+    this.enemyProjectiles = [];
+    this.meleeSlashes = [];
+    this.explosions = [];
+    this.floatingNumbers = [];
+    this.particles = [];
+    this.impactFlashes = [];
+    this.muzzleFlashes = [];
+    this.dashGhosts = [];
+    this.telegraphs = [];
+    this.hitStopFrames = 0;
+    this.cancelHeldInputs();
+  },
+
   // Style Rank & Rhythm Combo System (D -> C -> B -> A -> S -> LOWLIFE 777)
   stylePoints: 0,
   comboHits: 0,
@@ -149,7 +173,7 @@ const Combat = {
   },
 
   // =========================================================================
-  // PHASE DASH ([Space] / Touch Button) WITH PERFECT-DODGE BONUS
+  // PHASE DASH ([Space] / Touch Button) WITH ZIP-THROUGH DAMAGE & PERFECT DODGE
   // =========================================================================
   triggerDash() {
     const now = Date.now();
@@ -158,7 +182,12 @@ const Combat = {
 
     const p = Entities.player;
     const palette = this.getActiveSkinPalette();
-    this.dashCooldown = now + this.DASH_COOLDOWN_MS;
+    const hasPhaseBlade = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_phase_blade'));
+    const hasVampireLimiter = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_vampire_limiter'));
+    const isHypercharged = (window.State && State.userProfile && State.userProfile.hyperchargeTimer > 0);
+
+    const activeCooldownMs = hasVampireLimiter ? 560 : this.DASH_COOLDOWN_MS;
+    this.dashCooldown = now + activeCooldownMs;
 
     if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') {
       AudioEngine.playSfx('dash');
@@ -176,6 +205,10 @@ const Combat = {
       else if (p.direction === 'left') dx = -1;
       else if (p.direction === 'right') dx = 1;
       else dy = 1;
+    } else {
+      const mag = Math.hypot(dx, dy) || 1;
+      dx /= mag;
+      dy /= mag;
     }
 
     // Check Perfect Phase (dashing right near an incoming enemy projectile)
@@ -187,7 +220,7 @@ const Combat = {
       }
     }
 
-    p.iFrames = Math.max(p.iFrames, 18);
+    p.iFrames = Math.max(p.iFrames, 22);
 
     const activeObs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function')
       ? Dimensions.getActiveObstacles()
@@ -196,18 +229,28 @@ const Combat = {
       ? Dimensions.destructibleDoors.filter(d => !d.shattered)
       : [];
     const cfg = (window.State && State.DIMENSIONS) ? State.DIMENSIONS[State.currentDimension] : null;
+    const activeDim = window.State ? State.currentDimension : 'underground';
+    const isCombatDim = activeDim === 'wasteland' || activeDim === 'horizon';
 
     const steps = 8;
-    const totalDist = 115;
+    const totalDist = hasPhaseBlade ? 156 : 138;
     const stepX = (dx * totalDist) / steps;
     const stepY = (dy * totalDist) / steps;
+
+    const dashDmg = Math.round(
+      48 * this.getPlayerLevelDamageMult() * (isHypercharged ? 1.4 : 1.0) * (hasPhaseBlade ? 1.8 : 1.0)
+    );
+    const dashHitRadius = hasPhaseBlade ? 58 : 44;
+    const dashTrailCol = hasPhaseBlade ? '#c084fc' : palette.primary;
+    const dashedIds = new Set();
+    let dashHits = 0;
 
     for (let s = 1; s <= steps; s++) {
       this.dashGhosts.push({
         x: p.x,
         y: p.y,
         dir: p.direction,
-        coat: palette.primary,
+        coat: dashTrailCol,
         visor: '#ffffff',
         pants: palette.secondary,
         life: 10 + s,
@@ -235,6 +278,58 @@ const Combat = {
       if (cfg) {
         p.x = Math.max(10, Math.min(cfg.width - p.width - 10, p.x));
         p.y = Math.max(10, Math.min(cfg.height - p.height - 10, p.y));
+      }
+
+      // Dash-Through Zip Strike along the movement path
+      const pxMid = p.x + (p.width || 26) / 2;
+      const pyMid = p.y + (p.height || 38) / 2;
+
+      if (isCombatDim && Entities.hostileNpcs) {
+        for (let npc of Entities.hostileNpcs) {
+          if (!npc.alive || (npc.dim || 'wasteland') !== activeDim || dashedIds.has(npc.id)) continue;
+          const dist = Math.hypot((npc.x + npc.width / 2) - pxMid, (npc.y + npc.height / 2) - pyMid);
+          if (dist <= dashHitRadius) {
+            dashedIds.add(npc.id);
+            dashHits++;
+            npc.hitFlash = 5;
+            const knockDir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+            this.spawnHitSparks(npc.x + npc.width / 2, npc.y + npc.height / 2, dashTrailCol, hasPhaseBlade ? 16 : 10, Math.atan2(dy, dx));
+            Entities.damageNpc(npc, dashDmg, knockDir);
+            this.spawnDamageNumber(npc.x + npc.width / 2, npc.y - 12, `⚡${dashDmg}`, dashTrailCol, hasPhaseBlade);
+          }
+        }
+      } else if (activeDim === 'underground' && Entities.trainingDummies) {
+        for (let dummy of Entities.trainingDummies) {
+          if (dashedIds.has(dummy.id)) continue;
+          const dist = Math.hypot((dummy.x + dummy.width / 2) - pxMid, (dummy.y + dummy.height / 2) - pyMid);
+          if (dist <= dashHitRadius) {
+            dashedIds.add(dummy.id);
+            dashHits++;
+            dummy.hitFlash = 5;
+            this.spawnHitSparks(dummy.x + dummy.width / 2, dummy.y + dummy.height / 2, dashTrailCol, 12, Math.atan2(dy, dx));
+            this.spawnDamageNumber(dummy.x + dummy.width / 2, dummy.y - 12, `⚡${dashDmg}`, dashTrailCol, hasPhaseBlade);
+          }
+        }
+      }
+    }
+
+    if (dashHits > 0) {
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx(hasPhaseBlade ? 'beat_crit' : 'slash');
+      this.triggerHitStop(2);
+      this.addStylePoints(14 * dashHits, dashHits);
+      this.meleeSlashes.push({
+        x: p.x + p.width / 2, y: p.y + p.height / 2,
+        originX: p.x + p.width / 2 - dx * 55, originY: p.y + p.height / 2 - dy * 55,
+        dir: p.direction, type: 'stab_thrust', color: dashTrailCol, secondaryColor: '#ffffff',
+        radius: 64, life: 11, maxLife: 11, damage: dashDmg, isBeatSync: true
+      });
+      if (hasPhaseBlade || hasVampireLimiter) {
+        const healAmt = (hasPhaseBlade ? 4 * dashHits : 0) + (hasVampireLimiter ? Math.max(1, Math.round(dashDmg * 0.06 * dashHits)) : 0);
+        if (healAmt > 0 && p.hp < p.maxHp) {
+          p.hp = Math.min(p.maxHp, p.hp + healAmt);
+          if (typeof Entities.updatePlayerHealthUI === 'function') Entities.updatePlayerHealthUI();
+          this.spawnDamageNumber(p.x + p.width / 2, p.y - 26, `+${healAmt} HP`, '#4ade80', false);
+        }
       }
     }
 
@@ -304,6 +399,9 @@ const Combat = {
       life: 6, maxLife: 6
     });
 
+    const hasArpeggiator = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_arpeggiator'));
+    const baseAngle = Math.atan2(vy, vx);
+
     if (holdSeconds >= requiredHold) {
       this.shootCooldown = Date.now() + (isHypercharged ? 400 : 850);
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') {
@@ -318,6 +416,18 @@ const Combat = {
         color: primaryBoltColor, trailColor: secondaryBoltColor,
         history: []
       });
+      if (hasArpeggiator) {
+        const subDmg = Math.round(dmg * 0.55);
+        [-0.36, 0.36].forEach(angOff => {
+          const sa = baseAngle + angOff;
+          this.projectiles.push({
+            x: originX, y: originY,
+            vx: Math.cos(sa) * 12.2, vy: Math.sin(sa) * 12.2, speed: 12.2, radius: 7,
+            isCharged: false, isBeatSync, damage: subDmg, aoeRadius: 0, life: 72,
+            color: '#e879f9', trailColor: primaryBoltColor, history: []
+          });
+        });
+      }
       if (window.State && typeof State.showToast === 'function') {
         State.showToast(isBeatSync ? "🎵 BEAT-SYNCED PLASMA SUPERNOVA! ☄️" : "RELEASED CHARGED PLASMA ORB! ☄️");
       }
@@ -326,14 +436,19 @@ const Combat = {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') {
         AudioEngine.playSfx(isBeatSync ? 'beat_crit' : 'laser');
       }
-      const dmg = Math.round(30 * damageMultiplier);
-      this.projectiles.push({
-        x: originX,
-        y: originY,
-        vx: vx * 13.5, vy: vy * 13.5, speed: 13.5, radius: 5.5,
-        isCharged: false, isBeatSync, damage: dmg, aoeRadius: 0, life: 60,
-        color: primaryBoltColor, trailColor: secondaryBoltColor,
-        history: []
+      const angles = hasArpeggiator ? [baseAngle - 0.20, baseAngle, baseAngle + 0.20] : [baseAngle];
+      const perBoltMult = hasArpeggiator ? 0.85 : 1.0;
+      const dmg = Math.round(30 * damageMultiplier * perBoltMult);
+      angles.forEach((ang, idx) => {
+        this.projectiles.push({
+          x: originX,
+          y: originY,
+          vx: Math.cos(ang) * 13.5, vy: Math.sin(ang) * 13.5, speed: 13.5, radius: 5.5,
+          isCharged: false, isBeatSync, damage: dmg, aoeRadius: 0, life: 60,
+          color: (hasArpeggiator && idx !== 1) ? '#e879f9' : primaryBoltColor,
+          trailColor: secondaryBoltColor,
+          history: []
+        });
       });
     }
   },
@@ -610,12 +725,14 @@ const Combat = {
     const palette = this.getActiveSkinPalette();
     let hitCount = 0;
 
+    let realEnemyHits = 0;
     if (window.State && (State.currentDimension === 'wasteland' || State.currentDimension === 'horizon') && Entities.hostileNpcs) {
       Entities.hostileNpcs.forEach(npc => {
         if (npc.alive && (npc.dim || 'wasteland') === State.currentDimension) {
           const dist = Math.hypot((npc.x + npc.width / 2) - hitX, (npc.y + npc.height / 2) - hitY);
           if (dist <= hitRadius) {
             hitCount++;
+            realEnemyHits++;
             let actualKnockDir = knockDirMode;
             const angle = Math.atan2((npc.y + npc.height / 2) - hitY, (npc.x + npc.width / 2) - hitX);
             if (knockDirMode === 'radial') {
@@ -630,6 +747,15 @@ const Combat = {
         }
       });
       this.checkDestructibleDoors(hitX, hitY, hitRadius, damage, isCharged);
+    }
+
+    if (realEnemyHits > 0 && window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_vampire_limiter') && window.Entities && Entities.player) {
+      const siphon = Math.max(2, Math.round(damage * 0.06 * realEnemyHits));
+      if (Entities.player.hp < Entities.player.maxHp) {
+        Entities.player.hp = Math.min(Entities.player.maxHp, Entities.player.hp + siphon);
+        if (typeof Entities.updatePlayerHealthUI === 'function') Entities.updatePlayerHealthUI();
+        this.spawnDamageNumber(Entities.player.x + Entities.player.width / 2, Entities.player.y - 16, `+${siphon} HP`, '#4ade80', false);
+      }
     }
 
     if (window.State && State.currentDimension === 'underground' && Entities.trainingDummies) {
@@ -697,25 +823,31 @@ const Combat = {
         radius: 175, color: '#f97316',
         timer: 42, maxTimer: 42, damage: Math.round(damage * 1.25)
       });
-    } else if (boss.id === 'boss_drain_leviathan') {
-      // Sub-Zero: Cryo-Railgun Laser Line
+    } else if (boss.id === 'boss_drain_leviathan' || boss.id === 'boss_seraphim_echo') {
+      // Sub-Zero & Seraphim Echo: High-Velocity Railgun Beam
       const angle = Math.atan2(targetY - (boss.y + boss.height / 2), targetX - (boss.x + boss.width / 2));
       this.telegraphs.push({
         dim, type: 'rail_beam',
         x: boss.x + boss.width / 2, y: boss.y + boss.height / 2,
-        angle, length: 520, width: 36, color: '#00f0ff',
+        angle, length: 540, width: 38, color: boss.id === 'boss_seraphim_echo' ? '#f472b6' : '#00f0ff',
         timer: 38, maxTimer: 38, damage: Math.round(damage * 1.2)
       });
-    } else if (boss.id === 'boss_signal_archon' || boss.id === 'boss_astral_architect') {
-      // Archon Vex & Omega-777: Triple Orbital Signal Strike Reticles
-      for (let k = 0; k < 3; k++) {
-        const ox = targetX + (k === 0 ? 0 : (Math.random() - 0.5) * 220);
-        const oy = targetY + (k === 0 ? 0 : (Math.random() - 0.5) * 220);
+    } else if (boss.id === 'boss_signal_archon' || boss.id === 'boss_aether_oracle' || boss.id === 'boss_creator') {
+      // Orbital Signal / Celestial Halo Strikes (CREATOR stacks extra reticles per phase!)
+      const ph = boss.id === 'boss_creator' ? (boss.phase || 1) : 1;
+      const strikeCount = boss.id === 'boss_creator' ? (2 + ph) : 3;
+      const strikeCol = boss.id === 'boss_creator'
+        ? (ph === 3 ? '#facc15' : (ph === 2 ? '#00f0ff' : '#ec4899'))
+        : (boss.id === 'boss_aether_oracle' ? '#c084fc' : '#f43f5e');
+      for (let k = 0; k < strikeCount; k++) {
+        const ox = targetX + (k === 0 ? 0 : (Math.random() - 0.5) * 240);
+        const oy = targetY + (k === 0 ? 0 : (Math.random() - 0.5) * 240);
         this.telegraphs.push({
           dim, type: 'orbital_strike',
           x: ox, y: oy,
-          radius: 75, color: boss.id === 'boss_astral_architect' ? '#facc15' : '#f43f5e',
-          timer: 45 + k * 8, maxTimer: 45 + k * 8, damage: Math.round(damage * 1.2)
+          radius: boss.id === 'boss_creator' ? 84 : 75,
+          color: strikeCol,
+          timer: 44 + k * 7, maxTimer: 44 + k * 7, damage: Math.round(damage * 1.2)
         });
       }
     } else if (boss.id === 'boss_chem_enforcer') {
@@ -889,12 +1021,37 @@ const Combat = {
       }
     }
 
-    // Update Enemy Projectiles
+    // Update Enemy Projectiles (Blocked by Walls & Intact Security Doors)
+    const activeEnemyObs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function')
+      ? Dimensions.getActiveObstacles()
+      : [];
+    const activeEnemyDoors = (window.State && State.currentDimension === 'wasteland' && window.Dimensions && Dimensions.destructibleDoors)
+      ? Dimensions.destructibleDoors.filter(d => !d.shattered)
+      : [];
+
     for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
       const ep = this.enemyProjectiles[i];
       ep.x += ep.vx; 
       ep.y += ep.vy; 
       ep.life--;
+
+      const epRad = ep.radius || 5;
+      const epBox = { x: ep.x - epRad, y: ep.y - epRad, width: epRad * 2, height: epRad * 2 };
+      let hitWall = false;
+      for (let o of activeEnemyObs) {
+        if (this.checkCollision(epBox, o)) { hitWall = true; break; }
+      }
+      if (!hitWall) {
+        for (let d of activeEnemyDoors) {
+          if (this.checkCollision(epBox, d)) { hitWall = true; break; }
+        }
+      }
+      if (hitWall) {
+        this.spawnHitSparks(ep.x, ep.y, ep.color || '#ff003c', 6);
+        this.enemyProjectiles.splice(i, 1);
+        continue;
+      }
+
       if (window.Entities && Entities.player) {
         const p = Entities.player;
         if (Math.hypot((p.x + p.width / 2) - ep.x, (p.y + p.height / 2) - ep.y) < p.width * 0.7) {

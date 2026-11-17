@@ -75,7 +75,8 @@ const NEW_STORE_SKINS = [
 ];
 
 const State = {
-  RARE_TAPES_THRESHOLD: 50,
+  RARE_TAPES_THRESHOLD: 100,
+  MAX_EQUIPPED_RELICS: 3,
   currentDimension: 'underground',
   activeMiniGame: null,
   activeWardrobeFilter: 'all', // 'all' | 'unlocked' | 'store'
@@ -84,7 +85,7 @@ const State = {
     underground: { name: "UNDERGROUND NIGHT SHIFT", width: 2400, height: 1200, defaultSpawn: { x: 350, y: 750 } },
     retrocade: { name: "NIRVANA (RETROCADE)", width: 2400, height: 1200, defaultSpawn: { x: 1200, y: 750 } },
     wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800, defaultSpawn: { x: 650, y: 1100 } },
-    horizon: { name: "CHAPTER III // THE HORIZON", width: 3600, height: 2400, defaultSpawn: { x: 1800, y: 2050 } }
+    horizon: { name: "THE END NIRVANA", width: 5400, height: 4000, defaultSpawn: { x: 2700, y: 3680 } }
   },
 
   // Level Milestone Skin Map (Dossier Section 6)
@@ -96,7 +97,7 @@ const State = {
     10: 'lowlife_prime'
   },
 
-  // Studio Hardware Relic Catalog (Phase 3 Stat Modifiers)
+  // Studio Hardware Relic Catalog (8 Total Relics / Abilities)
   STUDIO_GEAR_DATA: [
     {
       id: "relic_peak_controller",
@@ -104,7 +105,8 @@ const State = {
       slot: "dynamics",
       icon: "🎚️",
       desc: "Inverted peak sidechaining. Reduces all incoming combat and collision damage by 20%.",
-      buffText: "-20% DAMAGE TAKEN"
+      buffText: "-20% DAMAGE TAKEN",
+      unlockHint: "Unlock: Obsidian Vault or Archon Vex (Wasteland)"
     },
     {
       id: "relic_sub_woofer",
@@ -112,7 +114,8 @@ const State = {
       slot: "low_end",
       icon: "🔊",
       desc: "Summed pure mono sub punch. Expands [K] Devastating Breaker AoE radius from 220px to 310px and deals 225 damage.",
-      buffText: "+90PX SHOCKWAVE AOE"
+      buffText: "+90PX SHOCKWAVE AOE",
+      unlockHint: "Unlock: Vulcan-808 or Master Vaults (Wasteland)"
     },
     {
       id: "relic_tape_saturator",
@@ -120,7 +123,8 @@ const State = {
       slot: "harmonics",
       icon: "📼",
       desc: "Warm high-order harmonics. Increases [J] plasma projectile damage by 35% and turns plasma fiery orange.",
-      buffText: "+35% PLASMA POWER"
+      buffText: "+35% PLASMA POWER",
+      unlockHint: "Unlock: Chem-Enforcer or Martian Univ. Vault"
     },
     {
       id: "relic_gross_beat",
@@ -128,7 +132,44 @@ const State = {
       slot: "modulation",
       icon: "⏱️",
       desc: "Glitch-step time control. Boosts sprint speed by 20% and leaves after-image glitch echoes while moving.",
-      buffText: "+20% SPRINT SPEED"
+      buffText: "+20% SPRINT SPEED",
+      unlockHint: "Unlock: Drone Queen or Sector 777 VIP Stash"
+    },
+    {
+      id: "relic_phase_blade",
+      name: "DASH BLADE CAPACITOR",
+      slot: "kinetic",
+      icon: "⚔️",
+      desc: "Supercharges Phase Dash [Space] through enemies with +80% zip-cleave damage, wider cleave radius & +4 HP siphon per hit.",
+      buffText: "+80% DASH-ZIP DMG",
+      unlockHint: "Unlock: Sub-Zero (The Drain) or Velvet Cherub (End Nirvana)"
+    },
+    {
+      id: "relic_arpeggiator",
+      name: "TRI-WAVE ARPEGGIATOR",
+      slot: "polyphony",
+      icon: "☄️",
+      desc: "Splits [J] Plasma Blaster into a 3-bolt harmonic fan and fires twin homing seekers with Charged Supernovas.",
+      buffText: "3-WAY PLASMA BURST",
+      unlockHint: "Unlock: Chorus Valkyrie or Conservatory Vault (End Nirvana)"
+    },
+    {
+      id: "relic_vampire_limiter",
+      name: "SYNDICATE LIFESTEAL LIMITER",
+      slot: "sustain",
+      icon: "🩸",
+      desc: "Siphons +6% of melee blade & dash-zip damage as HP and accelerates Phase Dash cooldown by 30%.",
+      buffText: "+6% LIFESTEAL & FAST DASH",
+      unlockHint: "Unlock: Deep Void Vault (Wasteland) or Seraphim Echo (End Nirvana)"
+    },
+    {
+      id: "relic_master_bus_halo",
+      name: "808 MASTER BUS HALO",
+      slot: "mastering",
+      icon: "👑",
+      desc: "Summons an orbiting astral 808 sphere that zaps nearby foes & boosts combat XP & Sound Token drops by +25%.",
+      buffText: "ORBITING ORB & +25% LOOT",
+      unlockHint: "Unlock: Aether Oracle, CREATOR or Archive Vault (End Nirvana)"
     }
   ],
 
@@ -171,7 +212,7 @@ const State = {
     {
       id: "lore_blade_rebrand",
       dim: "wasteland",
-      x: 3680, y: 3950,
+      x: 3760, y: 4000,
       title: "TAPE 06: BLADE X CASSHERN SINS",
       text: "The visual aesthetic for this new era was conceptualized as Blade walking through Casshern Sins—stark contrast, sweeping dusters, blacked-out helmets, and harsh CRT static."
     },
@@ -185,9 +226,51 @@ const State = {
     {
       id: "lore_horizon_ascension",
       dim: "horizon",
-      x: 1800, y: 620,
-      title: "TAPE 08: CHAPTER III // THE HORIZON",
-      text: "Beyond the 50-Cassette Extraction Rift lies the Horizon Citadel—an astral mastering sanctum suspended above the static where the next evolution of Club Lowlife is forged."
+      x: 2700, y: 3455,
+      title: "TAPE 08: ENTERING THE END NIRVANA",
+      text: "Beyond the 100-Cassette Extraction Rift lies THE END NIRVANA—an 8-bit euphoric paradise woven from neon purples, rose marble clouds, and pure uncompressed master stems."
+    },
+    {
+      id: "lore_nirvana_cathedral",
+      dim: "horizon",
+      x: 920, y: 2980,
+      title: "TAPE 09: SERAPHIM CATHEDRAL ACOUSTICS",
+      text: "Every marble arch in Seraphim Cathedral resonates at 432 Hz, bathing 'Hold Me Down' vocal harmonies in lush cathedral reverb tails and shimmering angel choirs."
+    },
+    {
+      id: "lore_nirvana_choir",
+      dim: "horizon",
+      x: 950, y: 1280,
+      title: "TAPE 10: THE 8-BIT NES SYNTH ARCHIVE",
+      text: "Downsampled pulse waves and triangle sub-bass lines inside Chorus Conservatory reconstruct classic 2A03 NES hardware warmth alongside modern 808 knock."
+    },
+    {
+      id: "lore_nirvana_bridge",
+      dim: "horizon",
+      x: 2700, y: 2350,
+      title: "TAPE 11: PRISMATIC ASCENSION BRIDGE",
+      text: "Built above the pink nebula sea, the Ascension Bridge links the four outer strongholds straight to the Throne of Eternity—where CREATOR awaits in three evolving forms."
+    },
+    {
+      id: "lore_nirvana_citadel",
+      dim: "horizon",
+      x: 4440, y: 2980,
+      title: "TAPE 12: EUPHORIA & LIVING ON THE HIGHS",
+      text: "'Life's always fun when you're living on the highs.' Euphoria Citadel captures the weightless adrenaline before the comedown hits the asphalt."
+    },
+    {
+      id: "lore_nirvana_bastion",
+      dim: "horizon",
+      x: 4400, y: 1280,
+      title: "TAPE 13: THE STELLAR TAPE VAULTS",
+      text: "Hidden inside Stellar Archive Bastion lie alternate bounce masters of '777', 'Martian University', 'Mobb', and 'Geeked' preserved in crystal data spools."
+    },
+    {
+      id: "lore_creator_throne",
+      dim: "horizon",
+      x: 2700, y: 420,
+      title: "TAPE 14: CREATOR'S FINAL MASTER",
+      text: "At the apex of The End Nirvana, CREATOR tests whether an operative carries both rhythm and resolve across three escalating symphonies of light and static."
     }
   ],
 
@@ -363,10 +446,38 @@ const State = {
             this.userProfile.bossKillCounts[bossId] = 1;
           }
         });
-        if (typeof this.userProfile.amberVials !== 'number') this.userProfile.amberVials = 1;
-        if (typeof this.userProfile.djOverdriveTimer !== 'number') this.userProfile.djOverdriveTimer = 0;
+        const validRelicIds = new Set(this.STUDIO_GEAR_DATA.map(g => g.id));
+        this.userProfile.unlockedRelics = [...new Set(this.userProfile.unlockedRelics)].filter(id => validRelicIds.has(id));
+        this.userProfile.equippedRelics = [...new Set(this.userProfile.equippedRelics)]
+          .filter(id => validRelicIds.has(id) && this.userProfile.unlockedRelics.includes(id))
+          .slice(0, this.MAX_EQUIPPED_RELICS || 3);
+
+        if (typeof this.userProfile.casinoTokens !== 'number' || !Number.isFinite(this.userProfile.casinoTokens) || this.userProfile.casinoTokens < 0) {
+          this.userProfile.casinoTokens = 100;
+        }
+        if (typeof this.userProfile.collectedRareTapes !== 'number' || !Number.isFinite(this.userProfile.collectedRareTapes) || this.userProfile.collectedRareTapes < 0) {
+          this.userProfile.collectedRareTapes = 0;
+        }
+        if (typeof this.userProfile.amberVials !== 'number' || !Number.isFinite(this.userProfile.amberVials) || this.userProfile.amberVials < 0) {
+          this.userProfile.amberVials = 1;
+        }
+        if (typeof this.userProfile.hyperchargeTimer !== 'number' || !Number.isFinite(this.userProfile.hyperchargeTimer) || this.userProfile.hyperchargeTimer < 0) {
+          this.userProfile.hyperchargeTimer = 0;
+        }
+        if (typeof this.userProfile.djOverdriveTimer !== 'number' || !Number.isFinite(this.userProfile.djOverdriveTimer) || this.userProfile.djOverdriveTimer < 0) {
+          this.userProfile.djOverdriveTimer = 0;
+        }
+        if (typeof this.userProfile.handle === 'string' && this.userProfile.handle.length > 0) {
+          this.userProfile.handle = this.userProfile.handle.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 16);
+        } else {
+          this.userProfile.handle = "";
+        }
         if (typeof this.userProfile.crtEnabled !== 'boolean') this.userProfile.crtEnabled = true;
-        if (this.userProfile.lastDimension) this.currentDimension = this.userProfile.lastDimension;
+        if (this.userProfile.lastDimension && this.DIMENSIONS[this.userProfile.lastDimension]) {
+          this.currentDimension = this.userProfile.lastDimension;
+        } else {
+          this.currentDimension = 'underground';
+        }
 
         // Wasteland Pillar Rescue Subroutine (Dossier Section 1)
         if (
@@ -395,16 +506,12 @@ const State = {
       this.syncVipStemOption();
     }
 
-    if (!this.userProfile.handle || this.userProfile.handle.trim() === "") {
-      setTimeout(() => {
-        if (typeof openUsernameModal === 'function') openUsernameModal();
-      }, 500);
-    } else if (!this.userProfile.hasSeenGuide) {
+    if (!this.userProfile.hasSeenGuide) {
       this.userProfile.hasSeenGuide = true;
       this.save();
       setTimeout(() => {
         if (typeof openGuideModal === 'function') openGuideModal('links');
-      }, 650);
+      }, 450);
     }
   },
 
@@ -457,8 +564,12 @@ const State = {
     if (btn) {
       btn.innerText = enabled ? 'CRT: ON' : 'CRT: OFF';
       btn.className = enabled
-        ? 'px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition'
-        : 'px-1.5 py-0.5 bg-[#0e1117] border border-neutral-700 rounded text-[10px] sm:text-xs text-neutral-400 font-mono active:scale-95 transition';
+        ? 'hidden md:inline-block px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition'
+        : 'hidden md:inline-block px-1.5 py-0.5 bg-[#0e1117] border border-neutral-700 rounded text-[10px] sm:text-xs text-neutral-400 font-mono active:scale-95 transition';
+    }
+    const gBtn = document.getElementById('guideCrtToggleBtn');
+    if (gBtn) {
+      gBtn.innerText = enabled ? '📺 CRT: ON' : '📺 CRT: OFF';
     }
   },
 
@@ -684,13 +795,13 @@ const State = {
     this.save();
   },
 
-  // Studio Hardware Relic Management (Phase 3)
+  // Studio Hardware Relic Management (Phase 3 + Expanded 8-Relic Rack)
   unlockRelic(relicId) {
     if (!this.userProfile.unlockedRelics.includes(relicId)) {
       this.userProfile.unlockedRelics.push(relicId);
       const r = this.STUDIO_GEAR_DATA.find(item => item.id === relicId);
       this.showToast(`HARDWARE ACQUIRED: ${r ? r.name : relicId}! 🎛️`);
-      if (this.userProfile.equippedRelics.length < 2) {
+      if (this.userProfile.equippedRelics.length < (this.MAX_EQUIPPED_RELICS || 3)) {
         this.userProfile.equippedRelics.push(relicId);
       }
       this.save();
@@ -698,13 +809,14 @@ const State = {
   },
 
   toggleEquipRelic(relicId) {
+    const maxSlots = this.MAX_EQUIPPED_RELICS || 3;
     const idx = this.userProfile.equippedRelics.indexOf(relicId);
     if (idx >= 0) {
       this.userProfile.equippedRelics.splice(idx, 1);
       this.showToast("HARDWARE UNMOUNTED FROM RACK");
     } else {
-      if (this.userProfile.equippedRelics.length >= 2) {
-        this.showToast("RACK SLOTS FULL (MAX 2 RELICS EQUIPPED)!");
+      if (this.userProfile.equippedRelics.length >= maxSlots) {
+        this.showToast(`RACK SLOTS FULL (MAX ${maxSlots} RELICS EQUIPPED)!`);
         return;
       }
       this.userProfile.equippedRelics.push(relicId);
@@ -743,33 +855,39 @@ const State = {
     if (vialBadge) vialBadge.innerText = this.userProfile.amberVials;
     if (!container) return;
 
+    const maxSlots = this.MAX_EQUIPPED_RELICS || 3;
+    const eqCount = Array.isArray(this.userProfile.equippedRelics) ? this.userProfile.equippedRelics.length : 0;
+    const slotCountEl = document.getElementById('gearModalSlotCount');
+    if (slotCountEl) slotCountEl.innerText = `${eqCount}/${maxSlots} EQUIPPED`;
+
     container.innerHTML = this.STUDIO_GEAR_DATA.map(g => {
       const isUnlocked = this.userProfile.unlockedRelics.includes(g.id);
       const isEquipped = this.hasRelicEquipped(g.id);
       const borderClass = isEquipped 
         ? "border-purple-400 bg-purple-950/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-        : (isUnlocked ? "border-neutral-700 bg-black/60" : "border-neutral-900 bg-neutral-950 opacity-40");
+        : (isUnlocked ? "border-neutral-700 bg-black/60" : "border-neutral-900 bg-neutral-950 opacity-60");
 
       return `
         <div class="p-3 border rounded-lg ${borderClass} flex items-center justify-between gap-2 transition font-mono">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded bg-black border border-purple-500/40 flex items-center justify-center text-lg">
+            <div class="w-8 h-8 rounded bg-black border border-purple-500/40 flex items-center justify-center text-lg shrink-0">
               ${g.icon}
             </div>
             <div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-cyber font-bold text-white text-xs">${g.name}</span>
                 <span class="text-[8px] font-mono uppercase px-1 py-0.2 border border-purple-400 text-purple-300 rounded">${g.buffText}</span>
               </div>
-              <p class="text-[10px] text-neutral-400 leading-tight mt-0.5">${g.desc}</p>
+              <p class="text-[10px] text-neutral-300 leading-tight mt-0.5">${g.desc}</p>
+              ${!isUnlocked && g.unlockHint ? `<p class="text-[9px] text-amber-400/90 mt-0.5">${g.unlockHint}</p>` : ''}
             </div>
           </div>
-          <div>
+          <div class="shrink-0">
             ${isUnlocked 
               ? `<button onclick="State.toggleEquipRelic('${g.id}')" class="px-2.5 py-1 text-xs rounded font-cyber transition ${isEquipped ? 'bg-purple-600 text-white font-bold' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}">
                    ${isEquipped ? 'MOUNTED' : 'MOUNT'}
                  </button>`
-              : '<span class="text-[10px] text-neutral-600 font-mono">[LOCKED]</span>'}
+              : '<span class="text-[10px] text-neutral-500 font-mono">[LOCKED]</span>'}
           </div>
         </div>
       `;
@@ -819,17 +937,22 @@ const State = {
   },
 
   updateHud() {
+    const dimCfg = this.DIMENSIONS && this.DIMENSIONS[this.currentDimension];
+    const badge = document.getElementById('dimensionBadge');
+    if (badge && dimCfg) badge.innerText = `${dimCfg.name}`;
     const cEl = document.getElementById('casinoTokensCount');
     if (cEl) cEl.innerText = this.userProfile.casinoTokens;
     const tEl = document.getElementById('rareBattleTapeCount');
     if (tEl) tEl.innerText = `${this.userProfile.collectedRareTapes}/${this.RARE_TAPES_THRESHOLD}`;
     const vEl = document.getElementById('hudVialCount');
     if (vEl) vEl.innerText = this.userProfile.amberVials;
+    const tvEl = document.getElementById('touchVialCount');
+    if (tvEl) tvEl.innerText = this.userProfile.amberVials;
 
     const handleBadge = document.getElementById('hudCallsign');
     if (handleBadge) {
-      const nameStr = this.userProfile.handle ? this.userProfile.handle.toUpperCase() : "UNREGISTERED";
-      handleBadge.innerText = `LVL ${this.userProfile.level || 1} // ${nameStr}`;
+      const nameStr = this.userProfile.handle ? this.userProfile.handle.toUpperCase() : "GUEST";
+      handleBadge.innerText = `${nameStr}`;
     }
 
     // Level & XP HUD Elements (Step 4 Hookups)
@@ -859,25 +982,29 @@ const State = {
     const isUnlocked = this.userProfile.collectedRareTapes >= this.RARE_TAPES_THRESHOLD;
     if (gatedStatus) {
       gatedStatus.innerText = isUnlocked
-        ? "SIGNAL LOCK CONFIRMED // CHAPTER III HORIZON GATEWAY READY"
-        : `ACCESS RESTRICTED // COLLECT ${this.RARE_TAPES_THRESHOLD - this.userProfile.collectedRareTapes} MORE TAPES IN WASTELAND`;
+        ? "SIGNAL LOCK CONFIRMED // THE END NIRVANA GATEWAY READY"
+        : `ACCESS RESTRICTED // COLLECT ${this.RARE_TAPES_THRESHOLD - this.userProfile.collectedRareTapes} MORE TAPES TO ENTER THE END NIRVANA`;
       gatedStatus.className = isUnlocked
         ? "text-[10px] font-mono text-emerald-400 font-bold mb-3 animate-pulse"
         : "text-[10px] font-mono text-red-400 mb-3";
     }
     if (gatedBtn) {
       gatedBtn.className = isUnlocked
-        ? "flex-1 py-2 bg-gradient-to-r from-[#00f0ff] to-emerald-400 text-black font-cyber font-bold text-xs rounded cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.5)] active:scale-95 transition"
+        ? "flex-1 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-cyber font-bold text-xs rounded cursor-pointer shadow-[0_0_15px_rgba(236,72,153,0.5)] active:scale-95 transition"
         : "flex-1 py-2 bg-neutral-800 text-neutral-500 font-cyber font-bold text-xs rounded cursor-not-allowed";
     }
   },
 
   switchDimension(dimKey, spawnX, spawnY) {
+    if (!this.DIMENSIONS[dimKey]) dimKey = 'underground';
     this.currentDimension = dimKey;
     const cfg = this.DIMENSIONS[dimKey];
     const targetX = spawnX !== undefined ? spawnX : (cfg && cfg.defaultSpawn ? cfg.defaultSpawn.x : 350);
     const targetY = spawnY !== undefined ? spawnY : (cfg && cfg.defaultSpawn ? cfg.defaultSpawn.y : 750);
 
+    if (typeof Combat !== 'undefined' && typeof Combat.clearActiveEffects === 'function') {
+      Combat.clearActiveEffects();
+    }
     if (typeof Entities !== 'undefined' && Entities && Entities.player) {
       Entities.player.x = targetX;
       Entities.player.y = targetY;
@@ -885,7 +1012,7 @@ const State = {
       Entities.player.knockbackVy = 0;
     }
     const badge = document.getElementById('dimensionBadge');
-    if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
+    if (badge && cfg) badge.innerText = `${cfg.name}`;
     this.save();
     if (cfg) this.showToast(`WARPED TO ${cfg.name}! 🌀`);
   },
@@ -903,22 +1030,34 @@ const State = {
     } else if (this.currentDimension === 'retrocade') {
       this.switchDimension('wasteland', 650, 1100);
     } else if (this.currentDimension === 'wasteland' && horizonUnlocked) {
-      this.switchDimension('horizon', 1800, 2050);
+      this.switchDimension('horizon', 2700, 3680);
     } else {
       this.switchDimension('underground', 350, 750);
     }
   },
 
+  _toastTimer: null,
+
   showToast(msg) {
     const t = document.getElementById('toastMessage');
     if (!t) return;
+    if (this._toastTimer) clearTimeout(this._toastTimer);
     t.innerText = msg;
     t.style.opacity = '1';
     t.style.transform = 'translateY(0)';
-    setTimeout(() => { 
+    this._toastTimer = setTimeout(() => { 
       t.style.opacity = '0'; 
       t.style.transform = 'translateY(12px)'; 
+      this._toastTimer = null;
     }, 2400);
+  },
+
+  isModalOpen() {
+    const modals = document.querySelectorAll('[id$="Modal"]');
+    for (let m of modals) {
+      if (m && m.classList && !m.classList.contains('hidden')) return true;
+    }
+    return false;
   },
 
   closeModals() {
@@ -927,6 +1066,15 @@ const State = {
       this.activeMiniGame.stop();
     }
     this.activeMiniGame = null;
+    if (typeof CasinoGame !== 'undefined' && typeof CasinoGame.stop === 'function') {
+      CasinoGame.stop();
+    }
+    if (typeof Input !== 'undefined' && typeof Input.resetKeys === 'function') {
+      Input.resetKeys();
+    }
+    if (typeof Combat !== 'undefined' && typeof Combat.cancelHeldInputs === 'function') {
+      Combat.cancelHeldInputs();
+    }
   },
 
   setWardrobeFilter(filterKey) {
@@ -1066,10 +1214,10 @@ const State = {
     if (this.userProfile.collectedRareTapes >= this.RARE_TAPES_THRESHOLD || forceOverride) {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
       this.closeModals();
-      this.switchDimension('horizon', 1800, 2050);
+      this.switchDimension('horizon', 2700, 3680);
       this.triggerScreenShake(16, 28);
       this.unlockSkin('horizon_celestial');
-      this.showToast("CHAPTER III UNLOCKED // WELCOME TO THE HORIZON DIMENSION! 🌌⚡");
+      this.showToast("ASCENSION COMPLETE // WELCOME TO THE END NIRVANA! ✨👑");
     } else {
       this.showToast(`ACCESS DENIED: NEED ${this.RARE_TAPES_THRESHOLD - this.userProfile.collectedRareTapes} MORE TAPES!`);
     }
@@ -1254,7 +1402,7 @@ const State = {
       target: 3,
       icon: '⚔️',
       title: 'WASTELAND ENFORCER',
-      desc: 'Eliminate 3 Hostiles (or 1 World Boss) in the Corruption or Horizon.',
+      desc: 'Eliminate 3 Hostiles (or 1 World Boss) in The Corruption or The End Nirvana.',
       xp: 100,
       tokens: 75,
       tapes: 2
@@ -1399,8 +1547,8 @@ const State = {
     },
     {
       id: 'ft_wasteland_rift',
-      name: 'WASTELAND // 50-TAPE EXTRACTION RIFT',
-      sub: 'Northern Gateway to Chapter III: The Horizon',
+      name: 'WASTELAND // 100-TAPE EXTRACTION RIFT',
+      sub: 'Northern Gateway to The End Nirvana',
       dim: 'wasteland',
       x: 3170,
       y: 280,
@@ -1409,14 +1557,25 @@ const State = {
     },
     {
       id: 'ft_horizon_citadel',
-      name: 'CHAPTER III // THE HORIZON CITADEL',
-      sub: 'Astral Sovereign Keep & Zero-G Mastering Sanctum (Requires 50📼)',
+      name: 'THE END NIRVANA // CELESTIAL GATEWAY',
+      sub: 'Euphoric Fountain Safe Zone & 4 Angelic Strongholds (Requires 100📼)',
       dim: 'horizon',
-      x: 1800,
-      y: 2050,
+      x: 2700,
+      y: 3680,
+      icon: '✨',
+      color: 'pink',
+      requiresTapes: 100
+    },
+    {
+      id: 'ft_end_nirvana_bridge',
+      name: "THE END NIRVANA // CREATOR'S SANCTUM BRIDGE",
+      sub: 'Northern Prismatic Bridge to 3-Phase Final Boss CREATOR (Requires 100📼)',
+      dim: 'horizon',
+      x: 2700,
+      y: 1620,
       icon: '👑',
-      color: 'cyan',
-      requiresTapes: 50
+      color: 'amber',
+      requiresTapes: 100
     }
   ],
 
@@ -1635,7 +1794,7 @@ const State = {
 
     // 4. Stats Matrix (4 Cards)
     const stats = [
-      { label: 'BATTLE CASSETTES', val: `${tapes} / 50 📼`, col: '#facc15' },
+      { label: 'BATTLE CASSETTES', val: `${tapes} / ${this.RARE_TAPES_THRESHOLD} 📼`, col: '#facc15' },
       { label: 'SOUND TOKENS', val: `${tokens} 🪙`, col: '#4ade80' },
       { label: 'BOSSES VANQUISHED', val: `${bossKills} 💀`, col: '#ff003c' },
       { label: 'TOP ARCADE SCORE', val: `${topArcade} PTS 🕹️`, col: '#00f0ff' }
@@ -1727,7 +1886,7 @@ const State = {
     const bossKills = this.getTotalBossKills();
     const hs = this.userProfile.arcadeHighScores || {};
     const topArcade = Math.max(hs.voidInvaders || 0, hs.gridRunner || 0, hs.lowlifeLeap || 0);
-    const text = `🪪 CLUB LOWLIFE // WORLD.EXE II\nOperative: ${handle} [LVL ${lvl}]\n📼 ${tapes}/50 Cassettes | 💀 ${bossKills} Bosses | 🕹️ ${topArcade} Arcade High Score\nEnter the world: https://clublowlife777.github.io/Club-Lowlife-World.EXE-II/`;
+    const text = `🪪 CLUB LOWLIFE // WORLD.EXE II\nOperative: ${handle} [LVL ${lvl}]\n📼 ${tapes}/${this.RARE_TAPES_THRESHOLD} Cassettes | 💀 ${bossKills} Bosses | 🕹️ ${topArcade} Arcade High Score\nEnter the world: https://clublowlife777.github.io/Club-Lowlife-World.EXE-II/`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {

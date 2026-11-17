@@ -214,7 +214,7 @@ const LowlifeLeap = {
       if (window.AudioEngine) AudioEngine.playSfx('jump');
     }
 
-    p.vy += 0.62; // Gravity
+    p.vy = Math.min(11.5, p.vy + 0.62); // Gravity with terminal fall cap (no platform tunneling)
 
     // Horizontal Step + Pipe Side Collision
     p.x = Math.max(10, p.x + p.vx);
@@ -235,7 +235,7 @@ const LowlifeLeap = {
     for (let b of solidBlocks) {
       if (p.x + p.width > b.x + 2 && p.x < b.x + b.width - 2) {
         // Landing on top
-        if (p.vy >= 0 && prevBottom <= b.y + 12 && p.y + p.height >= b.y && p.y + p.height <= b.y + 22) {
+        if (p.vy >= 0 && prevBottom <= b.y + 14 && p.y + p.height >= b.y && p.y < b.y + b.height) {
           p.grounded = true;
           p.vy = 0;
           p.y = b.y - p.height;

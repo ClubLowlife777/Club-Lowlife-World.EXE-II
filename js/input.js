@@ -12,12 +12,23 @@ const Input = {
 
   init() {
     window.addEventListener('keydown', (e) => {
-      if (e.target && e.target.tagName === 'INPUT') {
+      const targetTag = e.target && e.target.tagName ? e.target.tagName.toUpperCase() : '';
+      if (targetTag === 'INPUT' || targetTag === 'TEXTAREA' || targetTag === 'SELECT') {
         if (e.code === 'Escape' && window.State) State.closeModals();
         return;
       }
 
       if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
+
+      const modalOpen = !!(window.State && typeof State.isModalOpen === 'function' && State.isModalOpen());
+      const inMiniGame = !!(window.State && State.activeMiniGame);
+
+      if (modalOpen && !inMiniGame) {
+        if (e.code === 'Escape' || (e.key || '').toLowerCase() === 'escape') {
+          State.closeModals();
+        }
+        return;
+      }
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) || ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
@@ -35,31 +46,37 @@ const Input = {
         this.keys.fire = true;
       }
 
-      if ((code === 'KeyR' || key === 'r' || code === 'Space' || key === ' ') && !e.repeat && window.State && State.activeMiniGame && State.activeMiniGame.gameOver) {
+      if ((code === 'KeyR' || key === 'r' || code === 'Space' || key === ' ') && !e.repeat && inMiniGame && State.activeMiniGame.gameOver) {
         if (typeof State.activeMiniGame.retry === 'function') State.activeMiniGame.retry();
         return;
       }
 
-      if ((code === 'Space' || key === ' ') && !e.repeat && (!window.State || !State.activeMiniGame)) {
-        if (window.Combat && typeof Combat.triggerDash === 'function') Combat.triggerDash();
+      if ((code === 'Escape' || key === 'escape') && window.State) {
+        State.closeModals();
+        return;
       }
-      if ((code === 'KeyE' || key === 'e') && !e.repeat) this.triggerInteraction();
-      if ((code === 'KeyQ' || key === 'q') && !e.repeat && window.State && typeof State.useAmberVial === 'function') {
-        State.useAmberVial();
+
+      if (!inMiniGame) {
+        if ((code === 'Space' || key === ' ') && !e.repeat) {
+          if (window.Combat && typeof Combat.triggerDash === 'function') Combat.triggerDash();
+        }
+        if ((code === 'KeyE' || key === 'e') && !e.repeat) this.triggerInteraction();
+        if ((code === 'KeyQ' || key === 'q') && !e.repeat && window.State && typeof State.useAmberVial === 'function') {
+          State.useAmberVial();
+        }
+        if ((code === 'KeyJ' || key === 'j') && !e.repeat && window.Combat && typeof Combat.startShootInput === 'function') {
+          Combat.startShootInput();
+        }
+        if ((code === 'KeyK' || key === 'k') && !e.repeat && window.Combat && typeof Combat.startSlashInput === 'function') {
+          Combat.startSlashInput();
+        }
+        if ((code === 'KeyZ' || key === 'z') && !e.repeat && window.camera && typeof window.camera.cycleZoomPreset === 'function') {
+          window.camera.cycleZoomPreset();
+        }
+        if ((code === 'KeyM' || key === 'm') && !e.repeat && window.camera && typeof window.camera.toggleRadarExpanded === 'function') {
+          window.camera.toggleRadarExpanded();
+        }
       }
-      if ((code === 'KeyJ' || key === 'j') && !e.repeat && window.Combat && typeof Combat.startShootInput === 'function') {
-        Combat.startShootInput();
-      }
-      if ((code === 'KeyK' || key === 'k') && !e.repeat && window.Combat && typeof Combat.startSlashInput === 'function') {
-        Combat.startSlashInput();
-      }
-      if ((code === 'KeyZ' || key === 'z') && !e.repeat && (!window.State || !State.activeMiniGame) && window.camera && typeof window.camera.cycleZoomPreset === 'function') {
-        window.camera.cycleZoomPreset();
-      }
-      if ((code === 'KeyM' || key === 'm') && !e.repeat && (!window.State || !State.activeMiniGame) && window.camera && typeof window.camera.toggleRadarExpanded === 'function') {
-        window.camera.toggleRadarExpanded();
-      }
-      if ((code === 'Escape' || key === 'escape') && window.State) State.closeModals();
     });
 
     window.addEventListener('keyup', (e) => {
@@ -226,6 +243,9 @@ const Input = {
         e.preventDefault();
         if (window.State && typeof State.useAmberVial === 'function') State.useAmberVial();
       }, { passive: false });
+      bVial.addEventListener('click', () => {
+        if (window.State && typeof State.useAmberVial === 'function') State.useAmberVial();
+      });
     }
 
     if (bShoot) {
@@ -402,9 +422,12 @@ const Input = {
     if (skinsBtn) {
       skinsBtn.onclick = (e) => {
         e.preventDefault();
-        if (window.State && typeof State.renderSkins === 'function') {
-          State.renderSkins();
+        if (typeof openSkinLockerModal === 'function') {
+          openSkinLockerModal('all');
+          return;
         }
+        if (window.State && typeof State.closeModals === 'function') State.closeModals();
+        if (window.State && typeof State.renderSkins === 'function') State.renderSkins();
         const modal = document.getElementById('skinLockerModal') || document.getElementById('skinsModal');
         if (modal) modal.classList.remove('hidden');
       };
@@ -503,6 +526,7 @@ const Input = {
     if (type === 'zone' && typeof data.action === 'function') {
       data.action();
     } else if (type === 'npc') {
+      if (window.State && typeof State.closeModals === 'function') State.closeModals();
       const modal = document.getElementById('npcModal');
       const nEl = document.getElementById('npcName');
       const rEl = document.getElementById('npcRole');

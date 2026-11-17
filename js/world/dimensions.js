@@ -71,6 +71,7 @@ const Dimensions = {
       x: 180, y: 200, width: 150, height: 90, 
       label: 'TRUNK POP // MERCH & FAST TRAVEL', 
       action: () => { 
+        if (window.State && typeof State.closeModals === 'function') State.closeModals();
         const m = document.getElementById('merchModal'); 
         if (m) m.classList.remove('hidden'); 
       } 
@@ -152,8 +153,8 @@ const Dimensions = {
     { id: 'portal_underground', x: 800, y: 1050, width: 80, height: 80, label: 'WARP: UNDERGROUND NIGHT SHIFT', action: () => { if (window.State) State.switchDimension('underground', 350, 750); } },
     { id: 'portal_wasteland', x: 1520, y: 1050, width: 80, height: 80, label: 'WARP: ASHEN WASTELAND', action: () => { if (window.State) State.switchDimension('wasteland', 650, 1100); } },
     { id: 'music_kiosk_lounge', x: 245, y: 205, width: 190, height: 120, label: 'CLUB LOWLIFE MUSIC & STREAMING QUESTS', action: () => { if (typeof openDiscographyModal === 'function') openDiscographyModal(); else { const m = document.getElementById('discoModal'); if (m) m.classList.remove('hidden'); } } },
-    { id: 'casino_slots_classic', x: 1860, y: 165, width: 170, height: 105, label: 'PLAY CLASSIC 3-REEL SLOTS [5🪙]', action: () => { if (window.CasinoGame) window.CasinoGame.open('classic'); else if (typeof CasinoGame !== 'undefined') CasinoGame.open('classic'); } },
-    { id: 'casino_slots_highroller', x: 2100, y: 165, width: 185, height: 105, label: 'PLAY HIGH-ROLLER 5-LANE SLOTS [25🪙]', action: () => { if (window.CasinoGame) window.CasinoGame.open('highroller'); else if (typeof CasinoGame !== 'undefined') CasinoGame.open('highroller'); } }
+    { id: 'casino_slots_classic', x: 1860, y: 165, width: 170, height: 105, label: 'PLAY CLASSIC 3-REEL SLOTS [5🪙]', action: () => { if (window.State && typeof State.closeModals === 'function') State.closeModals(); if (window.CasinoGame) window.CasinoGame.open('classic'); else if (typeof CasinoGame !== 'undefined') CasinoGame.open('classic'); } },
+    { id: 'casino_slots_highroller', x: 2100, y: 165, width: 185, height: 105, label: 'PLAY HIGH-ROLLER 5-LANE SLOTS [25🪙]', action: () => { if (window.State && typeof State.closeModals === 'function') State.closeModals(); if (window.CasinoGame) window.CasinoGame.open('highroller'); else if (typeof CasinoGame !== 'undefined') CasinoGame.open('highroller'); } }
   ],
 
   // =========================================================================
@@ -287,7 +288,7 @@ const Dimensions = {
   wastelandChests: [
     // Original 8 Chests
     { id: "c1", x: 800, y: 650, width: 36, height: 28, type: "supply", label: "HIGHWAY SUPPLY CRATE", opened: false },
-    { id: "c2", x: 1600, y: 1950, width: 38, height: 30, type: "biohazard", label: "SILO 07 HAZMAT CACHE", opened: false },
+    { id: "c2", x: 1675, y: 1950, width: 38, height: 30, type: "biohazard", label: "SILO 07 HAZMAT CACHE", opened: false },
     { id: "c3", x: 5500, y: 700, width: 40, height: 32, type: "vault", label: "OBSOLETE CAVE VAULT", relicReward: "relic_peak_controller", skinReward: "cave_stalker", opened: false },
     { id: "c4", x: 3220, y: 3950, width: 44, height: 34, type: "master_holding", label: "GOLDEN MASTER VAULT", skinReward: "static_nightmare", opened: false },
     { id: "c5", x: 2380, y: 1320, width: 40, height: 32, type: "vault", label: "MARTIAN UNIVERSITY ARCHIVE VAULT", relicReward: "relic_tape_saturator", skinReward: "sound_designer", opened: false },
@@ -298,12 +299,12 @@ const Dimensions = {
     // New Dense Wasteland Chests (Dungeons, Caves, Castles & Infrastructure Nodes)
     { id: "c9", x: 1780, y: 360, width: 38, height: 30, type: "biohazard", label: "RUST SANCTUARY MED-STASH", opened: false },
     { id: "c10", x: 2380, y: 360, width: 36, height: 28, type: "supply", label: "SANCTUARY QUARTERMASTER CRATE", opened: false },
-    { id: "c11", x: 3330, y: 1320, width: 44, height: 34, type: "master_holding", label: "DEEP VOID MAINFRAME VAULT", skinReward: "zero_frame_phantom", opened: false },
+    { id: "c11", x: 3330, y: 1320, width: 44, height: 34, type: "master_holding", label: "DEEP VOID MAINFRAME VAULT", relicReward: "relic_vampire_limiter", skinReward: "zero_frame_phantom", opened: false },
     { id: "c12", x: 3520, y: 1720, width: 36, height: 28, type: "supply", label: "AIRLOCK TELEMETRY CRATE", opened: false },
     { id: "c13", x: 520, y: 4160, width: 40, height: 32, type: "vault", label: "THE FURNACE ALLOY VAULT", skinReward: "carbon_enforcer", opened: false },
     { id: "c14", x: 1450, y: 3300, width: 38, height: 30, type: "biohazard", label: "FOUNDRY COOLANT CACHE", opened: false },
     { id: "c15", x: 1420, y: 4160, width: 36, height: 28, type: "supply", label: "SMELTING CORE MUNITIONS", opened: false },
-    { id: "c16", x: 1960, y: 4280, width: 40, height: 32, type: "vault", label: "UNDERCITY DRAIN CONTRABAND VAULT", skinReward: "drainage_hermit", opened: false },
+    { id: "c16", x: 1960, y: 4280, width: 40, height: 32, type: "vault", label: "UNDERCITY DRAIN CONTRABAND VAULT", relicReward: "relic_phase_blade", skinReward: "drainage_hermit", opened: false },
     { id: "c17", x: 2460, y: 3600, width: 36, height: 28, type: "supply", label: "TRANSIT PLATFORM CRATE", opened: false },
     { id: "c18", x: 5820, y: 1720, width: 40, height: 32, type: "vault", label: "CRYSTAL GROTTO ANCIENT VAULT", skinReward: "obsidian_scout", opened: false },
     { id: "c19", x: 5340, y: 1980, width: 38, height: 30, type: "biohazard", label: "ECHO CAVERN SPORE CACHE", opened: false },
@@ -325,24 +326,20 @@ const Dimensions = {
     { id: 'washroom_mirror', x: 3880, y: 3940, width: 90, height: 60, label: 'LOOK INTO CRACKED WASHROOM MIRROR', action: () => {
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
       if (window.State) State.unlockSkin('old_self');
-      const m = document.getElementById('npcModal');
-      if (m) {
-        document.getElementById('npcName').innerText = 'THE MIRROR REVEAL // SCENE 04';
-        document.getElementById('npcRole').innerText = 'INDUSTRIAL RESTROOM (TUBE LIGHT)';
-        document.getElementById('npcAvatarIcon').innerText = '🪞';
-        document.getElementById('npcDialogueText').innerText = '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era.';
-        m.classList.remove('hidden');
-      }
+      Dimensions.openNpcDialog(
+        'THE MIRROR REVEAL // SCENE 04',
+        'INDUSTRIAL RESTROOM (TUBE LIGHT)',
+        '🪞',
+        '[PRESSURIZED AIR HISS] You unlatch the side seals and lift the matte-black helmet in front of the cracked glass. The captor holding the old era hostage was never an outsider—it is you, stripped of color, ushering in the dark new era.'
+      );
     }},
     { id: 'bonfire_safe_zone', x: 2270, y: 2870, width: 60, height: 60, label: "CONNER CADE'S BONFIRE SAFE ZONE", action: () => {
-      const m = document.getElementById('npcModal');
-      if (m) {
-        document.getElementById('npcName').innerText = "CONNER CADE'S CREATIVE BONFIRE";
-        document.getElementById('npcRole').innerText = 'NEUTRAL CREATIVE REFUGE';
-        document.getElementById('npcAvatarIcon').innerText = '🔥';
-        document.getElementById('npcDialogueText').innerText = "Warm orange light flickers against the wet asphalt. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops.";
-        m.classList.remove('hidden');
-      }
+      Dimensions.openNpcDialog(
+        "CONNER CADE'S CREATIVE BONFIRE",
+        'NEUTRAL CREATIVE REFUGE',
+        '🔥',
+        "Warm orange light flickers against the wet asphalt. Enemies cannot aggro inside this perimeter. Creatives from Milwaukee's underground gather here to share unreleased mixes and plan the next visual drops."
+      );
     }},
     { id: 'rust_sanctuary_clinic', x: 2010, y: 420, width: 160, height: 110, label: 'RUST SANCTUARY BIO-CLINIC [FULL HEAL]', action: () => {
       if (window.Entities && Entities.player) {
@@ -353,18 +350,17 @@ const Dimensions = {
       if (window.State) State.showToast("RUST SANCTUARY BIO-POD: HP FULLY RESTORED! 💚");
     }},
     { id: 'deep_void_terminal', x: 3120, y: 1320, width: 130, height: 80, label: 'ACCESS DEEP VOID MAINFRAME', action: () => {
-      const m = document.getElementById('npcModal');
-      if (m) {
-        document.getElementById('npcName').innerText = 'DEEP VOID DATA VAULT // NODE 05';
-        document.getElementById('npcRole').innerText = 'SUBMERGED AIR-GAPPED MAINFRAME';
-        document.getElementById('npcAvatarIcon').innerText = '🖥️';
-        document.getElementById('npcDialogueText').innerText = 'ENCRYPTED TELEMETRY VERIFIED: All 6 Wasteland World Bosses (Blade-Zero, Chem-Enforcer, Drone Queen, Vulcan-808, Sub-Zero, and Archon Vex) are broadcasting live coordinates to your tactical radar.';
-        m.classList.remove('hidden');
-      }
+      Dimensions.openNpcDialog(
+        'DEEP VOID DATA VAULT // NODE 05',
+        'SUBMERGED AIR-GAPPED MAINFRAME',
+        '🖥️',
+        'ENCRYPTED TELEMETRY VERIFIED: All 6 Wasteland World Bosses (Blade-Zero, Chem-Enforcer, Drone Queen, Vulcan-808, Sub-Zero, and Archon Vex) are broadcasting live coordinates to your tactical radar.'
+      );
     }},
-    { id: 'trunk_drop', x: 1700, y: 1850, width: 140, height: 70, label: 'BURNED-OUT TRUNK DROP', action: () => { const m = document.getElementById('merchModal'); if (m) m.classList.remove('hidden'); } },
-    { id: 'cassette_drop', x: 4900, y: 650, width: 140, height: 70, label: 'CASSETTE AIR-DROP CLAIM', action: () => { const m = document.getElementById('cassetteClaimModal'); if (m) m.classList.remove('hidden'); } },
-    { id: 'gated_rift', x: 3120, y: 150, width: 180, height: 100, label: 'NEURAL EXTRACTION GATE [50 TAPES]', action: () => {
+    { id: 'trunk_drop', x: 1700, y: 1850, width: 140, height: 70, label: 'BURNED-OUT TRUNK DROP', action: () => { if (window.State && typeof State.closeModals === 'function') State.closeModals(); const m = document.getElementById('merchModal'); if (m) m.classList.remove('hidden'); } },
+    { id: 'cassette_drop', x: 4900, y: 650, width: 140, height: 70, label: 'CASSETTE AIR-DROP CLAIM', action: () => { if (window.State && typeof State.closeModals === 'function') State.closeModals(); const m = document.getElementById('cassetteClaimModal'); if (m) m.classList.remove('hidden'); } },
+    { id: 'gated_rift', x: 3120, y: 150, width: 180, height: 100, label: 'NEURAL EXTRACTION GATE [100 TAPES]', action: () => {
+      if (window.State && typeof State.closeModals === 'function') State.closeModals();
       if (window.State) State.updateHud();
       const m = document.getElementById('gatedModal');
       if (m) m.classList.remove('hidden');
@@ -372,51 +368,93 @@ const Dimensions = {
   ],
 
   // =========================================================================
-  // 4. CHAPTER III // THE HORIZON DIMENSION (3600 x 2400 px Astral Citadel)
+  // 4. THE END NIRVANA (5400 x 4000 px Euphoric Celestial Stronghold World)
   // =========================================================================
   horizonObstacles: [
-    { x: 0, y: 0, width: 3600, height: 45, label: "HORIZON PERIMETER NORTH" },
-    { x: 0, y: 2355, width: 3600, height: 45, label: "HORIZON PERIMETER SOUTH" },
-    { x: 0, y: 0, width: 45, height: 2400, label: "HORIZON PERIMETER WEST" },
-    { x: 3555, y: 0, width: 45, height: 2400, label: "HORIZON PERIMETER EAST" },
+    { x: 0, y: 0, width: 5400, height: 45, label: "END NIRVANA SKY BOUNDARY (N)" },
+    { x: 0, y: 3955, width: 5400, height: 45, label: "END NIRVANA SKY BOUNDARY (S)" },
+    { x: 0, y: 0, width: 45, height: 4000, label: "END NIRVANA SKY BOUNDARY (W)" },
+    { x: 5355, y: 0, width: 45, height: 4000, label: "END NIRVANA SKY BOUNDARY (E)" },
 
-    // Astral Sovereign Keep (Northern Star Castle, X: 1200-2400, Y: 200-950)
-    { x: 1200, y: 200, width: 1200, height: 40, label: "ASTRAL KEEP NORTH CREST" },
-    { x: 1200, y: 200, width: 40, height: 750, label: "ASTRAL KEEP WEST TOWER" },
-    { x: 2360, y: 200, width: 40, height: 750, label: "ASTRAL KEEP EAST TOWER" },
-    { x: 1200, y: 910, width: 480, height: 40, label: "ASTRAL KEEP GATE WEST" },
-    { x: 1920, y: 910, width: 480, height: 40, label: "ASTRAL KEEP GATE EAST" },
+    // South Gateway Marble Corner Pillars (Open Sanctuary Plaza: X 2360..3040, Y 3420..3880)
+    { x: 2360, y: 3420, width: 50, height: 50, label: "SANCTUARY PILLAR NW" },
+    { x: 2990, y: 3420, width: 50, height: 50, label: "SANCTUARY PILLAR NE" },
 
-    // Zero-G Mastering Sanctum (West Wing, X: 250-1000, Y: 750-1500)
-    { x: 250, y: 750, width: 750, height: 35, label: "ZERO-G SANCTUM NORTH" },
-    { x: 250, y: 750, width: 35, height: 750, label: "ZERO-G SANCTUM WEST" },
-    { x: 250, y: 1465, width: 750, height: 35, label: "ZERO-G SANCTUM SOUTH" },
-    { x: 965, y: 750, width: 35, height: 280, label: "SANCTUM PORTAL WALL (N)" },
-    { x: 965, y: 1220, width: 35, height: 280, label: "SANCTUM PORTAL WALL (S)" },
+    // Stronghold 1: SERAPHIM CATHEDRAL (West-South: X 340..1580, Y 2150..3250 | 200-220px Gates)
+    { x: 340, y: 2150, width: 480, height: 35, label: "CATHEDRAL NORTH WALL (W)" },
+    { x: 1020, y: 2150, width: 560, height: 35, label: "CATHEDRAL NORTH WALL (E)" },
+    { x: 340, y: 3215, width: 480, height: 35, label: "CATHEDRAL SOUTH WALL (W)" },
+    { x: 1020, y: 3215, width: 560, height: 35, label: "CATHEDRAL SOUTH WALL (E)" },
+    { x: 340, y: 2150, width: 35, height: 1100, label: "CATHEDRAL WEST WALL" },
+    { x: 1545, y: 2150, width: 35, height: 430, label: "CATHEDRAL EAST GATE (N)" },
+    { x: 1545, y: 2800, width: 35, height: 450, label: "CATHEDRAL EAST GATE (S)" },
+    { x: 660, y: 2520, width: 60, height: 240, label: "SERAPHIM ARCH PILLAR W" },
+    { x: 1180, y: 2520, width: 60, height: 240, label: "SERAPHIM ARCH PILLAR E" },
 
-    // Syndicate Archive Bastion (East Wing, X: 2600-3350, Y: 750-1500)
-    { x: 2600, y: 750, width: 750, height: 35, label: "ARCHIVE BASTION NORTH" },
-    { x: 3315, y: 750, width: 35, height: 750, label: "ARCHIVE BASTION EAST" },
-    { x: 2600, y: 1465, width: 750, height: 35, label: "ARCHIVE BASTION SOUTH" },
-    { x: 2600, y: 750, width: 35, height: 280, label: "BASTION GATE WALL (N)" },
-    { x: 2600, y: 1220, width: 35, height: 280, label: "BASTION GATE WALL (S)" },
+    // Stronghold 2: CHORUS CONSERVATORY (West-North: X 340..1580, Y 420..1520 | 200-220px Gates)
+    { x: 340, y: 420, width: 1240, height: 35, label: "CONSERVATORY NORTH CREST" },
+    { x: 340, y: 1485, width: 480, height: 35, label: "CONSERVATORY SOUTH GATE (W)" },
+    { x: 1020, y: 1485, width: 560, height: 35, label: "CONSERVATORY SOUTH GATE (E)" },
+    { x: 340, y: 420, width: 35, height: 1100, label: "CONSERVATORY WEST WALL" },
+    { x: 1545, y: 420, width: 35, height: 430, label: "CONSERVATORY EAST GATE (N)" },
+    { x: 1545, y: 1070, width: 35, height: 450, label: "CONSERVATORY EAST GATE (S)" },
+    { x: 680, y: 800, width: 70, height: 220, label: "HARMONIC HARP MONOLITH" },
 
-    // Starlight Bridge Pylons (Central Conduit)
-    { x: 1480, y: 1320, width: 70, height: 320, label: "PRISMATIC PYLON WEST" },
-    { x: 2050, y: 1320, width: 70, height: 320, label: "PRISMATIC PYLON EAST" }
+    // Stronghold 3: EUPHORIA CITADEL OF LIGHT (East-South: X 3820..5060, Y 2150..3250)
+    { x: 3820, y: 2150, width: 560, height: 35, label: "EUPHORIA CITADEL NORTH (W)" },
+    { x: 4580, y: 2150, width: 480, height: 35, label: "EUPHORIA CITADEL NORTH (E)" },
+    { x: 3820, y: 3215, width: 560, height: 35, label: "EUPHORIA CITADEL SOUTH (W)" },
+    { x: 4580, y: 3215, width: 480, height: 35, label: "EUPHORIA CITADEL SOUTH (E)" },
+    { x: 3820, y: 2150, width: 35, height: 430, label: "CITADEL WEST GATE (N)" },
+    { x: 3820, y: 2800, width: 35, height: 450, label: "CITADEL WEST GATE (S)" },
+    { x: 5025, y: 2150, width: 35, height: 1100, label: "CITADEL EAST BASTION WALL" },
+    { x: 4160, y: 2520, width: 60, height: 240, label: "HALO PILLAR WEST" },
+    { x: 4680, y: 2520, width: 60, height: 240, label: "HALO PILLAR EAST" },
+
+    // Stronghold 4: STELLAR ARCHIVE BASTION (East-North: X 3820..5060, Y 420..1520)
+    { x: 3820, y: 420, width: 1240, height: 35, label: "ARCHIVE BASTION NORTH" },
+    { x: 3820, y: 1485, width: 560, height: 35, label: "ARCHIVE SOUTH GATE (W)" },
+    { x: 4580, y: 1485, width: 480, height: 35, label: "ARCHIVE SOUTH GATE (E)" },
+    { x: 3820, y: 420, width: 35, height: 430, label: "ARCHIVE WEST GATE (N)" },
+    { x: 3820, y: 1070, width: 35, height: 450, label: "ARCHIVE WEST GATE (S)" },
+    { x: 5025, y: 420, width: 35, height: 1100, label: "ARCHIVE EAST WALL" },
+    { x: 4650, y: 800, width: 70, height: 220, label: "CELESTIAL TAPE MONOLITH" },
+
+    // Central Prismatic Ascension Bridge Pylons (Y: 1650..3150)
+    { x: 2330, y: 2050, width: 65, height: 240, label: "ASCENSION PYLON NW" },
+    { x: 3005, y: 2050, width: 65, height: 240, label: "ASCENSION PYLON NE" },
+    { x: 2330, y: 2650, width: 65, height: 240, label: "ASCENSION PYLON SW" },
+    { x: 3005, y: 2650, width: 65, height: 240, label: "ASCENSION PYLON SE" },
+
+    // Stronghold 5: THRONE OF ETERNITY // CREATOR'S SANCTUM (North Center: X 1850..3550, Y 220..1360)
+    { x: 1850, y: 220, width: 1700, height: 40, label: "THRONE OF ETERNITY NORTH CREST" },
+    { x: 1850, y: 220, width: 40, height: 460, label: "THRONE WEST RAMPART (N)" },
+    { x: 1850, y: 880, width: 40, height: 480, label: "THRONE WEST RAMPART (S)" },
+    { x: 3510, y: 220, width: 40, height: 460, label: "THRONE EAST RAMPART (N)" },
+    { x: 3510, y: 880, width: 40, height: 480, label: "THRONE EAST RAMPART (S)" },
+    { x: 1850, y: 1320, width: 680, height: 40, label: "THRONE GRAND GATE (W)" },
+    { x: 2870, y: 1320, width: 680, height: 40, label: "THRONE GRAND GATE (E)" }
   ],
 
   horizonChests: [
-    { id: "hc1", x: 1780, y: 290, width: 44, height: 34, type: "master_holding", label: "ASTRAL THRONE MASTER VAULT", skinReward: "the_creator", opened: false },
-    { id: "hc2", x: 420, y: 1080, width: 40, height: 32, type: "vault", label: "ZERO-G ACOUSTIC VAULT", skinReward: "grandmaster_producer", opened: false },
-    { id: "hc3", x: 3120, y: 1080, width: 40, height: 32, type: "vault", label: "ARCHIVE BASTION VAULT", skinReward: "lowlife_legend", opened: false },
-    { id: "hc4", x: 1320, y: 340, width: 38, height: 30, type: "biohazard", label: "CELESTIAL AMBER CACHE", opened: false }
+    { id: "hc1", x: 2680, y: 290, width: 44, height: 34, type: "master_holding", label: "CREATOR'S THRONE SOVEREIGN VAULT", relicReward: "relic_master_bus_halo", skinReward: "the_creator", opened: false },
+    { id: "hc2", x: 460, y: 620, width: 40, height: 32, type: "vault", label: "CONSERVATORY HARMONIC VAULT", relicReward: "relic_arpeggiator", skinReward: "grandmaster_producer", opened: false },
+    { id: "hc3", x: 4920, y: 620, width: 40, height: 32, type: "vault", label: "STELLAR ARCHIVE MASTER VAULT", relicReward: "relic_master_bus_halo", skinReward: "lowlife_legend", opened: false },
+    { id: "hc4", x: 460, y: 2320, width: 40, height: 32, type: "vault", label: "SERAPHIM CATHEDRAL RELIC CHEST", relicReward: "relic_vampire_limiter", skinReward: "casshern_android", opened: false },
+    { id: "hc5", x: 1380, y: 3060, width: 38, height: 30, type: "biohazard", label: "SERAPHIM AMBER ELIXIR CACHE", opened: false },
+    { id: "hc6", x: 4920, y: 2320, width: 40, height: 32, type: "vault", label: "EUPHORIA CITADEL BLADE VAULT", relicReward: "relic_phase_blade", skinReward: "horizon_celestial", opened: false },
+    { id: "hc7", x: 4000, y: 3060, width: 38, height: 30, type: "supply", label: "CITADEL EUPHORIA SUPPLY CRATE", opened: false },
+    { id: "hc8", x: 2020, y: 340, width: 44, height: 34, type: "master_holding", label: "SANCTUM LEFT CHERUB VAULT", skinReward: "sound_designer", opened: false },
+    { id: "hc9", x: 3380, y: 340, width: 38, height: 30, type: "biohazard", label: "SANCTUM RIGHT VIAL CACHE", opened: false },
+    { id: "hc10", x: 2440, y: 2380, width: 36, height: 28, type: "supply", label: "ASCENSION BRIDGE DROP CRATE", opened: false },
+    { id: "hc11", x: 1420, y: 1840, width: 38, height: 30, type: "biohazard", label: "WEST CLOUD TERRACE CACHE", opened: false },
+    { id: "hc12", x: 3940, y: 1840, width: 36, height: 28, type: "supply", label: "EAST CLOUD TERRACE CRATE", opened: false }
   ],
 
   horizonZones: [
-    { id: 'portal_wasteland_return', x: 1760, y: 2180, width: 80, height: 80, label: 'WARP: ASHEN WASTELAND', action: () => { if (window.State) State.switchDimension('wasteland', 3170, 280); } },
-    { id: 'portal_underground_return', x: 1520, y: 2180, width: 80, height: 80, label: 'WARP: UNDERGROUND HUB', action: () => { if (window.State) State.switchDimension('underground', 350, 750); } },
-    { id: 'zero_g_console', x: 520, y: 920, width: 180, height: 90, label: 'ZERO-G MASTERING SANCTUM [OVERDRIVE + HEAL]', action: () => {
+    { id: 'portal_wasteland_return', x: 2930, y: 3760, width: 80, height: 80, label: 'WARP: ASHEN WASTELAND', action: () => { if (window.State) State.switchDimension('wasteland', 3170, 280); } },
+    { id: 'portal_underground_return', x: 2390, y: 3760, width: 80, height: 80, label: 'WARP: UNDERGROUND HUB', action: () => { if (window.State) State.switchDimension('underground', 350, 750); } },
+    { id: 'zero_g_console', x: 2610, y: 3530, width: 180, height: 90, label: 'EUPHORIC FOUNTAIN SHRINE [HEAL + OVERDRIVE]', action: () => {
       if (window.Entities && Entities.player) {
         Entities.player.hp = Entities.player.maxHp;
         if (typeof Entities.updatePlayerHealthUI === 'function') Entities.updatePlayerHealthUI();
@@ -425,11 +463,42 @@ const Dimensions = {
         State.userProfile.djOverdriveTimer = 10800;
         State.userProfile.hyperchargeTimer = 600;
         State.save();
-        State.showToast("ASTRAL RESONANCE ENGAGED: FULL HP + HYPERCHARGE + 3M OVERDRIVE! 🌌⚡");
+        State.showToast("EUPHORIC FOUNTAIN BLESSING: FULL HP + HYPERCHARGE + 3M OVERDRIVE! ✨👑");
       }
       if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
+    }},
+    { id: 'cathedral_lore_shrine', x: 860, y: 2240, width: 120, height: 70, label: 'READ SERAPHIM CHOIR TABLET', action: () => {
+      Dimensions.openNpcDialog(
+        'SERAPHIM CATHEDRAL ARCHIVE',
+        'WESTERN SANCTUARY // 432 HZ',
+        '🪽',
+        'INSPIRATION LOG: Within Seraphim Cathedral, every distorted club 808 sheds its static—revealing pure lush harmonic chords built to float above the chaos.'
+      );
+    }},
+    { id: 'bastion_lore_shrine', x: 4380, y: 2240, width: 120, height: 70, label: 'READ EUPHORIA CITADEL MONOLITH', action: () => {
+      Dimensions.openNpcDialog(
+        'EUPHORIA CITADEL SCRIPTURE',
+        'EASTERN HEAVEN KEEP',
+        '🌸',
+        'PROPHECY OF THE END NIRVANA: Conquer the 4 Wing Guardians across the pink skies before ascending the Prismatic Bridge to challenge CREATOR through all 3 phases.'
+      );
     }}
   ],
+
+  openNpcDialog(name, role, icon, text) {
+    if (window.State && typeof State.closeModals === 'function') State.closeModals();
+    const m = document.getElementById('npcModal');
+    if (!m) return;
+    const nEl = document.getElementById('npcName');
+    const rEl = document.getElementById('npcRole');
+    const iEl = document.getElementById('npcAvatarIcon');
+    const tEl = document.getElementById('npcDialogueText');
+    if (nEl) nEl.innerText = name || 'TERMINAL';
+    if (rEl) rEl.innerText = role || 'DISPATCH';
+    if (iEl) iEl.innerText = icon || '👤';
+    if (tEl) tEl.innerText = text || '';
+    m.classList.remove('hidden');
+  },
 
   getActiveObstacles() {
     if (window.State && State.currentDimension === 'horizon') return this.horizonObstacles;

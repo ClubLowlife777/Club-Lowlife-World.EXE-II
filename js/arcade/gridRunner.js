@@ -187,10 +187,17 @@ const GridRunner = {
 
     // Read Input (Keyboard + Touch D-Pad + Analog Joystick) into Turn Buffer
     const av = (window.Input && Input.analogVector && Input.analogVector.active) ? Input.analogVector : { x: 0, y: 0 };
-    if ((window.Input && Input.keys.left) || av.x < -0.25) p.nextDir = 'left';
-    else if ((window.Input && Input.keys.right) || av.x > 0.25) p.nextDir = 'right';
-    else if ((window.Input && Input.keys.up) || av.y < -0.25) p.nextDir = 'up';
-    else if ((window.Input && Input.keys.down) || av.y > 0.25) p.nextDir = 'down';
+    if (window.Input && Input.keys.left) p.nextDir = 'left';
+    else if (window.Input && Input.keys.right) p.nextDir = 'right';
+    else if (window.Input && Input.keys.up) p.nextDir = 'up';
+    else if (window.Input && Input.keys.down) p.nextDir = 'down';
+    else if (Math.abs(av.x) >= Math.abs(av.y)) {
+      if (av.x < -0.25) p.nextDir = 'left';
+      else if (av.x > 0.25) p.nextDir = 'right';
+    } else {
+      if (av.y < -0.25) p.nextDir = 'up';
+      else if (av.y > 0.25) p.nextDir = 'down';
+    }
 
     // Snap & Turn at Tile Centers
     const col = Math.floor((p.x - this.offsetX) / ts);

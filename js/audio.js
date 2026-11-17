@@ -47,7 +47,9 @@ const AudioEngine = {
     galaga_nes:     { title: '"GALAGA" (NES VERSION)',         src: 'assets/audio/galaga_nes.m4a',               tempo: 142, rate: 1.0, synthMix: 0.25 },
 
     geeked_master:  { title: '"GEEKED" (8-BIT MASTER)',        src: 'assets/audio/geeked_8bit_master.m4a',       tempo: 148, rate: 1.0, synthMix: 0.15 },
-    geeked_nes:     { title: '"GEEKED" (NES VERSION)',         src: 'assets/audio/geeked_nes.m4a',               tempo: 148, rate: 1.0, synthMix: 0.25 }
+    geeked_nes:     { title: '"GEEKED" (NES VERSION)',         src: 'assets/audio/geeked_nes.m4a',               tempo: 148, rate: 1.0, synthMix: 0.25 },
+
+    vip_techno:     { title: '"DANCING" (138 BPM VIP TECHNO)', src: 'assets/audio/dancing_8bit_master.m4a',      tempo: 138, rate: 1.06, synthMix: 0.36 }
   },
 
   // =========================================================================
