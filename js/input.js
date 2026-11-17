@@ -5,7 +5,7 @@
  */
 
 const Input = {
-  keys: { up: false, down: false, left: false, right: false, shift: false },
+  keys: { up: false, down: false, left: false, right: false, shift: false, fire: false },
   analogVector: { x: 0, y: 0, active: false },
   joystickTouchId: null,
   activeInteractable: null,
@@ -31,7 +31,18 @@ const Input = {
       if (code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'arrowleft') this.keys.left = true;
       if (code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'arrowright') this.keys.right = true;
       if (code === 'ShiftLeft' || code === 'ShiftRight' || key === 'shift') this.keys.shift = true;
+      if (code === 'Space' || code === 'KeyJ' || code === 'KeyK' || key === ' ' || key === 'j' || key === 'k') {
+        this.keys.fire = true;
+      }
 
+      if ((code === 'KeyR' || key === 'r' || code === 'Space' || key === ' ') && !e.repeat && window.State && State.activeMiniGame && State.activeMiniGame.gameOver) {
+        if (typeof State.activeMiniGame.retry === 'function') State.activeMiniGame.retry();
+        return;
+      }
+
+      if ((code === 'Space' || key === ' ') && !e.repeat && (!window.State || !State.activeMiniGame)) {
+        if (window.Combat && typeof Combat.triggerDash === 'function') Combat.triggerDash();
+      }
       if ((code === 'KeyE' || key === 'e') && !e.repeat) this.triggerInteraction();
       if ((code === 'KeyQ' || key === 'q') && !e.repeat && window.State && typeof State.useAmberVial === 'function') {
         State.useAmberVial();
@@ -56,6 +67,9 @@ const Input = {
       if (code === 'KeyA' || code === 'ArrowLeft' || key === 'a' || key === 'arrowleft') this.keys.left = false;
       if (code === 'KeyD' || code === 'ArrowRight' || key === 'd' || key === 'arrowright') this.keys.right = false;
       if (code === 'ShiftLeft' || code === 'ShiftRight' || key === 'shift') this.keys.shift = false;
+      if (code === 'Space' || code === 'KeyJ' || code === 'KeyK' || key === ' ' || key === 'j' || key === 'k') {
+        this.keys.fire = false;
+      }
 
       if ((code === 'KeyJ' || key === 'j') && window.Combat && typeof Combat.releaseShootInput === 'function') {
         Combat.releaseShootInput();
@@ -80,6 +94,7 @@ const Input = {
     this.keys.left = false;
     this.keys.right = false;
     this.keys.shift = false;
+    this.keys.fire = false;
     if (window.Combat) {
       if (typeof Combat.releaseShootInput === 'function') Combat.releaseShootInput();
       if (typeof Combat.releaseSlashInput === 'function') Combat.releaseSlashInput();
@@ -141,6 +156,7 @@ const Input = {
           this.analogVector.x = 0;
           this.analogVector.y = 0;
           this.analogVector.active = false;
+          this.keys.shift = false;
           knob.style.transform = `translate(0px, 0px)`;
           break;
         }
@@ -157,7 +173,7 @@ const Input = {
     const centerY = rect.top + rect.height / 2;
     let dx = touchX - centerX;
     let dy = touchY - centerY;
-    const radius = 46;
+    const radius = Math.max(32, Math.min(46, (rect.width || 96) * 0.42));
     const dist = Math.hypot(dx, dy);
 
     if (dist > radius) {
@@ -167,14 +183,17 @@ const Input = {
 
     knob.style.transform = `translate(${dx}px, ${dy}px)`;
 
-    if (dist > 8) {
+    if (dist > 6) {
       this.analogVector.active = true;
       this.analogVector.x = dx / radius;
       this.analogVector.y = dy / radius;
+      // Full thumb tilt (>78%) automatically engages Sprint on mobile
+      this.keys.shift = (dist / radius) > 0.78;
     } else {
       this.analogVector.active = false;
       this.analogVector.x = 0;
       this.analogVector.y = 0;
+      this.keys.shift = false;
     }
   },
 
@@ -183,7 +202,18 @@ const Input = {
     const bSlash = document.getElementById('btnSlash');
     const bAction = document.getElementById('btnAction');
     const bVial = document.getElementById('btnVial');
+    const bDash = document.getElementById('btnDash');
     const promptBanner = document.getElementById('interactionPrompt');
+
+    if (bDash) {
+      bDash.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (window.Combat && typeof Combat.triggerDash === 'function') Combat.triggerDash();
+      }, { passive: false });
+      bDash.addEventListener('click', () => {
+        if (window.Combat && typeof Combat.triggerDash === 'function') Combat.triggerDash();
+      });
+    }
 
     if (bVial) {
       bVial.addEventListener('touchstart', (e) => {
@@ -229,6 +259,92 @@ const Input = {
         this.triggerInteraction();
       }, { passive: false });
       promptBanner.addEventListener('click', () => this.triggerInteraction());
+    }
+
+    // Bind Mobile Arcade Gamepad Buttons inside #arcadeModal
+    const bindHoldKey = (elId, keyProp, alsoShift = false) => {
+      const btn = document.getElementById(elId);
+      if (!btn) return;
+      const onDown = (e) => {
+        e.preventDefault();
+        if (window.State && State.activeMiniGame && State.activeMiniGame.gameOver && alsoShift) {
+          if (typeof State.activeMiniGame.retry === 'function') State.activeMiniGame.retry();
+          return;
+        }
+        this.keys[keyProp] = true;
+        if (alsoShift) {
+          this.keys.shift = true;
+          this.keys.fire = true;
+        }
+      };
+      const onUp = (e) => {
+        e.preventDefault();
+        this.keys[keyProp] = false;
+        if (alsoShift) {
+          this.keys.shift = false;
+          this.keys.fire = false;
+        }
+      };
+      btn.addEventListener('touchstart', onDown, { passive: false });
+      btn.addEventListener('touchend', onUp, { passive: false });
+      btn.addEventListener('touchcancel', onUp, { passive: false });
+      btn.addEventListener('mousedown', onDown);
+      btn.addEventListener('mouseup', onUp);
+      btn.addEventListener('mouseleave', onUp);
+    };
+
+    bindHoldKey('arcBtnLeft', 'left');
+    bindHoldKey('arcBtnRight', 'right');
+    bindHoldKey('arcBtnUp', 'up');
+    bindHoldKey('arcBtnDown', 'down');
+    bindHoldKey('arcBtnFire', 'up', true);
+
+    // Direct Touch / Swipe / Tap-to-Retry on #arcadeCanvas for Mobile Ergonomics
+    const arcCanvas = document.getElementById('arcadeCanvas');
+    if (arcCanvas) {
+      let touchStartX = 0, touchStartY = 0;
+      arcCanvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (window.State && State.activeMiniGame && State.activeMiniGame.gameOver) {
+          if (typeof State.activeMiniGame.retry === 'function') State.activeMiniGame.retry();
+          return;
+        }
+        const t = e.touches[0];
+        if (!t) return;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        this.keys.fire = true;
+      }, { passive: false });
+
+      arcCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        if (!t) return;
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (Math.abs(dx) > 14 || Math.abs(dy) > 14) {
+          this.keys.left = dx < -14;
+          this.keys.right = dx > 14;
+          this.keys.up = dy < -14;
+          this.keys.down = dy > 14;
+        }
+      }, { passive: false });
+
+      const endArcTouch = (e) => {
+        e.preventDefault();
+        this.keys.left = false;
+        this.keys.right = false;
+        this.keys.up = false;
+        this.keys.down = false;
+        this.keys.fire = false;
+      };
+      arcCanvas.addEventListener('touchend', endArcTouch, { passive: false });
+      arcCanvas.addEventListener('touchcancel', endArcTouch, { passive: false });
+      arcCanvas.addEventListener('click', () => {
+        if (window.State && State.activeMiniGame && State.activeMiniGame.gameOver) {
+          if (typeof State.activeMiniGame.retry === 'function') State.activeMiniGame.retry();
+        }
+      });
     }
   },
 
@@ -318,10 +434,22 @@ const Input = {
       }
     }
 
-    if (!nearest && dim === 'wasteland' && Dimensions.wastelandChests) {
-      for (let c of Dimensions.wastelandChests) {
+    if (!nearest) {
+      const activeChests = (typeof Dimensions.getActiveChests === 'function')
+        ? Dimensions.getActiveChests()
+        : (dim === 'wasteland' && Dimensions.wastelandChests ? Dimensions.wastelandChests : []);
+      for (let c of activeChests) {
         if (!c.opened && checkOverlap(pBox, c)) {
           nearest = { type: 'chest', data: c, label: `OPEN ${c.label || 'CHEST'}` };
+          break;
+        }
+      }
+    }
+
+    if (!nearest && dim === 'wasteland' && Dimensions.destructibleDoors) {
+      for (let d of Dimensions.destructibleDoors) {
+        if (!d.shattered && checkOverlap(pBox, d)) {
+          nearest = { type: 'door', data: d, label: `BYPASS ${d.label} [50🪙] OR HOLD [K]` };
           break;
         }
       }
@@ -368,6 +496,8 @@ const Input = {
       if (modal) modal.classList.remove('hidden');
     } else if (type === 'chest' && window.Entities && typeof Entities.openChest === 'function') {
       Entities.openChest(data);
+    } else if (type === 'door' && window.State && typeof State.bypassSecurityDoor === 'function') {
+      State.bypassSecurityDoor(data);
     }
   }
 };

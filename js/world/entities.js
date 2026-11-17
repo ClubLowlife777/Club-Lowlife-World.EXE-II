@@ -1,7 +1,7 @@
 /**
  * CLUB LOWLIFE // ENTITY MANAGEMENT, ESCALATING WORLD BOSSES & COMBAT AI
  * File: js/world/entities.js
- * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.10)
+ * Engine: Vanilla HTML5 Canvas / Decoupled Physics (Rev 5.20 - 6 Wasteland Bosses + Horizon Boss & High Density)
  */
 
 const Entities = {
@@ -14,13 +14,14 @@ const Entities = {
     iFrames: 0,
     knockbackVx: 0, knockbackVy: 0,
     isMoving: false, animTimer: 0,
-    danceTimer: 0
+    danceTimer: 0, safeZoneRegenTimer: 0
   },
 
   // Canonical World Boss Definitions for Initial Spawn & Timed Respawns
   BOSS_TEMPLATES: {
     boss_blade_zero: {
       id: 'boss_blade_zero',
+      dim: 'wasteland',
       baseName: 'HIGH EXECUTIONER "BLADE-ZERO"',
       x: 3200, y: 4100, width: 42, height: 52,
       baseHp: 1600, speed: 3.8,
@@ -28,6 +29,7 @@ const Entities = {
     },
     boss_chem_enforcer: {
       id: 'boss_chem_enforcer',
+      dim: 'wasteland',
       baseName: 'CHEM-ENFORCER UNIT 09',
       x: 1400, y: 2200, width: 40, height: 50,
       baseHp: 750, speed: 2.7,
@@ -35,16 +37,49 @@ const Entities = {
     },
     boss_drone_queen: {
       id: 'boss_drone_queen',
+      dim: 'wasteland',
       baseName: 'THE HOLLOW DRONE QUEEN',
       x: 4800, y: 800, width: 44, height: 48,
       baseHp: 850, speed: 3.2,
       coat: '#0c4a6e', visor: '#00f0ff', pants: '#082f49'
+    },
+    boss_furnace_warden: {
+      id: 'boss_furnace_warden',
+      dim: 'wasteland',
+      baseName: 'VULCAN-808 // FURNACE OVERLORD',
+      x: 950, y: 4020, width: 44, height: 52,
+      baseHp: 1150, speed: 3.1,
+      coat: '#431407', visor: '#f97316', pants: '#1c1917'
+    },
+    boss_drain_leviathan: {
+      id: 'boss_drain_leviathan',
+      dim: 'wasteland',
+      baseName: 'SUB-ZERO // THE DRAIN EXECUTIONER',
+      x: 2220, y: 4240, width: 42, height: 50,
+      baseHp: 1050, speed: 3.6,
+      coat: '#134e4a', visor: '#00f0ff', pants: '#042f2e'
+    },
+    boss_signal_archon: {
+      id: 'boss_signal_archon',
+      dim: 'wasteland',
+      baseName: 'ARCHON VEX // APEX SIGNAL SOVEREIGN',
+      x: 5550, y: 3800, width: 44, height: 54,
+      baseHp: 1450, speed: 3.5,
+      coat: '#090b10', visor: '#f43f5e', pants: '#1e1b4b'
+    },
+    boss_astral_architect: {
+      id: 'boss_astral_architect',
+      dim: 'horizon',
+      baseName: 'OMEGA-777 // THE ASTRAL ARCHITECT',
+      x: 1800, y: 480, width: 46, height: 56,
+      baseHp: 2000, speed: 3.7,
+      coat: '#312e81', visor: '#facc15', pants: '#09090b'
     }
   },
 
   bossRespawnTimers: {},
 
-  // Dossier Section 5.1: Enemy NPC Scaling (+3.75% HP & damage per level, 0% speed scaling)
+  // Dossier Section 2: Enemy NPC Scaling (+3.75% HP & damage per level, 0% speed scaling)
   getEnemyLevelScaleMult() {
     if (window.State && typeof State.getEnemyScaleMultiplier === 'function') {
       return State.getEnemyScaleMultiplier();
@@ -75,7 +110,7 @@ const Entities = {
       { id: 'u_tech', x: 1600, y: 150, width: 26, height: 38, name: 'ARCADE TECH', role: 'NEO-GEO REPAIR', coat: '#0284c7', visor: '#00f0ff', pants: '#0c4a6e', icon: '🕹️', dialogue: "We keep these cabinets calibrated. Grid Runner's purple drone predicts your turns—steer early!" },
       { id: 'u_eng', x: 1050, y: 150, width: 26, height: 38, name: 'AUDIO ENGINEER', role: 'STUDIO MASTER', coat: '#ca8a04', visor: '#fef08a', pants: '#713f12', icon: '🎛️', dialogue: "The low-end sub on 'DANCING' is summed to pure mono below 100 Hz for massive club systems and earbuds alike." },
       { id: 'u_drifter1', x: 250, y: 650, width: 26, height: 38, name: 'GARAGE DRIFTER', role: 'OUTLAW', coat: '#475569', visor: '#38bdf8', pants: '#1e293b', icon: '🕶️', dialogue: "The night shift underground is the only place immune to the syndicate signal." },
-      { id: 'u_drifter2', x: 1900, y: 750, width: 26, height: 38, name: 'SUBWAY RUNNER', role: 'COURIER', coat: '#7c3aed', visor: '#e879f9', pants: '#4c1d95', icon: '👟', dialogue: "I deliver cassettes across dimensions. Check Martian University and Sector 777 in the Wasteland for rare stashes." },
+      { id: 'u_drifter2', x: 1900, y: 750, width: 26, height: 38, name: 'SUBWAY RUNNER', role: 'COURIER', coat: '#7c3aed', visor: '#e879f9', pants: '#4c1d95', icon: '👟', dialogue: "I deliver cassettes across dimensions. Check The Furnace, The Drain, Echo Cavern, and the Apex Citadel in the Wasteland for new boss bounties!" },
       { id: 'u_sentry', x: 2150, y: 840, width: 26, height: 38, name: 'RIFT SENTRY', role: 'GATE WATCHER', coat: '#dc2626', visor: '#ff003c', pants: '#7f1d1d', icon: '🛡️', dialogue: "Beyond this warp lies District 84 Retrocade. Keep your tokens ready." }
     ],
     retrocade: [
@@ -95,13 +130,39 @@ const Entities = {
     wasteland: [
       { id: 'w_conner', x: 2260, y: 2890, width: 28, height: 40, name: 'CONNER CADE', role: 'BONFIRE HOST & PRODUCER', coat: '#9a3412', visor: '#fb923c', pants: '#431407', icon: '🔥', dialogue: "Welcome to the bonfire. Pull up a seat. Out here in the Corruption, you need a safe circle to test raw mixes and build real ideas. The enforcers won't cross this perimeter." },
       { id: 'w_visualist', x: 2340, y: 2880, width: 26, height: 38, name: 'MKE DIRECTOR', role: 'CINEMATOGRAPHER', coat: '#1e293b', visor: '#38bdf8', pants: '#0f172a', icon: '🎥', dialogue: "The lighting on this short film had to be grim—tube lights, handheld smoke, and rain. Check the mirror in the washroom down south if you want to see the mask come off." },
-      { id: 'w_producer', x: 2310, y: 2950, width: 26, height: 38, name: 'CREATIVE HOMIE', role: 'BEATSMITH', coat: '#15803d', visor: '#86efac', pants: '#14532d', icon: '🎹', dialogue: "Conner's 808s always cut through because of that mono sum trick. Every time you take down a World Boss out here, they reconstruct stronger with bigger token and XP bounties." }
+      { id: 'w_producer', x: 2310, y: 2950, width: 26, height: 38, name: 'CREATIVE HOMIE', role: 'BEATSMITH', coat: '#15803d', visor: '#86efac', pants: '#14532d', icon: '🎹', dialogue: "Six World Bosses now rule the Wasteland: Blade-Zero in the Holding Chamber, Chem-Enforcer at Silo 07, Drone Queen in Obsidian Canyon, Vulcan-808 in The Furnace, Sub-Zero in The Drain, and Archon Vex in the Apex Signal Citadel!" },
+      { id: 'w_medic', x: 1920, y: 520, width: 26, height: 38, name: 'BIO-MEDIC VERA', role: 'RUST SANCTUARY CLINIC', coat: '#0f766e', visor: '#4ade80', pants: '#042f2e', icon: '🩺', dialogue: "The Rust Sanctuary is neutral ground. Step up to the Bio-Pod terminal to patch up your neural frame, or rest inside these walls where syndicate patrols cannot aggro." },
+      { id: 'w_quartermaster', x: 2240, y: 520, width: 26, height: 38, name: 'QUARTERMASTER KNOX', role: 'SANCTUARY ARMORER', coat: '#78350f', visor: '#facc15', pants: '#292524', icon: '🛡️', dialogue: "South of Martian University lies the submerged Deep Void Data Vault. You'll need a charged [K] Devastating Breaker or Charged Plasma shot to crack its 220-HP airlock seal." }
+    ],
+    horizon: [
+      { id: 'h_archivist', x: 1620, y: 1920, width: 28, height: 40, name: 'SERAPH-01', role: 'HORIZON GATEKEEPER', coat: '#312e81', visor: '#00f0ff', pants: '#1e1b4b', icon: '🌌', dialogue: "You collected all 50 Battle Cassettes and breached the Extraction Rift. Welcome to Chapter III: The Horizon. Ahead lies the Astral Sovereign Keep and Omega-777." },
+      { id: 'h_engineer', x: 640, y: 1080, width: 26, height: 38, name: 'ASTRAL ENGINEER', role: 'ZERO-G ACOUSTICS', coat: '#701a75', visor: '#f472b6', pants: '#4a044e', icon: '🎛️', dialogue: "In the Zero-G Mastering Sanctum, audio waves travel without atmospheric distortion. Tap the console to trigger full Astral Resonance before challenging Omega-777." }
     ]
   },
 
   hostileNpcs: [],
   trainingDummies: [],
   lootPickups: [],
+
+  // Strategic Garrison Hotspots so every castle, dungeon, cave & ruin has active guards
+  WASTELAND_GARRISON_HOTSPOTS: [
+    // The Furnace Foundry (SW Dungeon)
+    { x: 650, y: 3320, tier: 'mid' }, { x: 1220, y: 3420, tier: 'regular' }, { x: 720, y: 4050, tier: 'mid' }, { x: 1320, y: 3980, tier: 'regular' },
+    // Undercity Transit Core "The Drain" (S-Central Subway Dungeon)
+    { x: 2050, y: 3620, tier: 'regular' }, { x: 2380, y: 3900, tier: 'mid' }, { x: 2020, y: 4180, tier: 'mid' },
+    // Deep Void Data Vault & Martian University (Central)
+    { x: 3340, y: 1750, tier: 'mid' }, { x: 2880, y: 1550, tier: 'regular' }, { x: 2400, y: 1850, tier: 'regular' },
+    // Echo Cavern & Crystal Grotto (East Cave Network)
+    { x: 4950, y: 1850, tier: 'regular' }, { x: 5400, y: 1780, tier: 'mid' }, { x: 5420, y: 2420, tier: 'regular' }, { x: 5820, y: 2280, tier: 'mid' },
+    // Apex Signal Array & Syndicate Citadel (SE Castle Fortress)
+    { x: 4750, y: 3550, tier: 'mid' }, { x: 4950, y: 3950, tier: 'regular' }, { x: 5420, y: 3340, tier: 'mid' }, { x: 5780, y: 4240, tier: 'mid' },
+    // Obsidian Canyon & Northern Badlands (NE)
+    { x: 4550, y: 720, tier: 'regular' }, { x: 5250, y: 880, tier: 'mid' }, { x: 3550, y: 580, tier: 'regular' },
+    // Substance Silo 07 & Highway Overpass (West)
+    { x: 1450, y: 1650, tier: 'regular' }, { x: 680, y: 2050, tier: 'mid' }, { x: 1350, y: 2680, tier: 'regular' },
+    // Holding Chamber & Southern Badlands
+    { x: 3050, y: 3580, tier: 'regular' }, { x: 3520, y: 4560, tier: 'mid' }, { x: 4220, y: 3650, tier: 'regular' }
+  ],
 
   init() {
     if (window.State && State.userProfile) {
@@ -118,17 +179,23 @@ const Entities = {
         const badge = document.getElementById('dimensionBadge');
         if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
       }
-      // Sync Player Max HP with Level on boot (+10 HP per level)
       if (typeof State.getPlayerMaxHp === 'function') {
         this.player.maxHp = State.getPlayerMaxHp();
         this.player.hp = this.player.maxHp;
       }
     }
 
-    if (window.Dimensions && Dimensions.wastelandChests && window.State && State.userProfile && State.userProfile.chestsOpened) {
-      Dimensions.wastelandChests.forEach(c => {
-        if (State.userProfile.chestsOpened.includes(c.id)) c.opened = true;
-      });
+    if (window.Dimensions && window.State && State.userProfile && Array.isArray(State.userProfile.chestsOpened)) {
+      if (Dimensions.wastelandChests) {
+        Dimensions.wastelandChests.forEach(c => {
+          if (State.userProfile.chestsOpened.includes(c.id)) c.opened = true;
+        });
+      }
+      if (Dimensions.horizonChests) {
+        Dimensions.horizonChests.forEach(c => {
+          if (State.userProfile.chestsOpened.includes(c.id)) c.opened = true;
+        });
+      }
     }
 
     this.trainingDummies = [
@@ -144,11 +211,18 @@ const Entities = {
 
     this.updatePlayerHealthUI();
     this.spawnWastelandBosses();
+    this.spawnGarrisonHotspots();
 
-    for (let i = 0; i < 12; i++) {
-      this.spawnWastelandCombatant(true);
+    for (let i = 0; i < 16; i++) {
+      this.spawnWastelandCombatant(true, 'wasteland');
     }
-    setInterval(() => this.spawnWastelandCombatant(false), 18000);
+    for (let i = 0; i < 8; i++) {
+      this.spawnWastelandCombatant(true, 'horizon');
+    }
+    setInterval(() => {
+      this.spawnWastelandCombatant(false, 'wasteland');
+      this.spawnWastelandCombatant(false, 'horizon');
+    }, 9000);
   },
 
   // Spawns or Respawns a single World Boss scaled by Player Level AND Prior Defeat Count
@@ -156,7 +230,6 @@ const Entities = {
     const t = this.BOSS_TEMPLATES[bossId];
     if (!t) return;
 
-    // Remove any dead/stale entry for this boss ID
     this.hostileNpcs = this.hostileNpcs.filter(n => n.id !== bossId);
 
     const kills = this.getBossKillCount(bossId);
@@ -171,10 +244,11 @@ const Entities = {
 
     this.hostileNpcs.push({
       id: t.id,
+      dim: t.dim || 'wasteland',
       tier: 'boss',
       name: `${t.baseName}${markSuffix}`,
       x: t.x, y: t.y, width: t.width, height: t.height,
-      hp: scaledHp, maxHp: scaledHp, speed: t.speed, // Speed permanently capped at base value
+      hp: scaledHp, maxHp: scaledHp, speed: t.speed,
       dmgMult: bossKillDmgMult,
       killTier: kills,
       alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0,
@@ -182,7 +256,7 @@ const Entities = {
       coat: t.coat, visor: t.visor, pants: t.pants
     });
 
-    if (isRespawn && window.State && State.currentDimension === 'wasteland') {
+    if (isRespawn && window.State && State.currentDimension === (t.dim || 'wasteland')) {
       State.showToast(`⚠️ SYNDICATE REINFORCEMENT: ${t.baseName}${markSuffix} HAS RESPAWNED!`);
     }
   },
@@ -198,32 +272,91 @@ const Entities = {
     if (this.bossRespawnTimers[bossId]) {
       clearTimeout(this.bossRespawnTimers[bossId]);
     }
-    // Respawn World Boss 45 seconds after defeat
     this.bossRespawnTimers[bossId] = setTimeout(() => {
       delete this.bossRespawnTimers[bossId];
       this.spawnSingleBoss(bossId, true);
     }, 45000);
   },
 
-  spawnWastelandCombatant(force = false) {
-    if (!force && (!window.State || State.currentDimension !== 'wasteland')) return;
+  createCombatantObject(spawnX, spawnY, isMidTier, dim = 'wasteland') {
+    const scale = this.getEnemyLevelScaleMult();
+    if (isMidTier) {
+      const midTypes = [
+        { type: 'chem_brute', name: 'CHEM BRUTE', coat: '#4d7c0f', visor: '#a3e635', pants: '#14532d', hp: 260, speed: 2.6 },
+        { type: 'heavy_enforcer', name: 'SYNDICATE HEAVY', coat: '#1e293b', visor: '#f97316', pants: '#0f172a', hp: 320, speed: 2.4 },
+        { type: 'phase_stalker', name: 'PHASE STALKER', coat: '#4c1d95', visor: '#c084fc', pants: '#2e1065', hp: 220, speed: 3.4 },
+        { type: 'furnace_hellion', name: 'FURNACE PYRO-GUARD', coat: '#7c2d12', visor: '#facc15', pants: '#431407', hp: 290, speed: 2.8 },
+        { type: 'citadel_templar', name: 'CITADEL SENTINEL', coat: '#31102f', visor: '#ff003c', pants: '#090b10', hp: 340, speed: 2.7 }
+      ];
+      const template = midTypes[Math.floor(Math.random() * midTypes.length)];
+      const scaledHp = Math.round(template.hp * scale);
+      return {
+        id: Math.random().toString(36).substr(2, 9), dim, tier: 'mid', name: template.name, type: template.type,
+        x: spawnX, y: spawnY, width: 32, height: 44, hp: scaledHp, maxHp: scaledHp, speed: template.speed,
+        coat: template.coat, visor: template.visor, pants: template.pants,
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
+        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 30 + Math.floor(Math.random() * 40)
+      };
+    } else {
+      const regTypes = [
+        { type: 'scout_drone', name: 'SCOUT DRONE', coat: '#0284c7', visor: '#38bdf8', pants: '#0369a1', hp: 60, speed: 2.5 },
+        { type: 'scavenger', name: 'SCAVENGER', coat: '#78350f', visor: '#fbbf24', pants: '#451a03', hp: 90, speed: 3.0 },
+        { type: 'patrol', name: 'OUTPOST PATROL', coat: '#334155', visor: '#ff003c', pants: '#1e293b', hp: 80, speed: 2.8 },
+        { type: 'cave_crawler', name: 'CAVERN STALKER', coat: '#134e4a', visor: '#2dd4bf', pants: '#042f2e', hp: 95, speed: 3.1 },
+        { type: 'drain_runner', name: 'DRAIN CONTRABANDIST', coat: '#3b0764', visor: '#e879f9', pants: '#1e1b4b', hp: 85, speed: 3.2 }
+      ];
+      const template = regTypes[Math.floor(Math.random() * regTypes.length)];
+      const scaledHp = Math.round(template.hp * scale);
+      return {
+        id: Math.random().toString(36).substr(2, 9), dim, tier: 'regular', name: template.name, type: template.type,
+        x: spawnX, y: spawnY, width: 24, height: 36, hp: scaledHp, maxHp: scaledHp, speed: template.speed,
+        coat: template.coat, visor: template.visor, pants: template.pants,
+        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
+        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 25 + Math.floor(Math.random() * 45)
+      };
+    }
+  },
 
-    const livingRegularAndMid = this.hostileNpcs.filter(n => n.alive && n.tier !== 'boss');
-    if (livingRegularAndMid.length >= 18) return;
+  spawnGarrisonHotspots() {
+    this.WASTELAND_GARRISON_HOTSPOTS.forEach(spot => {
+      this.hostileNpcs.push(this.createCombatantObject(spot.x, spot.y, spot.tier === 'mid', 'wasteland'));
+    });
+  },
+
+  isPointInSafeZone(x, y, dim = 'wasteland') {
+    if (dim !== 'wasteland') return false;
+    // Conner Cade's Bonfire (Radius 180 around 2300, 2900)
+    if (Math.hypot(x - 2300, y - 2900) < 180) return true;
+    // The Rust Sanctuary (X: 1650..2550, Y: 260..820)
+    if (x >= 1660 && x <= 2540 && y >= 270 && y <= 810) return true;
+    return false;
+  },
+
+  spawnWastelandCombatant(force = false, targetDim = 'wasteland') {
+    if (!force && (!window.State || State.currentDimension !== targetDim)) return;
+
+    const maxCap = targetDim === 'horizon' ? 12 : 44;
+    const livingRegularAndMid = this.hostileNpcs.filter(n => n.alive && n.tier !== 'boss' && (n.dim || 'wasteland') === targetDim);
+    if (livingRegularAndMid.length >= maxCap) return;
 
     const p = this.player;
-    const obstacles = (window.Dimensions && Dimensions.worldObstacles) ? Dimensions.worldObstacles : [];
+    const obstacles = targetDim === 'horizon'
+      ? ((window.Dimensions && Dimensions.horizonObstacles) ? Dimensions.horizonObstacles : [])
+      : ((window.Dimensions && Dimensions.worldObstacles) ? Dimensions.worldObstacles : []);
+
+    const mapW = targetDim === 'horizon' ? 3600 : 6400;
+    const mapH = targetDim === 'horizon' ? 2400 : 4800;
 
     let spawnX = 0, spawnY = 0;
     let validSpawn = false;
     let attempts = 0;
 
-    while (!validSpawn && attempts < 20) {
-      spawnX = 350 + Math.random() * (6400 - 700);
-      spawnY = 350 + Math.random() * (4800 - 700);
+    while (!validSpawn && attempts < 25) {
+      spawnX = 250 + Math.random() * (mapW - 500);
+      spawnY = 250 + Math.random() * (mapH - 500);
 
-      const distToPlayer = Math.hypot(spawnX - p.x, spawnY - p.y);
-      const distToBonfire = Math.hypot(spawnX - 2300, spawnY - 2900);
+      const distToPlayer = (window.State && State.currentDimension === targetDim) ? Math.hypot(spawnX - p.x, spawnY - p.y) : 9999;
+      const inSafeZone = this.isPointInSafeZone(spawnX, spawnY, targetDim);
       const testBox = { x: spawnX - 10, y: spawnY - 10, width: 52, height: 64 };
 
       let insideWall = false;
@@ -239,7 +372,7 @@ const Entities = {
         }
       }
 
-      if (distToPlayer > 680 && distToBonfire > 220 && !insideWall) {
+      if (distToPlayer > 520 && !inSafeZone && !insideWall) {
         validSpawn = true;
       }
       attempts++;
@@ -247,40 +380,8 @@ const Entities = {
 
     if (!validSpawn) return;
 
-    const scale = this.getEnemyLevelScaleMult();
-    const isMidTier = Math.random() < 0.35;
-
-    if (isMidTier) {
-      const midTypes = [
-        { type: 'chem_brute', name: 'CHEM BRUTE', coat: '#4d7c0f', visor: '#a3e635', pants: '#14532d', hp: 260, speed: 2.6 },
-        { type: 'heavy_enforcer', name: 'SYNDICATE HEAVY', coat: '#1e293b', visor: '#f97316', pants: '#0f172a', hp: 320, speed: 2.4 },
-        { type: 'phase_stalker', name: 'PHASE STALKER', coat: '#4c1d95', visor: '#c084fc', pants: '#2e1065', hp: 220, speed: 3.4 }
-      ];
-      const template = midTypes[Math.floor(Math.random() * midTypes.length)];
-      const scaledHp = Math.round(template.hp * scale);
-      this.hostileNpcs.push({
-        id: Math.random().toString(36).substr(2, 9), tier: 'mid', name: template.name, type: template.type,
-        x: spawnX, y: spawnY, width: 32, height: 44, hp: scaledHp, maxHp: scaledHp, speed: template.speed,
-        coat: template.coat, visor: template.visor, pants: template.pants,
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
-        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 30 + Math.floor(Math.random() * 40)
-      });
-    } else {
-      const regTypes = [
-        { type: 'scout_drone', name: 'SCOUT DRONE', coat: '#0284c7', visor: '#38bdf8', pants: '#0369a1', hp: 60, speed: 2.5 },
-        { type: 'scavenger', name: 'SCAVENGER', coat: '#78350f', visor: '#fbbf24', pants: '#451a03', hp: 90, speed: 3.0 },
-        { type: 'patrol', name: 'OUTPOST PATROL', coat: '#334155', visor: '#ff003c', pants: '#1e293b', hp: 80, speed: 2.8 }
-      ];
-      const template = regTypes[Math.floor(Math.random() * regTypes.length)];
-      const scaledHp = Math.round(template.hp * scale);
-      this.hostileNpcs.push({
-        id: Math.random().toString(36).substr(2, 9), tier: 'regular', name: template.name, type: template.type,
-        x: spawnX, y: spawnY, width: 24, height: 36, hp: scaledHp, maxHp: scaledHp, speed: template.speed,
-        coat: template.coat, visor: template.visor, pants: template.pants,
-        alive: true, state: 'peaceful', aggroTimer: 0, attackCooldown: 0, knockbackVx: 0, knockbackVy: 0,
-        dir: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)], moveTimer: 25 + Math.floor(Math.random() * 45)
-      });
-    }
+    const isMidTier = Math.random() < 0.42;
+    this.hostileNpcs.push(this.createCombatantObject(spawnX, spawnY, isMidTier, targetDim));
   },
 
   damageNpc(npc, amount, knockDir) {
@@ -311,16 +412,13 @@ const Entities = {
         }
         State.userProfile.bossKillCounts[npc.id] = prevKills + 1;
 
-        // Spawn Boss Loot (First kill drops Skins/Relics/Tapes; repeat kills drop escalating Tokens)
         this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, 'boss', npc.id, isFirstKill, prevKills);
 
-        // Escalating Boss XP: 500 base + 250 XP per previous takedown
         const bossXpReward = 500 + (prevKills * 250);
         if (typeof State.addXp === 'function') {
           State.addXp(bossXpReward, `${npc.name} DEFEATED`);
         }
 
-        // First-Kill Exclusive Unlocks (VIP Stem & Studio Hardware Relics)
         if (isFirstKill) {
           if (npc.id === 'boss_blade_zero') {
             State.unlockVipStem();
@@ -328,6 +426,10 @@ const Entities = {
             State.unlockRelic('relic_tape_saturator');
           } else if (npc.id === 'boss_drone_queen') {
             State.unlockRelic('relic_gross_beat');
+          } else if (npc.id === 'boss_furnace_warden') {
+            State.unlockRelic('relic_sub_woofer');
+          } else if (npc.id === 'boss_signal_archon') {
+            State.unlockRelic('relic_peak_controller');
           }
           State.showToast(`BOSS VANQUISHED: ${npc.name} (+${bossXpReward} XP & FIRST-KILL LOOT)! 🏆`);
         } else {
@@ -337,10 +439,8 @@ const Entities = {
         State.triggerScreenShake(20, 35);
         State.save();
 
-        // Schedule stronger MK respawn in 45 seconds
         this.scheduleBossRespawn(npc.id);
       } else {
-        // Regular & Mid-Tier Hostile Elimination
         this.spawnLoot(npc.x + npc.width / 2, npc.y + npc.height / 2, npc.tier, npc.id, false, 0);
         if (window.State && typeof State.addXp === 'function') {
           const xpReward = npc.tier === 'mid' ? 65 : 20;
@@ -351,8 +451,11 @@ const Entities = {
   },
 
   spawnLoot(lx, ly, tier, bossId, isFirstKill = true, prevKills = 0) {
-    // Boss coin count increases by +10 coins (+50 tokens) per prior defeat
-    const tokenCount = tier === 'boss' ? (25 + prevKills * 10) : (tier === 'mid' ? 8 : 3);
+    const styleMult = (window.Combat && typeof Combat.getStyleTokenMultiplier === 'function')
+      ? Combat.getStyleTokenMultiplier()
+      : 1.0;
+    const baseTokenCount = tier === 'boss' ? (25 + prevKills * 10) : (tier === 'mid' ? 8 : 3);
+    const tokenCount = Math.round(baseTokenCount * styleMult);
     for (let i = 0; i < tokenCount; i++) {
       this.lootPickups.push({
         x: lx + (Math.random() * 44 - 22),
@@ -364,13 +467,11 @@ const Entities = {
       });
     }
 
-    // Mid-tier Chem Brutes can drop Amber Dropper Vials
     if (tier === 'mid' && Math.random() < 0.40) {
       this.lootPickups.push({ x: lx, y: ly, type: 'amber_vial', radius: 8, floatOffset: Math.random() * Math.PI * 2 });
     }
 
     if (tier === 'boss') {
-      // Unique Boss Skins, 6 Rare Cassettes, and double Vial cache only drop on First Kill
       if (isFirstKill) {
         for (let t = 0; t < 6; t++) {
           this.lootPickups.push({ x: lx + (Math.random() * 50 - 25), y: ly + (Math.random() * 50 - 25), type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
@@ -382,6 +483,15 @@ const Entities = {
           if (bossId === 'boss_blade_zero') State.unlockSkin('blade_zero');
           else if (bossId === 'boss_chem_enforcer') State.unlockSkin('chem_enforcer');
           else if (bossId === 'boss_drone_queen') State.unlockSkin('drone_whisperer');
+          else if (bossId === 'boss_furnace_warden') State.unlockSkin('reese_bass_juggernaut');
+          else if (bossId === 'boss_drain_leviathan') State.unlockSkin('trenchcoat_executioner');
+          else if (bossId === 'boss_signal_archon') State.unlockSkin('omega_enforcer');
+          else if (bossId === 'boss_astral_architect') State.unlockSkin('the_creator');
+        }
+      } else {
+        // Repeat boss kills also drop 2 Battle Cassettes so players can farm toward 50
+        for (let t = 0; t < 2; t++) {
+          this.lootPickups.push({ x: lx + (Math.random() * 30 - 15), y: ly + (Math.random() * 30 - 15), type: 'rare_tape', radius: 9, floatOffset: Math.random() * Math.PI * 2 });
         }
       }
     } else if (tier === 'mid') {
@@ -402,7 +512,6 @@ const Entities = {
     if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
     if (window.State) State.triggerScreenShake(6, 12);
 
-    // Dossier Section 5.2: Chest XP & Token Rewards
     if (c.type === 'supply' && window.State) {
       State.addTokens(35); State.addRareTape();
       if (typeof State.addXp === 'function') State.addXp(35, "SUPPLY CRATE");
@@ -421,14 +530,14 @@ const Entities = {
       }
       State.unlockSkin(c.skinReward || 'drifter');
       if (typeof State.addXp === 'function') State.addXp(85, "VAULT BREACH");
-      State.showToast(`VAULT UNLOCKED: +150 TOKENS, +85 XP, +3 TAPES & HARDWARE RELIC! 💎🎛️`);
+      State.showToast(`VAULT UNLOCKED: +150 TOKENS, +85 XP, +3 TAPES & EXCLUSIVE GEAR! 💎🎛️`);
     } else if (c.type === 'master_holding' && window.State) {
       State.addTokens(300);
       for (let i = 0; i < 10; i++) State.addRareTape();
       State.unlockRelic('relic_sub_woofer');
-      State.unlockSkin('static_nightmare');
+      State.unlockSkin(c.skinReward || 'static_nightmare');
       if (typeof State.addXp === 'function') State.addXp(120, "MASTER VAULT BREACH");
-      State.showToast("GOLDEN MASTER VAULT: +300 TOKENS, +120 XP, SUB-WOOFER RELIC & MYTHIC SKIN! 💿⚡");
+      State.showToast("GOLDEN MASTER VAULT: +300 TOKENS, +120 XP, +10 TAPES & MYTHIC LOOT! 💿⚡");
     }
     if (window.State) State.save();
   },
@@ -437,12 +546,12 @@ const Entities = {
     const p = this.player;
     if (p.iFrames > 0) return;
 
-    // Fruity Peak Controller Relic reduces all incoming damage by 20%
     const hasPeakController = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_peak_controller'));
     const finalDamage = hasPeakController ? Math.max(1, Math.round(amount * 0.80)) : amount;
 
     p.hp = Math.max(0, p.hp - finalDamage);
     p.iFrames = 30;
+    if (window.Combat && typeof Combat.onPlayerDamaged === 'function') Combat.onPlayerDamaged();
     if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('stomp');
     if (window.State) State.triggerScreenShake(8, 14);
 
@@ -457,8 +566,9 @@ const Entities = {
     if (p.hp <= 0 && window.State) {
       State.showToast("NEURAL LINK CRITICAL // RESPAWNING...");
       setTimeout(() => {
-        p.x = State.currentDimension === 'wasteland' ? 650 : 350;
-        p.y = State.currentDimension === 'wasteland' ? 1100 : 750;
+        const cfg = State.DIMENSIONS && State.DIMENSIONS[State.currentDimension];
+        p.x = (cfg && cfg.defaultSpawn) ? cfg.defaultSpawn.x : 350;
+        p.y = (cfg && cfg.defaultSpawn) ? cfg.defaultSpawn.y : 750;
         p.hp = p.maxHp;
         this.updatePlayerHealthUI();
         State.save();
@@ -479,11 +589,24 @@ const Entities = {
   update() {
     const p = this.player;
     if (p.iFrames > 0) p.iFrames--;
+    if (this.trainingDummies) {
+      this.trainingDummies.forEach(td => {
+        if (td.hitFlash > 0) td.hitFlash--;
+      });
+    }
 
-    // Countdown Hypercharge & DJ Overdrive Timers
     if (window.State && State.userProfile) {
       if (State.userProfile.hyperchargeTimer > 0) State.userProfile.hyperchargeTimer--;
       if (State.userProfile.djOverdriveTimer > 0) State.userProfile.djOverdriveTimer--;
+    }
+
+    // Passive Bio-Regen inside Safe Zones (Conner Cade Bonfire & The Rust Sanctuary)
+    if (window.State && this.isPointInSafeZone(p.x, p.y, State.currentDimension)) {
+      p.safeZoneRegenTimer = (p.safeZoneRegenTimer || 0) + 1;
+      if (p.safeZoneRegenTimer % 45 === 0 && p.hp < p.maxHp) {
+        p.hp = Math.min(p.maxHp, p.hp + 2);
+        this.updatePlayerHealthUI();
+      }
     }
 
     const activeObs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
@@ -518,7 +641,6 @@ const Entities = {
       p.knockbackVx *= 0.84;
       p.knockbackVy *= 0.84;
     } else {
-      // Gross Beat Relic (+20% sprint) & DJ Booth Overdrive (+15% all movement speed)
       const hasGrossBeat = (window.State && typeof State.hasRelicEquipped === 'function' && State.hasRelicEquipped('relic_gross_beat'));
       const hasDjOverdrive = (window.State && State.userProfile && State.userProfile.djOverdriveTimer > 0);
       const sprintRelicMult = hasGrossBeat ? 1.20 : 1.0;
@@ -607,30 +729,34 @@ const Entities = {
   },
 
   updateHostileAI() {
-    if (!window.State || State.currentDimension !== 'wasteland') return;
+    if (!window.State || (State.currentDimension !== 'wasteland' && State.currentDimension !== 'horizon')) return;
+    const activeDim = State.currentDimension;
     const p = this.player;
     const enemyDmgScale = this.getEnemyLevelScaleMult();
 
     const obstacles = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') 
       ? Dimensions.getActiveObstacles() 
       : [];
-    const doors = (window.Dimensions && Dimensions.destructibleDoors) 
+    const doors = (activeDim === 'wasteland' && window.Dimensions && Dimensions.destructibleDoors) 
       ? Dimensions.destructibleDoors.filter(d => !d.shattered) 
       : [];
 
-    const playerInBonfire = Math.hypot(p.x - 2300, p.y - 2900) < 180;
+    const playerInSafeZone = this.isPointInSafeZone(p.x, p.y, activeDim);
+    const maxBoundX = activeDim === 'horizon' ? 3540 : 6340;
+    const maxBoundY = activeDim === 'horizon' ? 2340 : 4740;
 
     this.hostileNpcs.forEach(n => {
-      if (!n.alive) return;
+      if (!n.alive || (n.dim || 'wasteland') !== activeDim) return;
+      if (n.hitFlash > 0) n.hitFlash--;
       const dist = Math.hypot(p.x - n.x, p.y - n.y);
-      const aggroRange = n.tier === 'boss' ? 550 : n.tier === 'mid' ? 360 : 250;
+      const aggroRange = n.tier === 'boss' ? 560 : n.tier === 'mid' ? 380 : 270;
 
-      if (dist < aggroRange && n.state === 'peaceful' && !playerInBonfire) {
+      if (dist < aggroRange && n.state === 'peaceful' && !playerInSafeZone) {
         n.state = 'aggro';
         n.aggroTimer = 350;
       }
 
-      if (playerInBonfire && n.state === 'aggro') {
+      if (playerInSafeZone && n.state === 'aggro') {
         n.state = 'peaceful';
       }
 
@@ -663,10 +789,12 @@ const Entities = {
       }
 
       if (n.attackCooldown > 0) n.attackCooldown--;
+      if (n.specialCooldown === undefined) n.specialCooldown = 140;
+      if (n.specialCooldown > 0) n.specialCooldown--;
 
-      if (n.state === 'aggro' && !playerInBonfire) {
+      if (n.state === 'aggro' && !playerInSafeZone) {
         n.aggroTimer--;
-        if (n.aggroTimer <= 0 && dist > 600) n.state = 'peaceful';
+        if (n.aggroTimer <= 0 && dist > 620) n.state = 'peaceful';
 
         const angle = Math.atan2(p.y - n.y, p.x - n.x);
         let vx = Math.cos(angle) * n.speed;
@@ -674,23 +802,55 @@ const Entities = {
         const bossMarkDmgMult = n.dmgMult || 1.0;
 
         if (n.tier === 'boss') {
-          if (dist < 340 && n.attackCooldown <= 0) {
-            n.attackCooldown = 55;
+          const scaledBossProjDmg = Math.round(24 * enemyDmgScale * bossMarkDmgMult);
+
+          // Signature Boss Special Attacks (Telegraphed AoE / Spiral Nova / Shadow Lunge)
+          if (dist < 440 && n.specialCooldown <= 0) {
+            n.specialCooldown = 190;
+            if (n.id === 'boss_drone_queen' && window.Combat && Combat.enemyProjectiles) {
+              // 10-Way 360° Spiral EMP Nova
+              if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('boss_warn');
+              for (let k = 0; k < 10; k++) {
+                const a = (Math.PI * 2 * k) / 10 + (Date.now() * 0.002);
+                Combat.enemyProjectiles.push({
+                  x: n.x + n.width / 2, y: n.y + n.height / 2,
+                  vx: Math.cos(a) * 6.8, vy: Math.sin(a) * 6.8,
+                  radius: 6, color: '#00f0ff', damage: scaledBossProjDmg, life: 75
+                });
+              }
+            } else if (n.id === 'boss_blade_zero' && window.Combat && Combat.enemyProjectiles) {
+              // Blood-Rave Shadow Lunge + 5-Blade Crimson Crescent Fan
+              if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('dash');
+              vx *= 3.2;
+              vy *= 3.2;
+              for (let s = -0.5; s <= 0.5; s += 0.25) {
+                Combat.enemyProjectiles.push({
+                  x: n.x + n.width / 2, y: n.y + n.height / 2,
+                  vx: Math.cos(angle + s) * 9.2, vy: Math.sin(angle + s) * 9.2,
+                  radius: 7, color: '#ff003c', damage: scaledBossProjDmg, life: 60
+                });
+              }
+            } else if (window.Combat && typeof Combat.spawnBossTelegraph === 'function') {
+              Combat.spawnBossTelegraph(n, p.x + p.width / 2, p.y + p.height / 2, scaledBossProjDmg);
+            }
+          }
+
+          if (dist < 360 && n.attackCooldown <= 0) {
+            n.attackCooldown = 52;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
-            const scaledBossProjDmg = Math.round(24 * enemyDmgScale * bossMarkDmgMult);
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
               if (window.Combat && Combat.enemyProjectiles) {
                 Combat.enemyProjectiles.push({
                   x: n.x + n.width / 2, y: n.y + n.height / 2,
-                  vx: Math.cos(angle + spread) * 7.5, vy: Math.sin(angle + spread) * 7.5,
-                  radius: 6, damage: scaledBossProjDmg, life: 60
+                  vx: Math.cos(angle + spread) * 7.8, vy: Math.sin(angle + spread) * 7.8,
+                  radius: 6, color: n.visor || '#ff003c', damage: scaledBossProjDmg, life: 65
                 });
               }
             }
           }
         } else if (n.tier === 'mid') {
-          if (dist < 260 && n.attackCooldown <= 0) {
-            n.attackCooldown = 70;
+          if (dist < 270 && n.attackCooldown <= 0) {
+            n.attackCooldown = 68;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
             const scaledMidProjDmg = Math.round(18 * enemyDmgScale);
             if (window.Combat && Combat.enemyProjectiles) {
@@ -719,7 +879,7 @@ const Entities = {
         for (let d of doors) {
           if (window.Combat && Combat.checkCollision(nextBoxX, d)) { colX = true; break; }
         }
-        if (!colX) n.x += vx;
+        if (!colX && !this.isPointInSafeZone(n.x + vx, n.y, activeDim)) n.x += vx;
 
         const nextBoxY = { x: n.x, y: n.y + vy, width: n.width, height: n.height };
         let colY = false;
@@ -729,7 +889,7 @@ const Entities = {
         for (let d of doors) {
           if (window.Combat && Combat.checkCollision(nextBoxY, d)) { colY = true; break; }
         }
-        if (!colY) n.y += vy;
+        if (!colY && !this.isPointInSafeZone(n.x, n.y + vy, activeDim)) n.y += vy;
 
       } else {
         n.moveTimer--;
@@ -753,7 +913,7 @@ const Entities = {
           for (let d of doors) {
             if (window.Combat && Combat.checkCollision(wanderBoxX, d)) { wColX = true; break; }
           }
-          if (!wColX) n.x = Math.max(60, Math.min(6340, n.x + wvx));
+          if (!wColX && !this.isPointInSafeZone(n.x + wvx, n.y, activeDim)) n.x = Math.max(60, Math.min(maxBoundX, n.x + wvx));
           else n.dir = 'idle';
 
           const wanderBoxY = { x: n.x, y: n.y + wvy, width: n.width, height: n.height };
@@ -764,7 +924,7 @@ const Entities = {
           for (let d of doors) {
             if (window.Combat && Combat.checkCollision(wanderBoxY, d)) { wColY = true; break; }
           }
-          if (!wColY) n.y = Math.max(60, Math.min(4740, n.y + wvy));
+          if (!wColY && !this.isPointInSafeZone(n.x, n.y + wvy, activeDim)) n.y = Math.max(60, Math.min(maxBoundY, n.y + wvy));
           else n.dir = 'idle';
         }
       }

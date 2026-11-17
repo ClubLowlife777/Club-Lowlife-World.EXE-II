@@ -31,13 +31,13 @@ const CasinoGame = {
       const container = document.getElementById('slotReel1').parentElement;
       r4 = document.createElement('div');
       r4.id = 'slotReel4';
-      r4.className = 'w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center text-4xl';
+      r4.className = 'w-11 h-14 sm:w-14 sm:h-16 shrink-0 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center text-xl sm:text-3xl';
       r4.innerText = '💎';
       container.appendChild(r4);
 
       r5 = document.createElement('div');
       r5.id = 'slotReel5';
-      r5.className = 'w-16 h-20 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center text-4xl';
+      r5.className = 'w-11 h-14 sm:w-14 sm:h-16 shrink-0 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center text-xl sm:text-3xl';
       r5.innerText = '🪙';
       container.appendChild(r5);
     }

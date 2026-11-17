@@ -83,7 +83,8 @@ const State = {
   DIMENSIONS: {
     underground: { name: "UNDERGROUND NIGHT SHIFT", width: 2400, height: 1200, defaultSpawn: { x: 350, y: 750 } },
     retrocade: { name: "NIRVANA (RETROCADE)", width: 2400, height: 1200, defaultSpawn: { x: 1200, y: 750 } },
-    wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800, defaultSpawn: { x: 650, y: 1100 } }
+    wasteland: { name: "THE CORRUPTION", width: 6400, height: 4800, defaultSpawn: { x: 650, y: 1100 } },
+    horizon: { name: "CHAPTER III // THE HORIZON", width: 3600, height: 2400, defaultSpawn: { x: 1800, y: 2050 } }
   },
 
   // Level Milestone Skin Map (Dossier Section 6)
@@ -173,6 +174,20 @@ const State = {
       x: 3680, y: 3950,
       title: "TAPE 06: BLADE X CASSHERN SINS",
       text: "The visual aesthetic for this new era was conceptualized as Blade walking through Casshern Sins—stark contrast, sweeping dusters, blacked-out helmets, and harsh CRT static."
+    },
+    {
+      id: "lore_deep_void_vault",
+      dim: "wasteland",
+      x: 3350, y: 1700,
+      title: "TAPE 07: THE DEEP VOID MAINFRAME",
+      text: "Submerged beneath the central badlands, the air-gapped Deep Void Data Vault preserves raw 24-bit master stems and syndicate telemetry immune to orbital signal wipes."
+    },
+    {
+      id: "lore_horizon_ascension",
+      dim: "horizon",
+      x: 1800, y: 620,
+      title: "TAPE 08: CHAPTER III // THE HORIZON",
+      text: "Beyond the 50-Cassette Extraction Rift lies the Horizon Citadel—an astral mastering sanctum suspended above the static where the next evolution of Club Lowlife is forged."
     }
   ],
 
@@ -809,6 +824,22 @@ const State = {
       const pct = Math.min(100, Math.floor((this.userProfile.collectedRareTapes / this.RARE_TAPES_THRESHOLD) * 100));
       gatedBar.style.width = `${pct}%`;
     }
+    const gatedStatus = document.getElementById('gatedStatusMessage');
+    const gatedBtn = document.getElementById('gatedProceedBtn');
+    const isUnlocked = this.userProfile.collectedRareTapes >= this.RARE_TAPES_THRESHOLD;
+    if (gatedStatus) {
+      gatedStatus.innerText = isUnlocked
+        ? "SIGNAL LOCK CONFIRMED // CHAPTER III HORIZON GATEWAY READY"
+        : `ACCESS RESTRICTED // COLLECT ${this.RARE_TAPES_THRESHOLD - this.userProfile.collectedRareTapes} MORE TAPES IN WASTELAND`;
+      gatedStatus.className = isUnlocked
+        ? "text-[10px] font-mono text-emerald-400 font-bold mb-3 animate-pulse"
+        : "text-[10px] font-mono text-red-400 mb-3";
+    }
+    if (gatedBtn) {
+      gatedBtn.className = isUnlocked
+        ? "flex-1 py-2 bg-gradient-to-r from-[#00f0ff] to-emerald-400 text-black font-cyber font-bold text-xs rounded cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.5)] active:scale-95 transition"
+        : "flex-1 py-2 bg-neutral-800 text-neutral-500 font-cyber font-bold text-xs rounded cursor-not-allowed";
+    }
   },
 
   switchDimension(dimKey, spawnX, spawnY) {
@@ -820,6 +851,8 @@ const State = {
     if (typeof Entities !== 'undefined' && Entities && Entities.player) {
       Entities.player.x = targetX;
       Entities.player.y = targetY;
+      Entities.player.knockbackVx = 0;
+      Entities.player.knockbackVy = 0;
     }
     const badge = document.getElementById('dimensionBadge');
     if (badge && cfg) badge.innerText = `DIMENSION: ${cfg.name}`;
@@ -947,10 +980,47 @@ const State = {
     }).join('');
   },
 
-  attemptGateWarp() {
-    if (this.userProfile.collectedRareTapes >= this.RARE_TAPES_THRESHOLD) {
-      this.showToast("WARPING TO HORIZON DIMENSION // CHAPTER III UNLOCKED!");
+  // =========================================================================
+  // BALANCED ARCADE SCORE -> XP & TOKEN PROGRESSION ENGINE
+  // Ratio: 25 Score = 1 XP (+35 XP Stage Clear Bonus), capped at 180 XP/run
+  //        80 Score = 1 Token (+15🪙 Stage Clear Bonus), capped at 45🪙/run
+  // =========================================================================
+  calculateArcadeRewards(score = 0, stageCleared = false) {
+    const cleanScore = Math.max(0, Math.floor(score || 0));
+    const baseXp = Math.floor(cleanScore / 25);
+    const clearXp = stageCleared ? 35 : 0;
+    const xp = cleanScore > 0 ? Math.min(180, Math.max(2, baseXp + clearXp)) : 0;
+
+    const baseTokens = Math.floor(cleanScore / 80);
+    const clearTokens = stageCleared ? 15 : 0;
+    const tokens = Math.min(45, baseTokens + clearTokens);
+
+    return { score: cleanScore, xp, tokens };
+  },
+
+  awardArcadeRewards(gameLabel, score = 0, stageCleared = false) {
+    const rewards = this.calculateArcadeRewards(score, stageCleared);
+    if (rewards.tokens > 0) {
+      this.addTokens(rewards.tokens);
+    }
+    if (rewards.xp > 0) {
+      this.addXp(rewards.xp, `${gameLabel} [${rewards.score} PTS]`);
+    }
+    if (rewards.xp > 0 || rewards.tokens > 0) {
+      this.showToast(`${gameLabel}: ${rewards.score} PTS → +${rewards.xp} XP${rewards.tokens > 0 ? ` & +${rewards.tokens}🪙` : ''}! 🕹️⚡`);
+    }
+    this.save();
+    return rewards;
+  },
+
+  attemptGateWarp(forceOverride = false) {
+    if (this.userProfile.collectedRareTapes >= this.RARE_TAPES_THRESHOLD || forceOverride) {
+      if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
       this.closeModals();
+      this.switchDimension('horizon', 1800, 2050);
+      this.triggerScreenShake(16, 28);
+      this.unlockSkin('horizon_celestial');
+      this.showToast("CHAPTER III UNLOCKED // WELCOME TO THE HORIZON DIMENSION! 🌌⚡");
     } else {
       this.showToast(`ACCESS DENIED: NEED ${this.RARE_TAPES_THRESHOLD - this.userProfile.collectedRareTapes} MORE TAPES!`);
     }
