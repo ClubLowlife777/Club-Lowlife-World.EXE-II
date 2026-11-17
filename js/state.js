@@ -1179,24 +1179,34 @@ const State = {
 
   // =========================================================================
   // BALANCED ARCADE SCORE -> XP & TOKEN PROGRESSION ENGINE
-  // Ratio: 25 Score = 1 XP (+35 XP Stage Clear Bonus), capped at 180 XP/run
-  //        80 Score = 1 Token (+15🪙 Stage Clear Bonus), capped at 45🪙/run
+  // Ratio: 25 Score = 1 XP (+35 XP Stage/Wave Clear Bonus)
+  //   - Lowlife Galaga: Uncapped XP directly scaling with score across 300 waves
+  //     (e.g., 5,000 pts = 200 XP; 25,000 pts = 1,000 XP; 100,000 pts = 4,000 XP)
+  //   - Classic Retro Single-Stage Cabinets: Capped at 180 XP/run
   // =========================================================================
-  calculateArcadeRewards(score = 0, stageCleared = false) {
+  calculateArcadeRewards(score = 0, stageCleared = false, game = "") {
     const cleanScore = Math.max(0, Math.floor(score || 0));
+    const label = (game || (this.activeMiniGame && this.activeMiniGame === window.VoidInvaders ? "LOWLIFE GALAGA" : "")).toString().toLowerCase();
+    const isGalaga = label.includes('galaga') || label.includes('void');
+
     const baseXp = Math.floor(cleanScore / 25);
     const clearXp = stageCleared ? 35 : 0;
-    const xp = cleanScore > 0 ? Math.min(180, Math.max(2, baseXp + clearXp)) : 0;
+    // Galaga XP is uncapped, directly connected to score at a 25:1 ratio
+    const xp = cleanScore > 0
+      ? (isGalaga ? Math.max(2, baseXp + clearXp) : Math.min(180, Math.max(2, baseXp + clearXp)))
+      : 0;
 
     const baseTokens = Math.floor(cleanScore / 80);
     const clearTokens = stageCleared ? 15 : 0;
-    const tokens = Math.min(45, baseTokens + clearTokens);
+    const tokens = isGalaga
+      ? Math.min(100, baseTokens + clearTokens)
+      : Math.min(45, baseTokens + clearTokens);
 
     return { score: cleanScore, xp, tokens };
   },
 
   awardArcadeRewards(gameLabel, score = 0, stageCleared = false) {
-    const rewards = this.calculateArcadeRewards(score, stageCleared);
+    const rewards = this.calculateArcadeRewards(score, stageCleared, gameLabel);
     if (rewards.tokens > 0) {
       this.addTokens(rewards.tokens);
     }

@@ -61,7 +61,7 @@ const VoidInvaders = {
     const title = document.getElementById('arcadeTitle');
     if (title) title.innerText = "LOWLIFE GALAGA // RAIDEN III EDITION";
     const hint = document.getElementById('arcadeControlsHint');
-    if (hint) hint.innerText = "[A/D / ◀▶] STEER  •  [SPACE / J / FIRE] SHOOT  •  [S / ▼] 808 BOMB  •  GRAB RED/BLUE/GREEN CRYSTALS";
+    if (hint) hint.innerText = "[A/D / ◀▶] STEER  •  [SPACE / J / FIRE] SHOOT  •  [S / ▼] 808 BOMB  •  25 PTS = +1 XP";
     const modal = document.getElementById('arcadeModal');
     if (modal) modal.classList.remove('hidden');
     if (window.State) {
@@ -958,7 +958,7 @@ const VoidInvaders = {
 
     // Live Top Arcade HUD
     const est = (window.State && typeof State.calculateArcadeRewards === 'function')
-      ? State.calculateArcadeRewards(this.score, this.wave > 1)
+      ? State.calculateArcadeRewards(this.score, this.wave > 1, "LOWLIFE GALAGA")
       : { xp: Math.floor(this.score / 25), tokens: Math.floor(this.score / 80) };
 
     ctx.fillStyle = 'rgba(8, 10, 16, 0.90)';
