@@ -67,7 +67,7 @@ const NEW_STORE_SKINS = [
   { id: 'dancing_nightcore', name: 'DANCING // 150 BPM NIGHTCORE', desc: 'Hyper-speed electric pink windbreaker with high-voltage cyan trim.', rarity: 'legendary', price: 700, category: 'store', coat: '#db2777', trim: '#00f0ff', visor: '#ffffff', pants: '#831843' },
   { id: 'dancing_slowed_reverb', name: 'DANCING // 104 BPM SLOWED', desc: 'Heavy trailing dark-plum trench surrounded by chopped & screwed haze.', rarity: 'legendary', price: 700, category: 'store', coat: '#3b0764', trim: '#9333ea', visor: '#d8b4fe', pants: '#1e1b4b' },
   { id: 'dancing_vip_rave', name: 'DANCING // 138 VIP TECHNO', desc: 'Four-on-the-floor strobe suit flashing in sync with the acid kick.', rarity: 'legendary', price: 777, category: 'store', coat: '#052e16', trim: '#4ade80', visor: '#00f0ff', pants: '#022c22' },
-  { id: 'district_84_veteran', name: 'DISTRICT 84 VETERAN', desc: 'Scuffed retro arcade attendant uniform with rare enamel cabinet pins.', rarity: 'epic', price: 540, category: 'store', coat: '#1e1b4b', trim: '#f43f5e', visor: '#22d3ee', pants: '#0f172a' },
+  { id: 'nirvana_veteran', name: 'NIRVANA VETERAN', desc: 'Scuffed retro arcade attendant uniform with rare enamel cabinet pins.', rarity: 'epic', price: 540, category: 'store', coat: '#1e1b4b', trim: '#f43f5e', visor: '#22d3ee', pants: '#0f172a' },
   { id: 'cassette_airdrop_vip', name: 'CASSETTE AIR-DROP VIP', desc: 'Gold-foil insulated courier suit with official syndicate manifest tags.', rarity: 'legendary', price: 800, category: 'store', coat: '#713f12', trim: '#facc15', visor: '#fef08a', pants: '#422006' },
   { id: 'syndicate_director', name: 'SHORT FILM AUTEUR', desc: 'Director slate-gray tactical trench with 35mm anamorphic lens visor.', rarity: 'legendary', price: 850, category: 'store', coat: '#18181b', trim: '#e4e4e7', visor: '#ff003c', pants: '#09090b' },
   { id: 'lowlife_legend', name: 'RETROCADE TO WASTELAND', desc: 'Iridescent split-era duster shifting between neon pink and matte black.', rarity: 'mythic', price: 925, category: 'store', coat: '#090b10', trim: '#ec4899', visor: '#00f0ff', pants: '#1e1b4b' },
@@ -164,7 +164,7 @@ const State = {
     {
       id: "lore_bonfire",
       dim: "wasteland",
-      x: 2300, y: 2850,
+      x: 2300, y: 2675,
       title: "TAPE 05: CONNER CADE'S SAFE ZONE",
       text: "Conner Cade's creative bonfire is a sanctuary in the center of the Corruption. Here, Milwaukee underground creatives gather to trade stems, test unreleased visualizers, and escape the syndicate signal."
     },
@@ -339,6 +339,14 @@ const State = {
         if (!Array.isArray(this.userProfile.equippedRelics)) this.userProfile.equippedRelics = [];
         if (!Array.isArray(this.userProfile.bossesDefeated)) this.userProfile.bossesDefeated = [];
         if (!Array.isArray(this.userProfile.completedStreamingQuests)) this.userProfile.completedStreamingQuests = [];
+        if (Array.isArray(this.userProfile.unlockedSkins)) {
+          this.userProfile.unlockedSkins = [...new Set(
+            this.userProfile.unlockedSkins.map(id => id === 'district_84_veteran' ? 'nirvana_veteran' : id)
+          )];
+        }
+        if (this.userProfile.activeSkin === 'district_84_veteran') {
+          this.userProfile.activeSkin = 'nirvana_veteran';
+        }
         if (!this.userProfile.arcadeHighScores || typeof this.userProfile.arcadeHighScores !== 'object') {
           this.userProfile.arcadeHighScores = { voidInvaders: 0, gridRunner: 0, lowlifeLeap: 0 };
         }
@@ -882,6 +890,25 @@ const State = {
     if (cfg) this.showToast(`WARPED TO ${cfg.name}! 🌀`);
   },
 
+  warpToNextWorld() {
+    this.closeModals();
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') {
+      AudioEngine.playSfx('dash');
+    }
+    const tapes = (this.userProfile && this.userProfile.collectedRareTapes) || 0;
+    const horizonUnlocked = tapes >= this.RARE_TAPES_THRESHOLD;
+
+    if (this.currentDimension === 'underground') {
+      this.switchDimension('retrocade', 1200, 750);
+    } else if (this.currentDimension === 'retrocade') {
+      this.switchDimension('wasteland', 650, 1100);
+    } else if (this.currentDimension === 'wasteland' && horizonUnlocked) {
+      this.switchDimension('horizon', 1800, 2050);
+    } else {
+      this.switchDimension('underground', 350, 750);
+    }
+  },
+
   showToast(msg) {
     const t = document.getElementById('toastMessage');
     if (!t) return;
@@ -1096,13 +1123,13 @@ const State = {
       platform: 'DELUXE ALBUM',
       icon: '💿',
       title: 'STREAM "RETROCADE EVOLVED" DELUXE',
-      desc: 'Access the deluxe album portal featuring extended cuts & unlock District 84 Veteran.',
+      desc: 'Access the deluxe album portal featuring extended cuts & unlock Nirvana Veteran.',
       url: 'https://clublowlife.dimensions.fm/retrocade-evolved',
       xp: 140,
       tokens: 100,
       tapes: 3,
-      skinReward: 'district_84_veteran',
-      rewardText: '+140 XP • +100🪙 • +3📼 • DISTRICT 84 VETERAN SKIN'
+      skinReward: 'nirvana_veteran',
+      rewardText: '+140 XP • +100🪙 • +3📼 • NIRVANA VETERAN SKIN'
     },
     {
       id: 'quest_all_platforms',
@@ -1215,8 +1242,8 @@ const State = {
       actionKey: 'casino_spin',
       target: 3,
       icon: '🎰',
-      title: 'DISTRICT 84 HIGH ROLLER',
-      desc: 'Spin the Cyber Slots 3 times in the Retrocade East Casino Wing.',
+      title: 'NIRVANA HIGH ROLLER',
+      desc: 'Spin the Cyber Slots 3 times in the Nirvana Retrocade Casino Wing.',
       xp: 65,
       tokens: 45,
       tapes: 1
@@ -1322,7 +1349,7 @@ const State = {
     },
     {
       id: 'ft_retrocade_floor',
-      name: 'DISTRICT 84 // RETROCADE DANCE FLOOR',
+      name: 'NIRVANA // RETROCADE DANCE FLOOR',
       sub: 'Audio-Reactive Dance Floor, DJ Visualizer & Music Kiosk',
       dim: 'retrocade',
       x: 1200,
@@ -1332,7 +1359,7 @@ const State = {
     },
     {
       id: 'ft_retrocade_casino',
-      name: 'DISTRICT 84 // HIGH-STAKES CASINO WING',
+      name: 'NIRVANA // HIGH-STAKES CASINO WING',
       sub: 'Classic 3-Reel & 5-Lane High Roller Slot Machines',
       dim: 'retrocade',
       x: 1980,

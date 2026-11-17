@@ -151,20 +151,17 @@
         <span>🧪</span>
         <b id="hudVialCount">0</b>
       </button>
-      <button id="openGuideBtn" onclick="openGuideModal('links')" class="px-2 py-0.5 bg-gradient-to-r from-[#00f0ff] to-emerald-400 active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded shadow-[0_0_10px_rgba(0,240,255,0.4)] transition" title="Game Guide & Traditional Link-in-Bio Hub">
+      <button id="openGuideBtn" onclick="openGuideModal('links')" class="px-2 py-0.5 bg-gradient-to-r from-[#00f0ff] to-emerald-400 active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded shadow-[0_0_10px_rgba(0,240,255,0.4)] transition" title="Guide, Official Links, Fast Travel & ID Pass">
         📖 GUIDE / LINKS
       </button>
-      <button id="btnWarp" onclick="openFastTravelModal()" class="px-1.5 py-0.5 bg-gradient-to-r from-pink-600 to-purple-500 active:scale-95 text-white font-cyber font-bold text-[10px] sm:text-xs rounded transition" title="Fast Travel & Daily Bounties">
-        🚐 WARP
-      </button>
-      <button id="openIdPassBtn" onclick="openGuideModal('idpass')" class="px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-cyber font-bold active:scale-95 transition" title="Holographic Player ID Card & Leaderboards">
-        🪪 ID / RANKS
+      <button id="btnWarp" onclick="if(window.State && typeof State.warpToNextWorld === 'function') State.warpToNextWorld();" class="px-1.5 py-0.5 bg-gradient-to-r from-pink-600 to-purple-500 active:scale-95 text-white font-cyber font-bold text-[10px] sm:text-xs rounded transition" title="Warp to Next World (Open Guide / Links -> Warp for Fast Travel)">
+        🌀 WARP
       </button>
       <button id="openSkinsBtn" onclick="openSkinLockerModal('all')" class="px-1.5 py-0.5 bg-[#0e1117] border border-amber-500/50 rounded text-[10px] sm:text-xs text-amber-300 font-cyber font-bold active:scale-95 transition">
         SKINS
       </button>
-      <button id="openGearBtn" onclick="openGearModal()" class="hidden sm:inline-block px-1.5 py-0.5 bg-[#1e1b4b] border border-purple-500/50 rounded text-[10px] sm:text-xs text-purple-300 font-cyber active:scale-95 transition" title="Studio Gear Relics">
-        GEAR
+      <button id="openGearBtn" onclick="openGearModal()" class="px-1.5 py-0.5 bg-[#1e1b4b] border border-purple-500/60 rounded text-[10px] sm:text-xs text-purple-300 font-cyber font-bold active:scale-95 transition" title="Equip Power-Ups & Studio Gear Relics">
+        🎛️ GEAR
       </button>
       <button id="crtToggleBtn" onclick="if(window.State && typeof State.toggleCrt === 'function') State.toggleCrt();" class="hidden md:inline-block px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition" title="Toggle CRT Scanlines & Vignette">
         CRT: ON
@@ -240,8 +237,8 @@
         <div class="flex items-center gap-2">
           <span class="text-xl sm:text-2xl">🎛️</span>
           <div>
-            <h3 class="font-cyber font-bold text-white text-xs sm:text-sm tracking-wider uppercase">STUDIO HARDWARE RACK</h3>
-            <span class="text-[8px] sm:text-[9px] text-purple-400 font-mono tracking-widest uppercase">EQUIPPED RELIC STAT MODIFIERS</span>
+            <h3 class="font-cyber font-bold text-white text-xs sm:text-sm tracking-wider uppercase">STUDIO HARDWARE RACK // POWER-UPS</h3>
+            <span class="text-[8px] sm:text-[9px] text-purple-400 font-mono tracking-widest uppercase">EQUIP UP TO 2 GAMEPLAY RELICS (GROSS BEAT, PEAK COMP, ETC.)</span>
           </div>
         </div>
         <button onclick="if(window.State) State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold">✕</button>
@@ -477,11 +474,12 @@
         </button>
       </div>
 
-      <!-- Wardrobe Filter Tabs -->
+      <!-- Wardrobe Filter Tabs & Power-Ups Switcher -->
       <div class="flex gap-1 mb-2">
         <button id="tabFilterAll" onclick="setSkinTab('all')" class="flex-1 py-1 rounded font-cyber font-bold text-[10px] bg-[#00f0ff] text-black transition">ALL (120)</button>
         <button id="tabFilterUnlocked" onclick="setSkinTab('unlocked')" class="flex-1 py-1 rounded font-cyber font-bold text-[10px] bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition">UNLOCKED</button>
         <button id="tabFilterStore" onclick="setSkinTab('store')" class="flex-1 py-1 rounded font-cyber font-bold text-[10px] bg-neutral-900 text-amber-400 border border-amber-500/30 hover:bg-neutral-800 transition">BLACK MARKET 🪙</button>
+        <button onclick="openGearModal()" class="px-2 py-1 rounded font-cyber font-bold text-[10px] bg-[#1e1b4b] text-purple-300 border border-purple-500/50 hover:bg-purple-900/50 transition" title="Open Studio Hardware Rack (Power-Ups & Relics)">🎛️ GEAR</button>
       </div>
 
       <div id="skinsList" class="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1"></div>
@@ -566,16 +564,6 @@
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-2 py-0.5 text-sm font-bold border border-neutral-800 rounded">✕</button>
       </div>
 
-      <!-- Traditional Link-in-Bio Reassurance Banner -->
-      <div class="p-2 rounded-lg bg-gradient-to-r from-[#00f0ff]/15 via-purple-500/15 to-pink-500/15 border border-[#00f0ff]/50 mb-2.5 shrink-0">
-        <div class="flex items-start gap-2">
-          <span class="text-base leading-none mt-0.5">⚡</span>
-          <p class="text-[10px] sm:text-[11px] text-neutral-200 leading-snug">
-            <b class="text-[#00f0ff] font-cyber uppercase">NO GAMEPLAY REQUIRED TO STREAM:</b> This experience acts as both a <b class="text-white">traditional 1-click Link-in-Bio</b> and a playable cyberpunk RPG. If you just want direct access to <b class="text-emerald-300">Club Lowlife's music, merch, or socials</b>, use the instant links below without needing to explore the world!
-          </p>
-        </div>
-      </div>
-
       <!-- 4 Navigation Tabs -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 mb-2.5 shrink-0">
         <button id="guideTabBtnLinks" onclick="setGuideTab('links')" class="py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-[#00f0ff] text-black transition">
@@ -597,42 +585,32 @@
 
         <!-- TAB 1: INSTANT LINK-IN-BIO & STREAMING QUESTS -->
         <div id="guidePanelLinks" class="space-y-3">
-          <!-- Direct 1-Click Traditional Link-in-Bio Grid -->
+          <!-- Traditional Link-in-Bio Reassurance Banner -->
+          <div class="p-2 rounded-lg bg-gradient-to-r from-[#00f0ff]/15 via-purple-500/15 to-pink-500/15 border border-[#00f0ff]/50">
+            <div class="flex items-start gap-2">
+              <span class="text-base leading-none mt-0.5">⚡</span>
+              <p class="text-[10px] sm:text-[11px] text-neutral-200 leading-snug">
+                <b class="text-[#00f0ff] font-cyber uppercase">NO GAMEPLAY REQUIRED TO STREAM:</b> This experience acts as both a <b class="text-white">traditional 1-click Link-in-Bio</b> and a playable cyberpunk RPG. If you just want direct access to <b class="text-emerald-300">Club Lowlife's music or Instagram</b>, use the instant links below without needing to explore the world!
+              </p>
+            </div>
+          </div>
+
+          <!-- Concise Official Links for Casual Listeners (1-Click Access) -->
           <div class="p-2.5 rounded-lg bg-black/80 border border-neutral-800">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-cyber font-bold text-white text-[11px] uppercase">🎧 DIRECT STREAMING & OFFICIAL LINKS (1-CLICK ACCESS)</span>
-              <span class="text-[8px] text-[#00f0ff]">INSTANT ACCESS</span>
+              <span class="font-cyber font-bold text-white text-[11px] uppercase">🎧 OFFICIAL LINKS (1-CLICK ACCESS)</span>
+              <span class="text-[8px] text-[#00f0ff]">DIRECT HUB</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              <a href="https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg?si=0d4c1e54e1fd4ee2" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_spotify_dancing');" class="p-2 rounded bg-[#1DB954]/20 border border-[#1DB954] hover:bg-[#1DB954]/30 flex items-center justify-between transition">
-                <span class="font-cyber font-bold text-white text-[11px]">🟢 "DANCING" ON SPOTIFY</span>
-                <span class="text-[9px] text-[#1DB954] font-bold">STREAM ↗</span>
-              </a>
-              <a href="https://music.apple.com/us/song/dancing/6824158392" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_apple_dancing');" class="p-2 rounded bg-rose-600/20 border border-rose-500 hover:bg-rose-600/30 flex items-center justify-between transition">
-                <span class="font-cyber font-bold text-white text-[11px]">🍎 "DANCING" ON APPLE MUSIC</span>
-                <span class="text-[9px] text-rose-300 font-bold">STREAM ↗</span>
-              </a>
-              <a href="https://music.youtube.com/playlist?list=OLAK5uy_m-WHYrOsDdXEtkUCJzW11ELfS7wifL1sc&si=6kMLhqT5LWGyFrhQ" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_youtube_dancing');" class="p-2 rounded bg-red-600/20 border border-red-500 hover:bg-red-600/30 flex items-center justify-between transition">
-                <span class="font-cyber font-bold text-white text-[11px]">▶️ YOUTUBE MUSIC RELEASE</span>
-                <span class="text-[9px] text-red-300 font-bold">WATCH/LISTEN ↗</span>
-              </a>
-              <a href="https://clublowlife.dimensions.fm/retrocade-evolved" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_retrocade_deluxe');" class="p-2 rounded bg-cyan-500/20 border border-[#00f0ff] hover:bg-cyan-500/30 flex items-center justify-between transition">
-                <span class="font-cyber font-bold text-white text-[11px]">💿 RETROCADE EVOLVED (DELUXE)</span>
-                <span class="text-[9px] text-[#00f0ff] font-bold">STREAM ↗</span>
-              </a>
-              <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_all_platforms');" class="p-2 rounded bg-purple-600/20 border border-purple-500 hover:bg-purple-600/30 flex items-center justify-between transition">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+              <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded bg-purple-600/20 border border-purple-500 hover:bg-purple-600/30 flex sm:flex-col items-center sm:items-start justify-between gap-1 transition">
                 <span class="font-cyber font-bold text-white text-[11px]">🌐 DANCING (ALL PLATFORMS)</span>
-                <span class="text-[9px] text-purple-300 font-bold">OPEN HUB ↗</span>
+                <span class="text-[9px] text-purple-300 font-bold">STREAM NOW ↗</span>
               </a>
-              <a href="https://clublowlife.com" target="_blank" rel="noopener noreferrer" class="p-2 rounded bg-amber-500/20 border border-amber-500 hover:bg-amber-500/30 flex items-center justify-between transition">
-                <span class="font-cyber font-bold text-white text-[11px]">🧥 OFFICIAL MERCH (CODE: LOWLIFEWORLD15)</span>
-                <span class="text-[9px] text-amber-300 font-bold">15% OFF ↗</span>
+              <a href="https://clublowlife.dimensions.fm/retrocade-evolved" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded bg-cyan-500/20 border border-[#00f0ff] hover:bg-cyan-500/30 flex sm:flex-col items-center sm:items-start justify-between gap-1 transition">
+                <span class="font-cyber font-bold text-white text-[11px]">💿 RETROCADE EVOLVED</span>
+                <span class="text-[9px] text-[#00f0ff] font-bold">ALL PLATFORMS ↗</span>
               </a>
-              <a href="https://forms.gle/TsE7MAHSD1erDca59" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_cassette_airdrop');" class="p-2 rounded bg-yellow-500/20 border border-yellow-500 hover:bg-yellow-500/30 flex items-center justify-between transition">
-                <span class="font-cyber font-bold text-white text-[11px]">📼 PHYSICAL CASSETTE AIR-DROP</span>
-                <span class="text-[9px] text-yellow-300 font-bold">CLAIM ↗</span>
-              </a>
-              <a href="https://www.instagram.com/omglowlife" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_instagram_syndicate');" class="p-2 rounded bg-pink-600/20 border border-pink-500 hover:bg-pink-600/30 flex items-center justify-between transition">
+              <a href="https://www.instagram.com/omglowlife" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded bg-pink-600/20 border border-pink-500 hover:bg-pink-600/30 flex sm:flex-col items-center sm:items-start justify-between gap-1 transition">
                 <span class="font-cyber font-bold text-white text-[11px]">📸 INSTAGRAM (@OMGLOWLIFE)</span>
                 <span class="text-[9px] text-pink-300 font-bold">FOLLOW ↗</span>
               </a>
@@ -672,7 +650,7 @@
             </div>
 
             <div class="p-2.5 rounded-lg bg-neutral-900/90 border border-pink-500/40">
-              <div class="font-cyber font-bold text-pink-300 text-xs mb-1">2. DISTRICT 84 // RETROCADE</div>
+              <div class="font-cyber font-bold text-pink-300 text-xs mb-1">2. NIRVANA // RETROCADE</div>
               <ul class="text-[10px] text-neutral-300 space-y-1 list-disc pl-4">
                 <li><b class="text-white">Audio-Reactive Dance Floor:</b> Groove on the LED matrix pulsing to real-time FFT bass bins to earn passive Sound Tokens.</li>
                 <li><b class="text-white">High-Stakes Cyber Casino:</b> Spin the 3-Reel Classic (5🪙) or 5-Lane High Roller (25🪙) slots for Jackpot Tokens & Cassettes 📼.</li>
@@ -712,6 +690,16 @@
 
         <!-- TAB 3: BLACK VAN FAST TRAVEL & DAILY BOUNTIES -->
         <div id="guidePanelWarp" class="hidden space-y-3">
+          <!-- Black Van Fast-Travel Network -->
+          <div class="p-2.5 rounded-lg bg-black/80 border border-[#00f0ff]/50">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-cyber font-bold text-[#00f0ff] text-xs uppercase">🚐 BLACK VAN FAST-TRAVEL DISPATCH</span>
+              <span class="text-[9px] text-emerald-400">INSTANT TELEPORT</span>
+            </div>
+            <p class="text-[10px] text-neutral-400 mb-2">Select any specific sector or Safe Zone below to deploy immediately:</p>
+            <div id="fastTravelNodesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
+          </div>
+
           <!-- Daily Login Bonus Card -->
           <div class="p-2.5 rounded-lg bg-gradient-to-r from-amber-950/60 to-black border border-amber-500/60 flex items-center justify-between gap-2">
             <div>
@@ -730,16 +718,6 @@
               <span class="text-[9px] text-neutral-400">RESETS DAILY AT MIDNIGHT</span>
             </div>
             <div id="dailyBountiesContainer" class="space-y-1.5"></div>
-          </div>
-
-          <!-- Black Van Fast-Travel Network -->
-          <div class="p-2.5 rounded-lg bg-black/80 border border-[#00f0ff]/50">
-            <div class="flex items-center justify-between mb-1">
-              <span class="font-cyber font-bold text-[#00f0ff] text-xs uppercase">🚐 BLACK VAN FAST-TRAVEL DISPATCH</span>
-              <span class="text-[9px] text-emerald-400">INSTANT TELEPORT</span>
-            </div>
-            <p class="text-[10px] text-neutral-400 mb-2">Select any sector or Safe Zone below to deploy immediately:</p>
-            <div id="fastTravelNodesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
           </div>
         </div>
 
@@ -801,6 +779,7 @@
     let activeLeaderboardCategory = 'voidInvaders';
 
     function openGuideModal(tab = 'links') {
+      if (window.State && typeof State.closeModals === 'function') State.closeModals();
       const m = document.getElementById('guideModal');
       if (!m) return;
       m.classList.remove('hidden');
@@ -991,6 +970,7 @@
     }
 
     function openSkinLockerModal(filter = 'all') {
+      if (window.State && typeof State.closeModals === 'function') State.closeModals();
       const sm = document.getElementById('skinLockerModal');
       if (sm) sm.classList.remove('hidden');
       setSkinTab(filter);
@@ -1049,6 +1029,7 @@
     }
 
     function openGearModal() {
+      if (window.State && typeof State.closeModals === 'function') State.closeModals();
       const modal = document.getElementById('gearModal');
       if (!modal) return;
       if (window.State && typeof State.renderGearRack === 'function') {

@@ -61,7 +61,7 @@ const Dimensions = {
     { 
       id: 'portal_retrocade', 
       x: 2200, y: 900, width: 80, height: 80, 
-      label: 'WARP: RETROCADE DISTRICT 84', 
+      label: 'WARP: RETROCADE NIRVANA', 
       action: () => { 
         if (window.State) State.switchDimension('retrocade', 1200, 750); 
       } 
@@ -129,7 +129,7 @@ const Dimensions = {
   ],
 
   // =========================================================================
-  // 2. DISTRICT 84 // RETROCADE (2400 x 1200 px Neon Lounge)
+  // 2. NIRVANA // RETROCADE (2400 x 1200 px Neon Lounge)
   // =========================================================================
   retrocadeObstacles: [
     { x: 0, y: 0, width: 2400, height: 35, label: "PERIMETER NORTH" },
@@ -313,7 +313,7 @@ const Dimensions = {
   ],
 
   wastelandZones: [
-    { id: 'portal_retrocade_back', x: 650, y: 1020, width: 80, height: 80, label: 'WARP: RETROCADE DISTRICT 84', action: () => { if (window.State) State.switchDimension('retrocade', 1200, 750); } },
+    { id: 'portal_retrocade_back', x: 650, y: 1020, width: 80, height: 80, label: 'WARP: RETROCADE NIRVANA', action: () => { if (window.State) State.switchDimension('retrocade', 1200, 750); } },
     { id: 'getaway_van_log', x: 460, y: 1080, width: 135, height: 85, label: 'BLACK VAN // FAST TRAVEL & TRANSIT LOG', action: () => {
       if (typeof openFastTravelModal === 'function') {
         openFastTravelModal();
@@ -334,7 +334,7 @@ const Dimensions = {
         m.classList.remove('hidden');
       }
     }},
-    { id: 'bonfire_safe_zone', x: 2180, y: 2780, width: 240, height: 240, label: "CONNER CADE'S BONFIRE SAFE ZONE", action: () => {
+    { id: 'bonfire_safe_zone', x: 2270, y: 2870, width: 60, height: 60, label: "CONNER CADE'S BONFIRE SAFE ZONE", action: () => {
       const m = document.getElementById('npcModal');
       if (m) {
         document.getElementById('npcName').innerText = "CONNER CADE'S CREATIVE BONFIRE";

@@ -337,7 +337,7 @@ function drawUnderground() {
     ctx.fillText("INSERT 5🪙", ax + 14, 186);
   });
 
-  drawPortal(2200, 900, '#00f0ff', '#ec4899', "WARP: RETROCADE DISTRICT 84");
+  drawPortal(2200, 900, '#00f0ff', '#ec4899', "WARP: RETROCADE NIRVANA");
   drawPortalsAndEntities('underground');
 }
 
@@ -497,7 +497,7 @@ function drawRetrocade() {
   ctx.fillText("🎵 MUSIC STEM KIOSK", 280, 270);
 
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 12px "Chakra Petch"';
-  ctx.fillText("HIGH-STAKES CASINO // DISTRICT 84", 1900, 100);
+  ctx.fillText("HIGH-STAKES CASINO // NIRVANA", 1900, 100);
   ctx.fillStyle = '#581c87'; ctx.fillRect(1880, 180, 130, 70);
   ctx.strokeStyle = '#c084fc'; ctx.strokeRect(1880, 180, 130, 70);
   ctx.fillStyle = '#facc15'; ctx.font = 'bold 9px "Share Tech Mono"';
@@ -1048,7 +1048,7 @@ function drawTacticalRadar(dim) {
   // Map Title Overlay
   const mapLabels = {
     underground: 'MAP // UNDERGROUND',
-    retrocade: 'MAP // RETROCADE 84',
+    retrocade: 'MAP // NIRVANA',
     wasteland: 'MAP // WASTELAND',
     horizon: 'MAP // THE HORIZON'
   };

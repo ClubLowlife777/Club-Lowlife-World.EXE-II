@@ -359,11 +359,12 @@ const Input = {
     if (warpBtn) {
       warpBtn.onclick = () => {
         if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
-        if (typeof openFastTravelModal === 'function') {
-          openFastTravelModal();
+        if (!window.State) return;
+        if (typeof State.warpToNextWorld === 'function') {
+          State.warpToNextWorld();
           return;
         }
-        if (!window.State || typeof State.switchDimension !== 'function') return;
+        if (typeof State.switchDimension !== 'function') return;
 
         if (State.currentDimension === 'underground') {
           State.switchDimension('retrocade', 1200, 750);
@@ -415,9 +416,11 @@ const Input = {
 
     const p = Entities.player;
     const dim = State.currentDimension;
+    const pxCenter = p.x + (p.width || 26) / 2;
+    const pyCenter = p.y + (p.height || 38) / 2;
 
     // Generous proximity detection radius so phone users don't have to be pixel-perfect
-    const pBox = { x: p.x - 45, y: p.y - 45, width: (p.width || 32) + 90, height: (p.height || 32) + 90 };
+    const pBox = { x: p.x - 45, y: p.y - 45, width: (p.width || 26) + 90, height: (p.height || 38) + 90 };
     const checkOverlap = (b1, b2) => (
       b1.x < b2.x + b2.width &&
       b1.x + b1.width > b2.x &&
@@ -425,45 +428,52 @@ const Input = {
       b1.y + b1.height > b2.y
     );
 
-    let nearest = null;
+    const candidates = [];
+    const pushCandidate = (type, data, label, priorityBonus = 0) => {
+      const cx = data.x + (data.width || 30) / 2;
+      const cy = data.y + (data.height || 30) / 2;
+      const dist = Math.hypot(pxCenter - cx, pyCenter - cy) - priorityBonus;
+      candidates.push({ type, data, label, dist });
+    };
+
     const activeZones = typeof Dimensions.getActiveZones === 'function' ? Dimensions.getActiveZones() : [];
+    const discoveredTapes = (State.userProfile && Array.isArray(State.userProfile.discoveredLoreTapes))
+      ? State.userProfile.discoveredLoreTapes
+      : [];
     for (let z of activeZones) {
       if (checkOverlap(pBox, z)) {
-        nearest = { type: 'zone', data: z, label: z.label || 'INTERACT' };
-        break;
+        const isTape = typeof z.id === 'string' && z.id.startsWith('lore_');
+        const bonus = isTape ? (discoveredTapes.includes(z.id) ? 10 : 35) : 0;
+        pushCandidate('zone', z, z.label || 'INTERACT', bonus);
       }
     }
 
-    if (!nearest) {
-      const npcs = (Entities.friendlyNpcs && Entities.friendlyNpcs[dim]) ? Entities.friendlyNpcs[dim] : [];
-      for (let n of npcs) {
-        if (checkOverlap(pBox, n)) {
-          nearest = { type: 'npc', data: n, label: `TALK TO ${n.name}` };
-          break;
-        }
+    const npcs = (Entities.friendlyNpcs && Entities.friendlyNpcs[dim]) ? Entities.friendlyNpcs[dim] : [];
+    for (let n of npcs) {
+      if (checkOverlap(pBox, n)) {
+        pushCandidate('npc', n, `TALK TO ${n.name}`, 15);
       }
     }
 
-    if (!nearest) {
-      const activeChests = (typeof Dimensions.getActiveChests === 'function')
-        ? Dimensions.getActiveChests()
-        : (dim === 'wasteland' && Dimensions.wastelandChests ? Dimensions.wastelandChests : []);
-      for (let c of activeChests) {
-        if (!c.opened && checkOverlap(pBox, c)) {
-          nearest = { type: 'chest', data: c, label: `OPEN ${c.label || 'CHEST'}` };
-          break;
-        }
+    const activeChests = (typeof Dimensions.getActiveChests === 'function')
+      ? Dimensions.getActiveChests()
+      : (dim === 'wasteland' && Dimensions.wastelandChests ? Dimensions.wastelandChests : []);
+    for (let c of activeChests) {
+      if (!c.opened && checkOverlap(pBox, c)) {
+        pushCandidate('chest', c, `OPEN ${c.label || 'CHEST'}`, 20);
       }
     }
 
-    if (!nearest && dim === 'wasteland' && Dimensions.destructibleDoors) {
+    if (dim === 'wasteland' && Dimensions.destructibleDoors) {
       for (let d of Dimensions.destructibleDoors) {
         if (!d.shattered && checkOverlap(pBox, d)) {
-          nearest = { type: 'door', data: d, label: `BYPASS ${d.label} [50🪙] OR HOLD [K]` };
-          break;
+          pushCandidate('door', d, `BYPASS ${d.label} [50🪙] OR HOLD [K]`, 0);
         }
       }
     }
+
+    candidates.sort((a, b) => a.dist - b.dist);
+    const nearest = candidates.length > 0 ? candidates[0] : null;
 
     const banner = document.getElementById('interactionPrompt');
     const label = document.getElementById('promptText');
