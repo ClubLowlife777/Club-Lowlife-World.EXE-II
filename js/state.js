@@ -692,7 +692,7 @@ const State = {
   },
 
   buyAmberVial() {
-    const cost = 40; // Dossier Section 5.3: 40 tokens emergency Amber Vial restock
+    const cost = 250; // Emergency Amber Vial restock cost
     if (!this.spendTokens(cost)) {
       this.showToast(`NEED ${cost} SOUND TOKENS FOR AMBER VIAL RESTOCK! 🧪`);
       return false;
@@ -775,7 +775,7 @@ const State = {
   // Use Amber Dropper Vial Consumable (Phase 3 [Q] Action)
   useAmberVial() {
     if (this.userProfile.amberVials <= 0) {
-      this.showToast("NO AMBER VIALS! BUY RESTOCK IN STORE (40🪙) OR LOOT CHESTS 🧪");
+      this.showToast("NO AMBER VIALS! BUY RESTOCK IN STORE (250🪙) OR LOOT CHESTS 🧪");
       return;
     }
     this.userProfile.amberVials--;
