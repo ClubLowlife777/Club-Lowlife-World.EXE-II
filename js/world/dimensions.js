@@ -48,10 +48,14 @@ const Dimensions = {
     { 
       id: 'disco_room', 
       x: 880, y: 120, width: 160, height: 95, 
-      label: 'DISCOGRAPHY VAULT', 
+      label: 'DISCOGRAPHY & STREAMING QUESTS', 
       action: () => { 
-        const m = document.getElementById('discoModal'); 
-        if (m) m.classList.remove('hidden'); 
+        if (typeof openDiscographyModal === 'function') {
+          openDiscographyModal();
+        } else {
+          const m = document.getElementById('discoModal'); 
+          if (m) m.classList.remove('hidden'); 
+        }
       } 
     },
     { 
@@ -65,7 +69,7 @@ const Dimensions = {
     { 
       id: 'truck_merch', 
       x: 180, y: 200, width: 150, height: 90, 
-      label: 'TRUNK POP // MERCH', 
+      label: 'TRUNK POP // MERCH & FAST TRAVEL', 
       action: () => { 
         const m = document.getElementById('merchModal'); 
         if (m) m.classList.remove('hidden'); 
@@ -147,9 +151,9 @@ const Dimensions = {
   retrocadeZones: [
     { id: 'portal_underground', x: 800, y: 1050, width: 80, height: 80, label: 'WARP: UNDERGROUND NIGHT SHIFT', action: () => { if (window.State) State.switchDimension('underground', 350, 750); } },
     { id: 'portal_wasteland', x: 1520, y: 1050, width: 80, height: 80, label: 'WARP: ASHEN WASTELAND', action: () => { if (window.State) State.switchDimension('wasteland', 650, 1100); } },
-    { id: 'music_kiosk_lounge', x: 260, y: 220, width: 160, height: 100, label: 'CLUB LOWLIFE MUSIC KIOSK', action: () => { const m = document.getElementById('discoModal'); if (m) m.classList.remove('hidden'); } },
-    { id: 'casino_slots_classic', x: 1880, y: 180, width: 130, height: 70, label: 'CLASSIC 3-REEL SLOTS [5🪙]', action: () => { if (window.CasinoGame) CasinoGame.open('classic'); } },
-    { id: 'casino_slots_highroller', x: 2120, y: 180, width: 150, height: 70, label: 'HIGH-ROLLER 5-LANE SLOTS [25🪙]', action: () => { if (window.CasinoGame) CasinoGame.open('highroller'); } }
+    { id: 'music_kiosk_lounge', x: 245, y: 205, width: 190, height: 120, label: 'CLUB LOWLIFE MUSIC & STREAMING QUESTS', action: () => { if (typeof openDiscographyModal === 'function') openDiscographyModal(); else { const m = document.getElementById('discoModal'); if (m) m.classList.remove('hidden'); } } },
+    { id: 'casino_slots_classic', x: 1860, y: 165, width: 170, height: 105, label: 'PLAY CLASSIC 3-REEL SLOTS [5🪙]', action: () => { if (window.CasinoGame) window.CasinoGame.open('classic'); else if (typeof CasinoGame !== 'undefined') CasinoGame.open('classic'); } },
+    { id: 'casino_slots_highroller', x: 2100, y: 165, width: 185, height: 105, label: 'PLAY HIGH-ROLLER 5-LANE SLOTS [25🪙]', action: () => { if (window.CasinoGame) window.CasinoGame.open('highroller'); else if (typeof CasinoGame !== 'undefined') CasinoGame.open('highroller'); } }
   ],
 
   // =========================================================================
@@ -310,14 +314,12 @@ const Dimensions = {
 
   wastelandZones: [
     { id: 'portal_retrocade_back', x: 650, y: 1020, width: 80, height: 80, label: 'WARP: RETROCADE DISTRICT 84', action: () => { if (window.State) State.switchDimension('retrocade', 1200, 750); } },
-    { id: 'getaway_van_log', x: 460, y: 1080, width: 130, height: 75, label: 'INSPECT EXTRACTION GETAWAY VAN', action: () => {
-      const m = document.getElementById('npcModal');
-      if (m) {
-        document.getElementById('npcName').innerText = 'EXTRACTION TRANSIT LOG // SCENE 01';
-        document.getElementById('npcRole').innerText = 'SYNDICATE DISPATCH ARCHIVE';
-        document.getElementById('npcAvatarIcon').innerText = '🚐';
-        document.getElementById('npcDialogueText').innerText = 'Headlights cut through the heavy rain haze. The trunk latch is popped—heavy combat boots left tracks leading toward the Subterranean Holding Chamber in the south. The old colorful Retrocade self is being held inside.';
-        m.classList.remove('hidden');
+    { id: 'getaway_van_log', x: 460, y: 1080, width: 135, height: 85, label: 'BLACK VAN // FAST TRAVEL & TRANSIT LOG', action: () => {
+      if (typeof openFastTravelModal === 'function') {
+        openFastTravelModal();
+      } else {
+        const m = document.getElementById('npcModal');
+        if (m) m.classList.remove('hidden');
       }
     }},
     { id: 'washroom_mirror', x: 3880, y: 3940, width: 90, height: 60, label: 'LOOK INTO CRACKED WASHROOM MIRROR', action: () => {

@@ -138,7 +138,7 @@
     </div>
 
     <!-- Inventory Badges & Modals -->
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1 flex-wrap justify-end">
       <div class="px-1.5 py-0.5 bg-black/70 border border-yellow-500/50 rounded text-[10px] sm:text-xs text-yellow-400 font-mono flex items-center gap-0.5" title="Sound Tokens">
         <span>🪙</span>
         <b id="casinoTokensCount">100</b>
@@ -151,24 +151,22 @@
         <span>🧪</span>
         <b id="hudVialCount">0</b>
       </button>
-      <button id="openGearBtn" onclick="openGearModal()" class="px-1.5 py-0.5 bg-[#1e1b4b] border border-purple-500/50 rounded text-[10px] sm:text-xs text-purple-300 font-cyber active:scale-95 transition" title="Studio Gear Relics">
-        GEAR
+      <button id="openGuideBtn" onclick="openGuideModal('links')" class="px-2 py-0.5 bg-gradient-to-r from-[#00f0ff] to-emerald-400 active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded shadow-[0_0_10px_rgba(0,240,255,0.4)] transition" title="Game Guide & Traditional Link-in-Bio Hub">
+        📖 GUIDE / LINKS
       </button>
-      <button id="btnWarp" onclick="if(window.State && typeof State.switchDimension === 'function') {
-        const nextDim = State.currentDimension === 'underground' ? 'retrocade' : (State.currentDimension === 'retrocade' ? 'wasteland' : 'underground');
-        const spawnX = nextDim === 'wasteland' ? 650 : (nextDim === 'retrocade' ? 1200 : 350);
-        const spawnY = nextDim === 'wasteland' ? 1100 : (nextDim === 'retrocade' ? 750 : 750);
-        State.switchDimension(nextDim, spawnX, spawnY);
-      }" class="px-1.5 py-0.5 bg-gradient-to-r from-pink-600 to-cyan-500 active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded transition">
-        WARP
+      <button id="btnWarp" onclick="openFastTravelModal()" class="px-1.5 py-0.5 bg-gradient-to-r from-pink-600 to-purple-500 active:scale-95 text-white font-cyber font-bold text-[10px] sm:text-xs rounded transition" title="Fast Travel & Daily Bounties">
+        🚐 WARP
       </button>
-      <button id="openLinksModalBtn" onclick="openDiscographyModal()" class="px-1.5 py-0.5 bg-[#00f0ff] active:scale-95 text-black font-cyber font-bold text-[10px] sm:text-xs rounded transition">
-        LINKS
+      <button id="openIdPassBtn" onclick="openGuideModal('idpass')" class="px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-cyber font-bold active:scale-95 transition" title="Holographic Player ID Card & Leaderboards">
+        🪪 ID / RANKS
       </button>
       <button id="openSkinsBtn" onclick="openSkinLockerModal('all')" class="px-1.5 py-0.5 bg-[#0e1117] border border-amber-500/50 rounded text-[10px] sm:text-xs text-amber-300 font-cyber font-bold active:scale-95 transition">
-        SKINS / STORE
+        SKINS
       </button>
-      <button id="crtToggleBtn" onclick="if(window.State && typeof State.toggleCrt === 'function') State.toggleCrt();" class="px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition" title="Toggle CRT Scanlines & Vignette">
+      <button id="openGearBtn" onclick="openGearModal()" class="hidden sm:inline-block px-1.5 py-0.5 bg-[#1e1b4b] border border-purple-500/50 rounded text-[10px] sm:text-xs text-purple-300 font-cyber active:scale-95 transition" title="Studio Gear Relics">
+        GEAR
+      </button>
+      <button id="crtToggleBtn" onclick="if(window.State && typeof State.toggleCrt === 'function') State.toggleCrt();" class="hidden md:inline-block px-1.5 py-0.5 bg-[#0e1117] border border-[#00f0ff]/60 rounded text-[10px] sm:text-xs text-[#00f0ff] font-mono active:scale-95 transition" title="Toggle CRT Scanlines & Vignette">
         CRT: ON
       </button>
     </div>
@@ -346,19 +344,47 @@
     </div>
   </div>
 
-  <!-- DYNAMIC DISCOGRAPHY / NEW RELEASES MODAL -->
-  <div id="discoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-    <div class="relative w-full max-w-lg bg-[#0e1117] border border-[#262c3d] rounded-xl p-4 flex flex-col shadow-[0_0_30px_rgba(0,240,255,0.15)]">
-      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
+  <!-- DYNAMIC DISCOGRAPHY, STREAMING QUESTS & STUDIO MIXER MODAL -->
+  <div id="discoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4">
+    <div class="relative w-full max-w-xl bg-[#0e1117] border border-[#00f0ff]/60 rounded-xl p-3.5 sm:p-4 flex flex-col shadow-[0_0_30px_rgba(0,240,255,0.2)] max-h-[88vh]">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2 shrink-0">
         <div>
           <span class="text-[8px] text-[#00f0ff] font-mono tracking-widest uppercase">TRANSMISSION TERMINAL // CLUB LOWLIFE</span>
-          <h2 class="text-xs sm:text-sm font-cyber font-bold text-white uppercase tracking-wider">DISCOGRAPHY & RELEASES</h2>
+          <h2 class="text-xs sm:text-sm font-cyber font-bold text-white uppercase tracking-wider">DISCOGRAPHY, STREAMING QUESTS & STUDIO DSP</h2>
         </div>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white p-1 text-sm font-bold">✕</button>
       </div>
-      <div id="releaseListContainer" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1"></div>
-      <div class="mt-2.5 pt-2 border-t border-neutral-800 flex justify-between items-center text-[8px] font-mono text-neutral-500">
-        <span>AUDIO SUITE: 07 // ARCHIVES ONLINE</span>
+
+      <div class="overflow-y-auto space-y-3 pr-1">
+        <!-- Interactive Studio Stem & Acoustic EQ Mixer -->
+        <div class="p-2.5 rounded-lg bg-black/80 border border-purple-500/40 font-mono">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[9px] font-cyber font-bold text-purple-300 uppercase tracking-wider">🎛️ MASTERING SUITE // LIVE DSP CONSOLE</span>
+            <span class="text-[8px] text-neutral-400">REAL-TIME WEB AUDIO FX</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" id="discoStudioMixerGrid">
+            <button onclick="if(window.AudioEngine) AudioEngine.toggleStudioEffect('subBoost'); renderStudioMixerUI();" class="p-1.5 rounded border border-neutral-700 bg-neutral-900 text-[9px] font-cyber text-cyan-300 active:scale-95 transition">🔊 808 SUB BOOST</button>
+            <button onclick="if(window.AudioEngine) AudioEngine.toggleStudioEffect('chiptuneBoost'); renderStudioMixerUI();" class="p-1.5 rounded border border-neutral-700 bg-neutral-900 text-[9px] font-cyber text-amber-300 active:scale-95 transition">🎹 6-CH SYNTH</button>
+            <button onclick="if(window.AudioEngine) AudioEngine.toggleStudioEffect('clubDoorFilter'); renderStudioMixerUI();" class="p-1.5 rounded border border-neutral-700 bg-neutral-900 text-[9px] font-cyber text-pink-300 active:scale-95 transition">🚪 HALLWAY LPF</button>
+            <button onclick="if(window.AudioEngine) AudioEngine.toggleStudioEffect('spatialAuto'); renderStudioMixerUI();" class="p-1.5 rounded border border-neutral-700 bg-neutral-900 text-[9px] font-cyber text-emerald-300 active:scale-95 transition">🎧 SPATIAL CLUB</button>
+          </div>
+        </div>
+
+        <!-- Releases & In-World Track Switcher -->
+        <div id="releaseListContainer" class="space-y-2"></div>
+
+        <!-- Spotify & Apple Music Supporter Streaming Quests -->
+        <div class="pt-2 border-t border-neutral-800">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] font-cyber font-bold text-[#00f0ff] uppercase">⚡ SPOTIFY, APPLE MUSIC & SUPPORTER QUESTS</span>
+            <span class="text-[8px] font-mono text-emerald-400">STREAM TO UNLOCK SKINS, XP & 📼</span>
+          </div>
+          <div id="discoStreamingQuestsContainer" class="space-y-1.5"></div>
+        </div>
+      </div>
+
+      <div class="mt-2 pt-2 border-t border-neutral-800 flex justify-between items-center text-[8px] font-mono text-neutral-500 shrink-0">
+        <span>AUDIO SUITE: 07 // ARCHIVES & QUESTS ONLINE</span>
         <span class="text-[#00f0ff] animate-pulse">● SIGNAL CONNECTED</span>
       </div>
     </div>
@@ -381,7 +407,7 @@
   <div id="merchModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
     <div class="relative w-full max-w-sm bg-[#0e1117] border-2 border-[#00f0ff] rounded-xl p-4 font-mono text-xs">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
-        <h3 class="font-cyber font-bold text-white uppercase text-xs">BLACK TRUCK // MERCH STASH</h3>
+        <h3 class="font-cyber font-bold text-white uppercase text-xs">BLACK TRUCK // MERCH & DISPATCH</h3>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white">✕</button>
       </div>
       <div class="p-2 bg-black/70 border border-[#00f0ff]/40 rounded mb-2 flex items-center justify-between text-[11px]">
@@ -389,10 +415,13 @@
         <span class="text-[#00f0ff] font-bold">LOWLIFEWORLD15 (15% OFF)</span>
       </div>
       <a href="https://clublowlife.com" target="_blank" rel="noopener noreferrer" class="block w-full py-2 bg-[#00f0ff] active:scale-95 text-black font-cyber font-bold text-center rounded transition mb-2">
-        ENTER MERCH STORE
+        ENTER OFFICIAL MERCH STORE
       </a>
-      <button onclick="if(window.State) State.closeModals(); openSkinLockerModal('store');" class="w-full py-2 bg-amber-500 text-black font-cyber font-bold text-xs rounded active:scale-95 transition">
+      <button onclick="if(window.State) State.closeModals(); openSkinLockerModal('store');" class="w-full py-2 bg-amber-500 text-black font-cyber font-bold text-xs rounded active:scale-95 transition mb-2">
         OPEN IN-WORLD BLACK MARKET (60 SKINS) 🪙
+      </button>
+      <button onclick="if(window.State) State.closeModals(); openFastTravelModal();" class="w-full py-2 bg-purple-600 text-white font-cyber font-bold text-xs rounded active:scale-95 transition">
+        🚐 BLACK VAN FAST-TRAVEL & BOUNTIES
       </button>
     </div>
   </div>
@@ -489,11 +518,27 @@
 
   <!-- CASINO SLOTS MODAL -->
   <div id="casinoModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4">
-    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-yellow-500 rounded-xl p-3.5 sm:p-4 text-center font-mono">
-      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-3 font-cyber">
-        <span class="text-[11px] sm:text-sm font-bold text-yellow-400 truncate">RETROCADE CYBER SLOTS</span>
-        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-1">✕</button>
+    <div class="relative w-full max-w-md bg-[#0e1117] border-2 border-yellow-500 rounded-xl p-3.5 sm:p-4 text-center font-mono shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2.5 font-cyber">
+        <span id="casinoModalTitle" class="text-[10px] sm:text-xs font-bold text-yellow-400 truncate">RETROCADE CYBER SLOTS</span>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-black border border-yellow-500/50 rounded text-yellow-400 text-[10px] font-bold">
+            🪙 <b id="casinoModalTokenBalance">100</b>
+          </span>
+          <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-1 font-bold">✕</button>
+        </div>
       </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="flex gap-1.5 mb-2.5">
+        <button onclick="if(window.CasinoGame) window.CasinoGame.open('classic');" class="flex-1 py-1 bg-neutral-900 hover:bg-neutral-800 border border-yellow-500/40 rounded text-[9px] sm:text-[10px] font-cyber font-bold text-yellow-300 transition">
+          🎰 3-REEL CLASSIC (5🪙)
+        </button>
+        <button onclick="if(window.CasinoGame) window.CasinoGame.open('highroller');" class="flex-1 py-1 bg-neutral-900 hover:bg-neutral-800 border border-amber-500/50 rounded text-[9px] sm:text-[10px] font-cyber font-bold text-amber-400 transition">
+          💎 5-LANE HIGH ROLLER (25🪙)
+        </button>
+      </div>
+
       <div class="flex justify-center items-center gap-1.5 sm:gap-2 my-3 py-3 px-1.5 bg-black/90 border-2 border-yellow-500/40 rounded-lg text-xl sm:text-3xl overflow-x-auto">
         <div id="slotReel1" class="w-11 h-14 sm:w-14 sm:h-16 shrink-0 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">📼</div>
         <div id="slotReel2" class="w-11 h-14 sm:w-14 sm:h-16 shrink-0 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center">7️⃣</div>
@@ -501,10 +546,240 @@
       </div>
       <div id="slotPayoutMsg" class="text-[10px] text-yellow-300 min-h-[16px] mb-3">INSERT 5 TOKENS TO SPIN</div>
       <div class="flex gap-2">
-        <button id="slotSpinBtn" onclick="if(window.CasinoGame && typeof CasinoGame.spin === 'function') CasinoGame.spin();" class="flex-1 py-2 bg-gradient-to-r from-yellow-500 to-amber-600 active:scale-95 text-black font-cyber font-bold text-xs rounded">
+        <button id="slotSpinBtn" onclick="if(window.CasinoGame && typeof CasinoGame.spin === 'function') CasinoGame.spin();" class="flex-1 py-2 bg-gradient-to-r from-yellow-500 to-amber-600 active:scale-95 text-black font-cyber font-bold text-xs rounded shadow-md">
           SPIN (5 TOKENS)
         </button>
         <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="px-3 py-2 bg-neutral-900 text-white font-cyber text-xs rounded">EXIT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPREHENSIVE GAME GUIDE, TRADITIONAL LINK-IN-BIO, FAST TRAVEL, BOUNTIES & ID PASS MODAL -->
+  <div id="guideModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+    <div class="relative w-full max-w-2xl bg-[#0b0e16] border-2 border-[#00f0ff] rounded-xl p-3 sm:p-4 flex flex-col font-mono text-xs shadow-[0_0_35px_rgba(0,240,255,0.22)] max-h-[90vh]">
+      <!-- Top Header -->
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2 shrink-0">
+        <div>
+          <span class="text-[8px] text-[#00f0ff] font-mono tracking-widest uppercase">CLUB LOWLIFE // WORLD.EXE II COMMAND DIRECTORY</span>
+          <h2 class="text-xs sm:text-sm font-cyber font-bold text-white uppercase tracking-wider">OFFICIAL LINK-IN-BIO & WORLD FIELD GUIDE</h2>
+        </div>
+        <button onclick="if(window.State && typeof State.closeModals === 'function') State.closeModals();" class="text-neutral-400 hover:text-white px-2 py-0.5 text-sm font-bold border border-neutral-800 rounded">✕</button>
+      </div>
+
+      <!-- Traditional Link-in-Bio Reassurance Banner -->
+      <div class="p-2 rounded-lg bg-gradient-to-r from-[#00f0ff]/15 via-purple-500/15 to-pink-500/15 border border-[#00f0ff]/50 mb-2.5 shrink-0">
+        <div class="flex items-start gap-2">
+          <span class="text-base leading-none mt-0.5">⚡</span>
+          <p class="text-[10px] sm:text-[11px] text-neutral-200 leading-snug">
+            <b class="text-[#00f0ff] font-cyber uppercase">NO GAMEPLAY REQUIRED TO STREAM:</b> This experience acts as both a <b class="text-white">traditional 1-click Link-in-Bio</b> and a playable cyberpunk RPG. If you just want direct access to <b class="text-emerald-300">Club Lowlife's music, merch, or socials</b>, use the instant links below without needing to explore the world!
+          </p>
+        </div>
+      </div>
+
+      <!-- 4 Navigation Tabs -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 mb-2.5 shrink-0">
+        <button id="guideTabBtnLinks" onclick="setGuideTab('links')" class="py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-[#00f0ff] text-black transition">
+          🔗 LINKS & QUESTS
+        </button>
+        <button id="guideTabBtnGuide" onclick="setGuideTab('guide')" class="py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition">
+          📖 WORLD GUIDE
+        </button>
+        <button id="guideTabBtnWarp" onclick="setGuideTab('warp')" class="py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition">
+          🚐 WARP & BOUNTIES
+        </button>
+        <button id="guideTabBtnIdpass" onclick="setGuideTab('idpass')" class="py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition">
+          🪪 ID PASS & RANKS
+        </button>
+      </div>
+
+      <!-- Scrollable Tab Content Area -->
+      <div class="overflow-y-auto pr-1 space-y-3 flex-1">
+
+        <!-- TAB 1: INSTANT LINK-IN-BIO & STREAMING QUESTS -->
+        <div id="guidePanelLinks" class="space-y-3">
+          <!-- Direct 1-Click Traditional Link-in-Bio Grid -->
+          <div class="p-2.5 rounded-lg bg-black/80 border border-neutral-800">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-cyber font-bold text-white text-[11px] uppercase">🎧 DIRECT STREAMING & OFFICIAL LINKS (1-CLICK ACCESS)</span>
+              <span class="text-[8px] text-[#00f0ff]">INSTANT ACCESS</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <a href="https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg?si=0d4c1e54e1fd4ee2" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_spotify_dancing');" class="p-2 rounded bg-[#1DB954]/20 border border-[#1DB954] hover:bg-[#1DB954]/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">🟢 "DANCING" ON SPOTIFY</span>
+                <span class="text-[9px] text-[#1DB954] font-bold">STREAM ↗</span>
+              </a>
+              <a href="https://music.apple.com/us/song/dancing/6824158392" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_apple_dancing');" class="p-2 rounded bg-rose-600/20 border border-rose-500 hover:bg-rose-600/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">🍎 "DANCING" ON APPLE MUSIC</span>
+                <span class="text-[9px] text-rose-300 font-bold">STREAM ↗</span>
+              </a>
+              <a href="https://music.youtube.com/playlist?list=OLAK5uy_m-WHYrOsDdXEtkUCJzW11ELfS7wifL1sc&si=6kMLhqT5LWGyFrhQ" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_youtube_dancing');" class="p-2 rounded bg-red-600/20 border border-red-500 hover:bg-red-600/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">▶️ YOUTUBE MUSIC RELEASE</span>
+                <span class="text-[9px] text-red-300 font-bold">WATCH/LISTEN ↗</span>
+              </a>
+              <a href="https://clublowlife.dimensions.fm/retrocade-evolved" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_retrocade_deluxe');" class="p-2 rounded bg-cyan-500/20 border border-[#00f0ff] hover:bg-cyan-500/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">💿 RETROCADE EVOLVED (DELUXE)</span>
+                <span class="text-[9px] text-[#00f0ff] font-bold">STREAM ↗</span>
+              </a>
+              <a href="https://clublowlife.dimensions.fm/dancing" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_all_platforms');" class="p-2 rounded bg-purple-600/20 border border-purple-500 hover:bg-purple-600/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">🌐 DANCING (ALL PLATFORMS)</span>
+                <span class="text-[9px] text-purple-300 font-bold">OPEN HUB ↗</span>
+              </a>
+              <a href="https://clublowlife.com" target="_blank" rel="noopener noreferrer" class="p-2 rounded bg-amber-500/20 border border-amber-500 hover:bg-amber-500/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">🧥 OFFICIAL MERCH (CODE: LOWLIFEWORLD15)</span>
+                <span class="text-[9px] text-amber-300 font-bold">15% OFF ↗</span>
+              </a>
+              <a href="https://forms.gle/TsE7MAHSD1erDca59" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_cassette_airdrop');" class="p-2 rounded bg-yellow-500/20 border border-yellow-500 hover:bg-yellow-500/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">📼 PHYSICAL CASSETTE AIR-DROP</span>
+                <span class="text-[9px] text-yellow-300 font-bold">CLAIM ↗</span>
+              </a>
+              <a href="https://www.instagram.com/omglowlife" target="_blank" rel="noopener noreferrer" onclick="if(window.State) State.claimStreamingQuest('quest_instagram_syndicate');" class="p-2 rounded bg-pink-600/20 border border-pink-500 hover:bg-pink-600/30 flex items-center justify-between transition">
+                <span class="font-cyber font-bold text-white text-[11px]">📸 INSTAGRAM (@OMGLOWLIFE)</span>
+                <span class="text-[9px] text-pink-300 font-bold">FOLLOW ↗</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Supporter Streaming Quests List -->
+          <div class="p-2.5 rounded-lg bg-black/80 border border-[#00f0ff]/40">
+            <div class="flex items-center justify-between mb-1.5">
+              <div>
+                <h3 class="font-cyber font-bold text-[#00f0ff] text-xs uppercase">⚡ STREAMING SUPPORTER QUESTS (FREE SKINS, XP & CASSETTES)</h3>
+                <p class="text-[10px] text-neutral-400">Tap any platform quest below to stream Club Lowlife & automatically claim your in-world rewards!</p>
+              </div>
+            </div>
+            <div id="guideStreamingQuestsContainer" class="space-y-1.5 mt-2"></div>
+          </div>
+        </div>
+
+        <!-- TAB 2: WORLD EXPLORER'S FIELD GUIDE & SUPPORTER VALUE -->
+        <div id="guidePanelGuide" class="hidden space-y-2.5">
+          <div class="p-3 rounded-lg bg-black/80 border border-[#00f0ff]/40 space-y-2">
+            <h3 class="font-cyber font-bold text-[#00f0ff] text-xs uppercase">🌌 WHAT IS CLUB LOWLIFE // WORLD.EXE II?</h3>
+            <p class="text-[11px] text-neutral-300 leading-relaxed">
+              Instead of a static webpage, <b class="text-white">Club Lowlife World.EXE II</b> turns a music release & artist hub into a living, audio-reactive cyberpunk universe. Every song in the top player features custom <b class="text-[#00f0ff]">8-Bit Club Masters</b> (preserving clean sub-110Hz 808s) and <b class="text-amber-400">Authentic NES Chiptune Versions</b> that drive the world's lighting, dance floors, and combat crits in real time.
+            </p>
+          </div>
+
+          <!-- What You Can Do in the 4 Dimensions -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="p-2.5 rounded-lg bg-neutral-900/90 border border-cyan-500/40">
+              <div class="font-cyber font-bold text-cyan-300 text-xs mb-1">1. UNDERGROUND NIGHT SHIFT (HUB)</div>
+              <ul class="text-[10px] text-neutral-300 space-y-1 list-disc pl-4">
+                <li><b class="text-white">3 Playable Retro Cabinets:</b> Play <i>Lowlife Galaga</i>, <i>Pac-Lowlife</i>, and <i>Super Lowlife Bros</i> to convert arcade scores into XP and Sound Tokens 🪙.</li>
+                <li><b class="text-white">Mastering Suite:</b> Audition tracks, toggle live 808 Sub-Boost & DSP filters, and complete Streaming Quests.</li>
+                <li><b class="text-white">Black Truck Merch:</b> Unlock the `LOWLIFEWORLD15` 15% promo code and browse 120 outfits.</li>
+              </ul>
+            </div>
+
+            <div class="p-2.5 rounded-lg bg-neutral-900/90 border border-pink-500/40">
+              <div class="font-cyber font-bold text-pink-300 text-xs mb-1">2. DISTRICT 84 // RETROCADE</div>
+              <ul class="text-[10px] text-neutral-300 space-y-1 list-disc pl-4">
+                <li><b class="text-white">Audio-Reactive Dance Floor:</b> Groove on the LED matrix pulsing to real-time FFT bass bins to earn passive Sound Tokens.</li>
+                <li><b class="text-white">High-Stakes Cyber Casino:</b> Spin the 3-Reel Classic (5🪙) or 5-Lane High Roller (25🪙) slots for Jackpot Tokens & Cassettes 📼.</li>
+                <li><b class="text-white">DJ Booth Overdrive:</b> Activate 3-minute speed & 2x token buffs.</li>
+              </ul>
+            </div>
+
+            <div class="p-2.5 rounded-lg bg-neutral-900/90 border border-red-500/40">
+              <div class="font-cyber font-bold text-red-400 text-xs mb-1">3. THE ASHEN WASTELAND</div>
+              <ul class="text-[10px] text-neutral-300 space-y-1 list-disc pl-4">
+                <li><b class="text-white">6 Syndicate World Bosses:</b> Defeat Blade-Zero, Chem-Enforcer, Drone Queen, Vulcan-808, Sub-Zero, and Archon Vex for Studio Relics & Boss Skins.</li>
+                <li><b class="text-white">Safe Zones & Lore Tapes:</b> Rest at <i>Conner Cade's Bonfire</i> and <i>The Rust Sanctuary</i>, breach 22 loot chests, and decode production lore tapes.</li>
+              </ul>
+            </div>
+
+            <div class="p-2.5 rounded-lg bg-neutral-900/90 border border-purple-500/40">
+              <div class="font-cyber font-bold text-purple-300 text-xs mb-1">4. CHAPTER III // THE HORIZON</div>
+              <ul class="text-[10px] text-neutral-300 space-y-1 list-disc pl-4">
+                <li><b class="text-white">The 50-Cassette Ascension:</b> Collect 50 Battle Cassettes 📼 (from Streaming Quests, Arcade, Slots, Chests & Bosses) to unlock the Northern Extraction Rift.</li>
+                <li><b class="text-white">Astral Sovereign Keep:</b> Challenge <i>OMEGA-777 // The Astral Architect</i> and claim Mythic Producer gear.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Value for Supporters & Controls Summary -->
+          <div class="p-2.5 rounded-lg bg-black/80 border border-amber-500/40 space-y-1.5">
+            <div class="font-cyber font-bold text-amber-400 text-xs uppercase">🏆 VALUE FOR CLUB LOWLIFE SUPPORTERS</div>
+            <p class="text-[10px] text-neutral-300 leading-relaxed">
+              Supporting Club Lowlife directly powers up your operative: streaming songs unlocks <b class="text-white">Legendary Artist Skins</b>, decoding cassettes reveals <b class="text-white">real FL Studio mastering & sound design secrets</b> from the making of the album, and your progress generates a custom <b class="text-[#00f0ff]">Holographic Syndicate ID Pass (.PNG)</b> you can download and share on Instagram Stories or TikTok.
+            </p>
+            <div class="pt-1.5 border-t border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] text-neutral-300">
+              <div><b class="text-[#00f0ff]">📱 MOBILE CONTROLS:</b> Left thumb joystick (tilt full to Sprint), right thumb combat arc (`SLASH`, `SHOOT`, `DASH`, `VIAL`, `ACT`), tap `🔍 WIDE` below minimap or pinch to zoom!</div>
+              <div><b class="text-[#00f0ff]">💻 DESKTOP CONTROLS:</b> `[WASD/Arrows]` Move, `[Shift]` Sprint, `[K / Left-Click]` Blade Slash & Parry, `[J / Right-Click]` Plasma Shot, `[Space]` Phase Dash, `[E]` Interact, `[Z]` Zoom, `[M]` Expand Map.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: BLACK VAN FAST TRAVEL & DAILY BOUNTIES -->
+        <div id="guidePanelWarp" class="hidden space-y-3">
+          <!-- Daily Login Bonus Card -->
+          <div class="p-2.5 rounded-lg bg-gradient-to-r from-amber-950/60 to-black border border-amber-500/60 flex items-center justify-between gap-2">
+            <div>
+              <div class="font-cyber font-bold text-amber-300 text-xs">🎁 DAILY SYNDICATE SUPPLY DROP</div>
+              <div class="text-[10px] text-neutral-300">Claim your free daily drop: <b class="text-white">+50 Sound Tokens 🪙, +40 XP & +1 Battle Cassette 📼</b></div>
+            </div>
+            <button id="dailyLoginClaimBtn" onclick="if(window.State) State.claimDailyLoginBonus();" class="px-3 py-1.5 bg-amber-500 text-black font-cyber font-bold text-xs rounded active:scale-95 transition shrink-0">
+              CLAIM DROP
+            </button>
+          </div>
+
+          <!-- Daily Bounties -->
+          <div class="p-2.5 rounded-lg bg-black/80 border border-purple-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-cyber font-bold text-purple-300 text-xs uppercase">🎯 DAILY SYNDICATE BOUNTIES</span>
+              <span class="text-[9px] text-neutral-400">RESETS DAILY AT MIDNIGHT</span>
+            </div>
+            <div id="dailyBountiesContainer" class="space-y-1.5"></div>
+          </div>
+
+          <!-- Black Van Fast-Travel Network -->
+          <div class="p-2.5 rounded-lg bg-black/80 border border-[#00f0ff]/50">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-cyber font-bold text-[#00f0ff] text-xs uppercase">🚐 BLACK VAN FAST-TRAVEL DISPATCH</span>
+              <span class="text-[9px] text-emerald-400">INSTANT TELEPORT</span>
+            </div>
+            <p class="text-[10px] text-neutral-400 mb-2">Select any sector or Safe Zone below to deploy immediately:</p>
+            <div id="fastTravelNodesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
+          </div>
+        </div>
+
+        <!-- TAB 4: HOLOGRAPHIC PLAYER ID PASS & LEADERBOARDS -->
+        <div id="guidePanelIdpass" class="hidden space-y-3">
+          <!-- Custom Cyberpunk Player ID Card Generator -->
+          <div class="p-3 rounded-lg bg-black/85 border border-[#00f0ff]/60 flex flex-col items-center">
+            <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div>
+                <h3 class="font-cyber font-bold text-[#00f0ff] text-xs uppercase">🪪 HOLOGRAPHIC SYNDICATE ID PASS</h3>
+                <p class="text-[10px] text-neutral-400">Live-rendered with your equipped skin, callsign, relics & high scores. Ready for IG Stories / TikTok!</p>
+              </div>
+              <div class="flex gap-1.5">
+                <button onclick="if(window.State) State.downloadPlayerIdCard();" class="px-2.5 py-1.5 bg-[#00f0ff] text-black font-cyber font-bold text-[10px] rounded active:scale-95 transition">
+                  ⬇️ SAVE .PNG
+                </button>
+                <button onclick="if(window.State) State.copyPlayerStatsFlex();" class="px-2.5 py-1.5 bg-purple-600 text-white font-cyber font-bold text-[10px] rounded active:scale-95 transition">
+                  📋 COPY FLEX
+                </button>
+              </div>
+            </div>
+            <canvas id="idPassCanvas" class="w-full max-w-[300px] aspect-[600/780] rounded-lg border border-[#00f0ff]/50 shadow-[0_0_20px_rgba(0,240,255,0.2)] bg-black"></canvas>
+          </div>
+
+          <!-- Global & Syndicate Arcade + Boss Leaderboards -->
+          <div class="p-2.5 rounded-lg bg-black/85 border border-amber-500/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-cyber font-bold text-amber-400 text-xs uppercase">🏆 SYNDICATE LEADERBOARDS</span>
+              <span class="text-[9px] text-neutral-400">BEAT RIVALS IN ARCADE & WASTELAND</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 mb-2">
+              <button id="lbTab_voidInvaders" onclick="renderLeaderboardsUI('voidInvaders')" class="py-1 px-1.5 rounded font-cyber font-bold text-[9px] bg-amber-500 text-black">🕹️ GALAGA</button>
+              <button id="lbTab_gridRunner" onclick="renderLeaderboardsUI('gridRunner')" class="py-1 px-1.5 rounded font-cyber font-bold text-[9px] bg-neutral-900 text-neutral-300">👾 PAC-LOWLIFE</button>
+              <button id="lbTab_lowlifeLeap" onclick="renderLeaderboardsUI('lowlifeLeap')" class="py-1 px-1.5 rounded font-cyber font-bold text-[9px] bg-neutral-900 text-neutral-300">🍄 SUPER LOWLIFE</button>
+              <button id="lbTab_bossBounties" onclick="renderLeaderboardsUI('bossBounties')" class="py-1 px-1.5 rounded font-cyber font-bold text-[9px] bg-neutral-900 text-neutral-300">💀 BOSS KILLS</button>
+            </div>
+            <div id="leaderboardListContainer" class="space-y-1"></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -523,6 +798,198 @@
   <script src="js/main.js"></script>
 
   <script>
+    let activeLeaderboardCategory = 'voidInvaders';
+
+    function openGuideModal(tab = 'links') {
+      const m = document.getElementById('guideModal');
+      if (!m) return;
+      m.classList.remove('hidden');
+      setGuideTab(tab);
+    }
+
+    function openFastTravelModal() {
+      openGuideModal('warp');
+    }
+
+    function setGuideTab(tab) {
+      const tabs = ['links', 'guide', 'warp', 'idpass'];
+      const panelIds = {
+        links: 'guidePanelLinks',
+        guide: 'guidePanelGuide',
+        warp: 'guidePanelWarp',
+        idpass: 'guidePanelIdpass'
+      };
+      const btnIds = {
+        links: 'guideTabBtnLinks',
+        guide: 'guideTabBtnGuide',
+        warp: 'guideTabBtnWarp',
+        idpass: 'guideTabBtnIdpass'
+      };
+
+      tabs.forEach(t => {
+        const p = document.getElementById(panelIds[t]);
+        const b = document.getElementById(btnIds[t]);
+        if (p) p.classList.toggle('hidden', t !== tab);
+        if (b) {
+          b.className = (t === tab)
+            ? 'py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)] transition'
+            : 'py-1.5 px-2 rounded font-cyber font-bold text-[9px] sm:text-[10px] bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition';
+        }
+      });
+
+      if (tab === 'links') renderStreamingQuestsUI();
+      if (tab === 'warp') {
+        renderDailyBountiesUI();
+        renderFastTravelNodesUI();
+      }
+      if (tab === 'idpass') {
+        if (window.State && typeof State.renderPlayerIdCardCanvas === 'function') {
+          State.renderPlayerIdCardCanvas();
+        }
+        renderLeaderboardsUI(activeLeaderboardCategory);
+      }
+    }
+
+    function renderStudioMixerUI() {
+      const grid = document.getElementById('discoStudioMixerGrid');
+      if (!grid || !window.AudioEngine || !AudioEngine.studioMix) return;
+      const m = AudioEngine.studioMix;
+      const items = [
+        { key: 'subBoost', label: '🔊 808 SUB BOOST', activeCol: 'border-[#00f0ff] bg-[#00f0ff]/20 text-white' },
+        { key: 'chiptuneBoost', label: '🎹 6-CH SYNTH', activeCol: 'border-amber-400 bg-amber-500/20 text-white' },
+        { key: 'clubDoorFilter', label: '🚪 HALLWAY LPF', activeCol: 'border-pink-400 bg-pink-500/20 text-white' },
+        { key: 'spatialAuto', label: '🎧 SPATIAL CLUB', activeCol: 'border-emerald-400 bg-emerald-500/20 text-white' }
+      ];
+      grid.innerHTML = items.map(it => {
+        const on = !!m[it.key];
+        return `<button onclick="if(window.AudioEngine) AudioEngine.toggleStudioEffect('${it.key}'); renderStudioMixerUI();" class="p-1.5 rounded border text-[9px] font-cyber font-bold active:scale-95 transition ${on ? it.activeCol : 'border-neutral-700 bg-neutral-900 text-neutral-400'}">${it.label}: ${on ? 'ON' : 'OFF'}</button>`;
+      }).join('');
+    }
+
+    function renderStreamingQuestsUI() {
+      if (!window.State || !Array.isArray(State.STREAMING_QUESTS)) return;
+      const completed = (State.userProfile && State.userProfile.completedStreamingQuests) || [];
+      const html = State.STREAMING_QUESTS.map(q => {
+        const isDone = completed.includes(q.id);
+        return `
+          <div class="p-2 rounded border flex items-center justify-between gap-2 ${isDone ? 'border-emerald-500/50 bg-emerald-950/20' : 'border-neutral-800 bg-neutral-900/70'}">
+            <div class="flex items-center gap-2">
+              <span class="text-base">${q.icon}</span>
+              <div>
+                <div class="font-cyber font-bold text-white text-[10px] sm:text-xs">${q.title}</div>
+                <div class="text-[9px] text-neutral-400">${q.desc}</div>
+                <div class="text-[9px] text-[#00f0ff] font-bold mt-0.5">${q.rewardText}</div>
+              </div>
+            </div>
+            <button onclick="if(window.State) State.claimStreamingQuest('${q.id}')" class="px-2.5 py-1.5 rounded font-cyber font-bold text-[9px] sm:text-[10px] shrink-0 active:scale-95 transition ${isDone ? 'bg-emerald-500/20 border border-emerald-400 text-emerald-300' : 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.3)]'}">
+              ${isDone ? 'CLAIMED ✓ (OPEN)' : 'STREAM & CLAIM ↗'}
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      const c1 = document.getElementById('guideStreamingQuestsContainer');
+      const c2 = document.getElementById('discoStreamingQuestsContainer');
+      if (c1) c1.innerHTML = html;
+      if (c2) c2.innerHTML = html;
+    }
+
+    function renderDailyBountiesUI() {
+      if (!window.State) return;
+      State.checkDailyReset();
+      const loginBtn = document.getElementById('dailyLoginClaimBtn');
+      if (loginBtn) {
+        const claimed = !!(State.userProfile && State.userProfile.dailyLoginClaimed);
+        loginBtn.innerText = claimed ? 'CLAIMED TODAY ✓' : 'CLAIM +50🪙 DROP';
+        loginBtn.className = claimed
+          ? 'px-3 py-1.5 bg-emerald-950 border border-emerald-500/50 text-emerald-300 font-cyber font-bold text-[10px] rounded shrink-0'
+          : 'px-3 py-1.5 bg-amber-500 text-black font-cyber font-bold text-xs rounded active:scale-95 transition shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.4)]';
+      }
+
+      const container = document.getElementById('dailyBountiesContainer');
+      if (!container || !Array.isArray(State.DAILY_BOUNTIES)) return;
+      const progMap = (State.userProfile && State.userProfile.dailyProgress) || {};
+      const claimedList = (State.userProfile && State.userProfile.dailyClaimed) || [];
+
+      container.innerHTML = State.DAILY_BOUNTIES.map(b => {
+        const cur = Math.min(b.target, progMap[b.actionKey] || 0);
+        const pct = Math.floor((cur / b.target) * 100);
+        const isClaimed = claimedList.includes(b.id);
+        const isReady = cur >= b.target && !isClaimed;
+
+        return `
+          <div class="p-2 rounded border ${isClaimed ? 'border-emerald-500/40 bg-emerald-950/15' : 'border-neutral-800 bg-neutral-900/70'} flex items-center justify-between gap-2">
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <span class="font-cyber font-bold text-white text-[10px] sm:text-xs">${b.icon} ${b.title}</span>
+                <span class="text-[9px] text-amber-400 font-bold">+${b.xp} XP • +${b.tokens}🪙 • +${b.tapes}📼</span>
+              </div>
+              <div class="text-[9px] text-neutral-400 my-0.5">${b.desc}</div>
+              <div class="w-full bg-black h-1.5 rounded-full overflow-hidden border border-neutral-800 mt-1">
+                <div class="bg-gradient-to-r from-purple-500 to-[#00f0ff] h-full transition-all" style="width:${pct}%"></div>
+              </div>
+            </div>
+            <div class="shrink-0">
+              ${isClaimed
+                ? '<span class="px-2 py-1 text-[9px] font-cyber font-bold text-emerald-400">DONE ✓</span>'
+                : (isReady
+                    ? `<button onclick="if(window.State) State.claimDailyBounty('${b.id}')" class="px-2.5 py-1 bg-[#00f0ff] text-black font-cyber font-bold text-[10px] rounded animate-pulse">CLAIM!</button>`
+                    : `<span class="px-2 py-1 text-[9px] font-mono text-neutral-400">${cur}/${b.target}</span>`)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFastTravelNodesUI() {
+      const container = document.getElementById('fastTravelNodesContainer');
+      if (!container || !window.State || !Array.isArray(State.FAST_TRAVEL_NODES)) return;
+      const tapes = (State.userProfile && State.userProfile.collectedRareTapes) || 0;
+
+      container.innerHTML = State.FAST_TRAVEL_NODES.map(n => {
+        const locked = n.requiresTapes && tapes < n.requiresTapes;
+        return `
+          <button onclick="if(window.State) State.fastTravelTo('${n.id}')" class="p-2 rounded border text-left transition flex items-center justify-between gap-2 ${locked ? 'border-neutral-800 bg-neutral-950 opacity-50' : 'border-neutral-700 bg-neutral-900/90 hover:border-[#00f0ff] active:scale-95'}">
+            <div>
+              <div class="font-cyber font-bold text-white text-[10px]">${n.icon} ${n.name}</div>
+              <div class="text-[8.5px] text-neutral-400 leading-tight mt-0.5">${n.sub}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded font-cyber font-bold text-[9px] shrink-0 ${locked ? 'bg-neutral-800 text-red-400' : 'bg-[#00f0ff] text-black'}">
+              ${locked ? `${tapes}/50📼` : 'WARP 🌀'}
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderLeaderboardsUI(category = 'voidInvaders') {
+      activeLeaderboardCategory = category;
+      ['voidInvaders', 'gridRunner', 'lowlifeLeap', 'bossBounties'].forEach(cat => {
+        const btn = document.getElementById(`lbTab_${cat}`);
+        if (btn) {
+          btn.className = (cat === category)
+            ? 'py-1 px-1.5 rounded font-cyber font-bold text-[9px] bg-amber-500 text-black'
+            : 'py-1 px-1.5 rounded font-cyber font-bold text-[9px] bg-neutral-900 text-neutral-300 hover:bg-neutral-800';
+        }
+      });
+
+      const container = document.getElementById('leaderboardListContainer');
+      if (!container || !window.State || typeof State.getLeaderboardEntries !== 'function') return;
+      const entries = State.getLeaderboardEntries(category);
+      const unit = category === 'bossBounties' ? 'BOSSES VANQUISHED' : 'PTS';
+
+      container.innerHTML = entries.map(e => `
+        <div class="p-1.5 px-2.5 rounded border flex items-center justify-between ${e.isPlayer ? 'border-[#00f0ff] bg-[#00f0ff]/15 shadow-[0_0_10px_rgba(0,240,255,0.2)]' : 'border-neutral-800 bg-neutral-900/60'}">
+          <div class="flex items-center gap-2">
+            <span class="font-cyber font-bold text-xs ${e.rank === 1 ? 'text-yellow-400' : (e.rank === 2 ? 'text-neutral-300' : (e.rank === 3 ? 'text-amber-600' : 'text-neutral-500'))}">#${e.rank}</span>
+            <span class="font-cyber font-bold text-[11px] ${e.isPlayer ? 'text-[#00f0ff]' : 'text-white'}">${e.handle}</span>
+            <span class="text-[8px] px-1 py-0.2 rounded bg-black/70 border border-neutral-700 text-neutral-300">[LVL ${e.level}] ${e.badge}</span>
+          </div>
+          <span class="font-mono font-bold text-[11px] ${e.isPlayer ? 'text-[#00f0ff]' : 'text-amber-400'}">${e.score} ${unit}</span>
+        </div>
+      `).join('');
+    }
+
     function openSkinLockerModal(filter = 'all') {
       const sm = document.getElementById('skinLockerModal');
       if (sm) sm.classList.remove('hidden');
@@ -571,6 +1038,11 @@
       if (success) {
         error.classList.add('hidden');
         document.getElementById('usernameModal').classList.add('hidden');
+        if (window.State && State.userProfile && !State.userProfile.hasSeenGuide) {
+          State.userProfile.hasSeenGuide = true;
+          State.save();
+          setTimeout(() => openGuideModal('links'), 350);
+        }
       } else {
         error.classList.remove('hidden');
       }
@@ -598,6 +1070,9 @@
       const container = document.getElementById('releaseListContainer');
       const modal = document.getElementById('discoModal');
       if (!container || !modal || !window.State || !Array.isArray(State.releases)) return;
+
+      renderStudioMixerUI();
+      renderStreamingQuestsUI();
 
       const colorMap = {
         emerald: "bg-[#1DB954] text-black font-bold",

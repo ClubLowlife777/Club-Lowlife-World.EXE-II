@@ -359,6 +359,10 @@ const Input = {
     if (warpBtn) {
       warpBtn.onclick = () => {
         if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
+        if (typeof openFastTravelModal === 'function') {
+          openFastTravelModal();
+          return;
+        }
         if (!window.State || typeof State.switchDimension !== 'function') return;
 
         if (State.currentDimension === 'underground') {

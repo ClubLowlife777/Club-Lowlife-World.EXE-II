@@ -43,6 +43,10 @@ const GridRunner = {
   ghosts: [],
 
   start() {
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
     this.canvas = document.getElementById('arcadeCanvas');
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext('2d');
@@ -55,7 +59,10 @@ const GridRunner = {
     if (hint) hint.innerText = "[WASD / ARROWS / D-PAD] STEER  •  EAT 808 PELLETS TO CHOMP GHOSTS  •  25 PTS = +1 XP";
     const modal = document.getElementById('arcadeModal');
     if (modal) modal.classList.remove('hidden');
-    if (window.State) State.activeMiniGame = this;
+    if (window.State) {
+      State.activeMiniGame = this;
+      if (typeof State.recordDailyAction === 'function') State.recordDailyAction('arcade_play', 1);
+    }
 
     this.score = 0;
     this.lives = 3;
@@ -102,15 +109,22 @@ const GridRunner = {
     };
 
     this.ghosts = [
-      { name: 'BLINK-808', color: '#ff003c', x: this.offsetX + 9 * ts + ts / 2,  y: this.offsetY + 5 * ts + ts / 2, dir: 'left',  speed: 2.0, behavior: 'chase' },
-      { name: 'PINK-SYNTH', color: '#ec4899', x: this.offsetX + 8 * ts + ts / 2,  y: this.offsetY + 6 * ts + ts / 2, dir: 'up',    speed: 1.9, behavior: 'ambush' },
-      { name: 'INK-GLITCH', color: '#00f0ff', x: this.offsetX + 10 * ts + ts / 2, y: this.offsetY + 6 * ts + ts / 2, dir: 'up',    speed: 1.85, behavior: 'patrol' },
-      { name: 'CLYDE-BASS', color: '#f97316', x: this.offsetX + 9 * ts + ts / 2,  y: this.offsetY + 6 * ts + ts / 2, dir: 'right', speed: 1.8, behavior: 'random' }
+      { name: 'BLINK-808', color: '#ff003c', x: this.offsetX + 9 * ts + ts / 2,  y: this.offsetY + 5 * ts + ts / 2, dir: 'left',  speed: 1.68, behavior: 'chase' },
+      { name: 'PINK-SYNTH', color: '#ec4899', x: this.offsetX + 8 * ts + ts / 2,  y: this.offsetY + 6 * ts + ts / 2, dir: 'up',    speed: 1.58, behavior: 'ambush' },
+      { name: 'INK-GLITCH', color: '#00f0ff', x: this.offsetX + 10 * ts + ts / 2, y: this.offsetY + 6 * ts + ts / 2, dir: 'up',    speed: 1.52, behavior: 'patrol' },
+      { name: 'CLYDE-BASS', color: '#f97316', x: this.offsetX + 9 * ts + ts / 2,  y: this.offsetY + 6 * ts + ts / 2, dir: 'right', speed: 1.45, behavior: 'random' }
     ];
   },
 
   stop() {
     this.running = false;
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
+    if (window.State && typeof State.recordArcadeScore === 'function') {
+      State.recordArcadeScore('gridRunner', this.score);
+    }
     if (!this.rewardsPaid && this.score > 0 && window.State && typeof State.awardArcadeRewards === 'function') {
       this.rewardsPaid = true;
       State.awardArcadeRewards("PAC-LOWLIFE", this.score, this.dotsRemaining === 0);
@@ -120,6 +134,9 @@ const GridRunner = {
   endGame(cleared = false) {
     this.gameOver = true;
     this.stageCleared = cleared;
+    if (window.State && typeof State.recordArcadeScore === 'function') {
+      State.recordArcadeScore('gridRunner', this.score);
+    }
     if (!this.rewardsPaid && window.State && typeof State.awardArcadeRewards === 'function') {
       this.rewardsPaid = true;
       State.awardArcadeRewards("PAC-LOWLIFE", this.score, cleared);
@@ -158,7 +175,7 @@ const GridRunner = {
       this.update();
     }
     this.draw();
-    requestAnimationFrame(() => this.loop());
+    this.animId = requestAnimationFrame(() => this.loop());
   },
 
   update() {

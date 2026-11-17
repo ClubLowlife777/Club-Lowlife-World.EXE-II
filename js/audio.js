@@ -16,6 +16,14 @@ const AudioEngine = {
   bgmTimer: null,
   bgmTempo: 130,
   bgmVersion: 'dancing_master',
+  lowPassFilter: null,
+  subBoostFilter: null,
+  studioMix: {
+    subBoost: false,
+    clubDoorFilter: false,
+    chiptuneBoost: false,
+    spatialAuto: false
+  },
 
   // Track Catalog: 8-Bit Masters (Punchy Club Mix) + Authentic NES Chiptune Versions
   TRACK_CATALOG: {
@@ -97,9 +105,20 @@ const AudioEngine = {
           this.analyser.smoothingTimeConstant = 0.72;
           this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
 
+          this.subBoostFilter = this.ctx.createBiquadFilter();
+          this.subBoostFilter.type = 'lowshelf';
+          this.subBoostFilter.frequency.setValueAtTime(105, this.ctx.currentTime);
+          this.subBoostFilter.gain.setValueAtTime(0, this.ctx.currentTime);
+
+          this.lowPassFilter = this.ctx.createBiquadFilter();
+          this.lowPassFilter.type = 'lowpass';
+          this.lowPassFilter.frequency.setValueAtTime(18000, this.ctx.currentTime);
+
           this.bgmMasterGain = this.ctx.createGain();
           this.bgmMasterGain.gain.setValueAtTime(0.36, this.ctx.currentTime);
-          this.bgmMasterGain.connect(this.analyser);
+          this.bgmMasterGain.connect(this.subBoostFilter);
+          this.subBoostFilter.connect(this.lowPassFilter);
+          this.lowPassFilter.connect(this.analyser);
           this.analyser.connect(this.ctx.destination);
 
           this.sfxMasterGain = this.ctx.createGain();
@@ -438,6 +457,64 @@ const AudioEngine = {
     osc.stop(time + 0.05);
   },
 
+  toggleStudioEffect(key) {
+    if (!this.ctx) this.init();
+    if (!this.studioMix.hasOwnProperty(key)) return;
+    this.studioMix[key] = !this.studioMix[key];
+    this.applyStudioMixState();
+
+    const labels = {
+      subBoost: this.studioMix.subBoost ? '808 SUB-BASS BOOST (+8dB <105Hz): ON 🔊' : '808 SUB-BASS BOOST: FLAT',
+      clubDoorFilter: this.studioMix.clubDoorFilter ? 'HALLWAY MUFFLE FILTER (950Hz LPF): ON 🚪' : 'HALLWAY FILTER: FULL CLARITY',
+      chiptuneBoost: this.studioMix.chiptuneBoost ? '6-CH MIDI SYNTH OVERLAY BOOST: ON 🎹' : '6-CH MIDI SYNTH OVERLAY: STANDARD',
+      spatialAuto: this.studioMix.spatialAuto ? 'SPATIAL CLUB ACOUSTICS: AUTO ON 🎧' : 'SPATIAL CLUB ACOUSTICS: OFF'
+    };
+    if (window.State && typeof State.showToast === 'function' && labels[key]) {
+      State.showToast(labels[key]);
+    }
+    if (window.State && typeof State.renderStudioMixerButtons === 'function') {
+      State.renderStudioMixerButtons();
+    }
+  },
+
+  applyStudioMixState() {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const cfg = this.TRACK_CATALOG[this.bgmVersion] || this.TRACK_CATALOG.dancing_master;
+
+    if (this.subBoostFilter) {
+      this.subBoostFilter.gain.setValueAtTime(this.studioMix.subBoost ? 8.5 : 0, now);
+    }
+
+    let cutoff = this.studioMix.clubDoorFilter ? 920 : 18000;
+    let audioVol = this.studioMix.clubDoorFilter ? 0.56 : 0.85;
+
+    if (this.studioMix.spatialAuto && window.State && State.currentDimension === 'retrocade' && window.Entities && Entities.player) {
+      const px = Entities.player.x;
+      const py = Entities.player.y;
+      const onDanceFloor = px > 900 && px < 1500 && py > 200 && py < 820;
+      if (!onDanceFloor) {
+        cutoff = Math.min(cutoff, 1150);
+        audioVol = 0.62;
+      } else {
+        cutoff = 18000;
+        audioVol = 0.92;
+      }
+    }
+
+    if (this.lowPassFilter) {
+      this.lowPassFilter.frequency.setValueAtTime(cutoff, now);
+    }
+    if (this.bgmAudioEl) {
+      this.bgmAudioEl.volume = audioVol;
+    }
+    if (this.bgmMasterGain) {
+      const baseGain = cfg.src ? (cfg.synthMix || 0.20) : 0.44;
+      const targetGain = this.studioMix.chiptuneBoost ? Math.min(0.55, baseGain + 0.22) : baseGain;
+      this.bgmMasterGain.gain.setValueAtTime(targetGain, now);
+    }
+  },
+
   setTrackBgm(version) {
     this.bgmVersion = this.TRACK_CATALOG[version] ? version : 'dancing_master';
     const sel = document.getElementById('trackVersionSelect');
@@ -446,10 +523,15 @@ const AudioEngine = {
     const cfg = this.TRACK_CATALOG[this.bgmVersion];
     this.bgmTempo = cfg ? cfg.tempo : 130;
 
+    if (window.State && typeof State.recordDailyAction === 'function') {
+      State.recordDailyAction('music_switch', 1);
+    }
+
     if (!this.isBgmPlaying) {
       this.toggleBgm();
     } else {
       this.startBgmLoop();
+      this.applyStudioMixState();
       if (window.State && typeof State.showToast === 'function' && cfg) {
         State.showToast(`SWITCHED TRACK: ${cfg.title} 💿`);
       }

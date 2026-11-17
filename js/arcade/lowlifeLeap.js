@@ -30,6 +30,10 @@ const LowlifeLeap = {
   flag: { x: 2560, y: 150, width: 12, height: 230 },
 
   start() {
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
     this.canvas = document.getElementById('arcadeCanvas');
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext('2d');
@@ -42,7 +46,10 @@ const LowlifeLeap = {
     if (hint) hint.innerText = "[A/D / ◀▶] RUN  •  [W / SPACE / FIRE] JUMP  •  HIT [?] BLOCKS & STOMP CRAWLERS";
     const modal = document.getElementById('arcadeModal');
     if (modal) modal.classList.remove('hidden');
-    if (window.State) State.activeMiniGame = this;
+    if (window.State) {
+      State.activeMiniGame = this;
+      if (typeof State.recordDailyAction === 'function') State.recordDailyAction('arcade_play', 1);
+    }
 
     this.score = 0;
     this.lives = 3;
@@ -141,6 +148,13 @@ const LowlifeLeap = {
 
   stop() {
     this.running = false;
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
+    if (window.State && typeof State.recordArcadeScore === 'function') {
+      State.recordArcadeScore('lowlifeLeap', this.score);
+    }
     if (!this.rewardsPaid && this.score > 0 && window.State && typeof State.awardArcadeRewards === 'function') {
       this.rewardsPaid = true;
       State.awardArcadeRewards("SUPER LOWLIFE", this.score, this.stageCleared);
@@ -150,6 +164,9 @@ const LowlifeLeap = {
   endGame(cleared = false) {
     this.gameOver = true;
     this.stageCleared = cleared;
+    if (window.State && typeof State.recordArcadeScore === 'function') {
+      State.recordArcadeScore('lowlifeLeap', this.score);
+    }
     if (!this.rewardsPaid && window.State && typeof State.awardArcadeRewards === 'function') {
       this.rewardsPaid = true;
       State.awardArcadeRewards("SUPER LOWLIFE", this.score, cleared);
@@ -166,7 +183,7 @@ const LowlifeLeap = {
       this.update();
     }
     this.draw();
-    requestAnimationFrame(() => this.loop());
+    this.animId = requestAnimationFrame(() => this.loop());
   },
 
   update() {

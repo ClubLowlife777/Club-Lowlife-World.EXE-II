@@ -411,6 +411,9 @@ const Entities = {
 
     if (npc.hp <= 0 && npc.hp !== 99999) {
       npc.alive = false;
+      if (window.State && typeof State.recordDailyAction === 'function') {
+        State.recordDailyAction('combat_kill', npc.tier === 'boss' ? 3 : 1);
+      }
 
       if (npc.tier === 'boss' && window.State) {
         State.userProfile.bossesDefeated = State.userProfile.bossesDefeated || [];

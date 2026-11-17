@@ -314,6 +314,13 @@ const State = {
     bossesDefeated: [],
     bossKillCounts: {}, // Tracks how many times each World Boss has been defeated
     chestsOpened: [],
+    completedStreamingQuests: [],
+    arcadeHighScores: { voidInvaders: 0, gridRunner: 0, lowlifeLeap: 0 },
+    dailyDate: "",
+    dailyLoginClaimed: false,
+    dailyProgress: { arcade_play: 0, casino_spin: 0, music_switch: 0, combat_kill: 0 },
+    dailyClaimed: [],
+    hasSeenGuide: false,
     crtEnabled: true, // Persists CRT Scanlines On/Off preference
     lastDimension: "underground",
     lastPosition: { x: 350, y: 750 }
@@ -331,6 +338,14 @@ const State = {
         if (!Array.isArray(this.userProfile.unlockedRelics)) this.userProfile.unlockedRelics = [];
         if (!Array.isArray(this.userProfile.equippedRelics)) this.userProfile.equippedRelics = [];
         if (!Array.isArray(this.userProfile.bossesDefeated)) this.userProfile.bossesDefeated = [];
+        if (!Array.isArray(this.userProfile.completedStreamingQuests)) this.userProfile.completedStreamingQuests = [];
+        if (!this.userProfile.arcadeHighScores || typeof this.userProfile.arcadeHighScores !== 'object') {
+          this.userProfile.arcadeHighScores = { voidInvaders: 0, gridRunner: 0, lowlifeLeap: 0 };
+        }
+        if (!this.userProfile.dailyProgress || typeof this.userProfile.dailyProgress !== 'object') {
+          this.userProfile.dailyProgress = { arcade_play: 0, casino_spin: 0, music_switch: 0, combat_kill: 0 };
+        }
+        if (!Array.isArray(this.userProfile.dailyClaimed)) this.userProfile.dailyClaimed = [];
         if (!this.userProfile.bossKillCounts || typeof this.userProfile.bossKillCounts !== 'object') {
           this.userProfile.bossKillCounts = {};
         }
@@ -361,6 +376,7 @@ const State = {
       console.warn("Storage access restricted. Progress will be session-only.", e);
     }
 
+    this.checkDailyReset();
     this.checkLevelSkinUnlocks(false);
     this.syncPlayerLevelStats(false);
     this.syncCrtState();
@@ -375,6 +391,12 @@ const State = {
       setTimeout(() => {
         if (typeof openUsernameModal === 'function') openUsernameModal();
       }, 500);
+    } else if (!this.userProfile.hasSeenGuide) {
+      this.userProfile.hasSeenGuide = true;
+      this.save();
+      setTimeout(() => {
+        if (typeof openGuideModal === 'function') openGuideModal('links');
+      }, 650);
     }
   },
 
@@ -1023,6 +1045,671 @@ const State = {
       this.showToast("CHAPTER III UNLOCKED // WELCOME TO THE HORIZON DIMENSION! 🌌⚡");
     } else {
       this.showToast(`ACCESS DENIED: NEED ${this.RARE_TAPES_THRESHOLD - this.userProfile.collectedRareTapes} MORE TAPES!`);
+    }
+  },
+
+  // =========================================================================
+  // SPOTIFY, APPLE MUSIC & SUPPORTER STREAMING QUESTS ENGINE
+  // =========================================================================
+  STREAMING_QUESTS: [
+    {
+      id: 'quest_spotify_dancing',
+      platform: 'SPOTIFY',
+      icon: '🟢',
+      title: 'STREAM "DANCING" ON SPOTIFY',
+      desc: 'Listen to the transition single on Spotify & unlock the Legendary Mint Frequency Suit.',
+      url: 'https://open.spotify.com/track/6jfPp34RiWhv8HUEfSpuhg?si=0d4c1e54e1fd4ee2',
+      xp: 120,
+      tokens: 75,
+      tapes: 2,
+      skinReward: 'spotify_streamer',
+      rewardText: '+120 XP • +75🪙 • +2📼 • SPOTIFY STREAMER SKIN'
+    },
+    {
+      id: 'quest_apple_dancing',
+      platform: 'APPLE MUSIC',
+      icon: '🍎',
+      title: 'STREAM "DANCING" ON APPLE MUSIC',
+      desc: 'Stream in spatial lossless on Apple Music & unlock the Legendary Titanium Shell.',
+      url: 'https://music.apple.com/us/song/dancing/6824158392',
+      xp: 120,
+      tokens: 75,
+      tapes: 2,
+      skinReward: 'apple_lossless',
+      rewardText: '+120 XP • +75🪙 • +2📼 • APPLE LOSSLESS SKIN'
+    },
+    {
+      id: 'quest_youtube_dancing',
+      platform: 'YOUTUBE MUSIC',
+      icon: '▶️',
+      title: 'STREAM "DANCING" ON YOUTUBE',
+      desc: 'Tune into the official YouTube Music release playlist & unlock Synthwave Phantom.',
+      url: 'https://music.youtube.com/playlist?list=OLAK5uy_m-WHYrOsDdXEtkUCJzW11ELfS7wifL1sc&si=6kMLhqT5LWGyFrhQ',
+      xp: 90,
+      tokens: 60,
+      tapes: 2,
+      skinReward: 'synth_phantom',
+      rewardText: '+90 XP • +60🪙 • +2📼 • SYNTHWAVE PHANTOM SKIN'
+    },
+    {
+      id: 'quest_retrocade_deluxe',
+      platform: 'DELUXE ALBUM',
+      icon: '💿',
+      title: 'STREAM "RETROCADE EVOLVED" DELUXE',
+      desc: 'Access the deluxe album portal featuring extended cuts & unlock District 84 Veteran.',
+      url: 'https://clublowlife.dimensions.fm/retrocade-evolved',
+      xp: 140,
+      tokens: 100,
+      tapes: 3,
+      skinReward: 'district_84_veteran',
+      rewardText: '+140 XP • +100🪙 • +3📼 • DISTRICT 84 VETERAN SKIN'
+    },
+    {
+      id: 'quest_all_platforms',
+      platform: 'DIMENSIONS.FM',
+      icon: '🌐',
+      title: 'VISIT OFFICIAL "DANCING" HUB',
+      desc: 'Open the multi-platform release portal & claim bonus Sound Tokens and Battle Cassettes.',
+      url: 'https://clublowlife.dimensions.fm/dancing',
+      xp: 80,
+      tokens: 50,
+      tapes: 2,
+      skinReward: null,
+      rewardText: '+80 XP • +50🪙 • +2📼'
+    },
+    {
+      id: 'quest_cassette_airdrop',
+      platform: 'PHYSICAL DROP',
+      icon: '📼',
+      title: 'CLAIM PHYSICAL CASSETTE AIR-DROP',
+      desc: 'Register for the physical cassette giveaway & unlock Mythic "The 6-Winner Claimant" skin.',
+      url: 'https://forms.gle/TsE7MAHSD1erDca59',
+      xp: 150,
+      tokens: 100,
+      tapes: 3,
+      skinReward: 'tape_winner',
+      rewardText: '+150 XP • +100🪙 • +3📼 • MYTHIC 6-WINNER SKIN'
+    },
+    {
+      id: 'quest_instagram_syndicate',
+      platform: 'INSTAGRAM',
+      icon: '📸',
+      title: 'CONNECT WITH @OMGLOWLIFE',
+      desc: 'Follow the official visual dispatch on Instagram for show announcements & drops.',
+      url: 'https://www.instagram.com/omglowlife',
+      xp: 75,
+      tokens: 50,
+      tapes: 1,
+      skinReward: null,
+      rewardText: '+75 XP • +50🪙 • +1📼'
+    }
+  ],
+
+  claimStreamingQuest(questId) {
+    const q = this.STREAMING_QUESTS.find(item => item.id === questId);
+    if (!q) return;
+
+    if (q.url) {
+      window.open(q.url, '_blank', 'noopener,noreferrer');
+    }
+
+    this.userProfile.completedStreamingQuests = this.userProfile.completedStreamingQuests || [];
+    if (this.userProfile.completedStreamingQuests.includes(questId)) {
+      this.showToast(`OPENED ${q.platform} // QUEST ALREADY CLAIMED ✓`);
+      return;
+    }
+
+    this.userProfile.completedStreamingQuests.push(questId);
+    if (q.tokens > 0) this.addTokens(q.tokens);
+    if (q.tapes > 0) {
+      for (let i = 0; i < q.tapes; i++) this.addRareTape();
+    }
+    if (q.skinReward) {
+      this.unlockSkin(q.skinReward);
+      this.userProfile.activeSkin = q.skinReward;
+    }
+    if (q.xp > 0) {
+      this.addXp(q.xp, `${q.platform} QUEST COMPLETE`);
+    }
+
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') {
+      AudioEngine.playSfx('win');
+    }
+    this.showToast(`QUEST COMPLETE: +${q.xp} XP, +${q.tokens}🪙 & +${q.tapes}📼! 🎧⚡`);
+    this.save();
+
+    if (typeof renderStreamingQuestsUI === 'function') renderStreamingQuestsUI();
+    if (typeof openDiscographyModal === 'function' && !document.getElementById('discoModal')?.classList.contains('hidden')) {
+      openDiscographyModal();
+    }
+  },
+
+  // =========================================================================
+  // DAILY LOGIN REWARDS & DAILY SYNDICATE BOUNTIES
+  // =========================================================================
+  DAILY_BOUNTIES: [
+    {
+      id: 'bounty_music',
+      actionKey: 'music_switch',
+      target: 2,
+      icon: '🎵',
+      title: 'FREQUENCY AUDITOR',
+      desc: 'Switch or audition 2 tracks on the Broadcast Player (8-Bit Master or NES).',
+      xp: 60,
+      tokens: 40,
+      tapes: 1
+    },
+    {
+      id: 'bounty_arcade',
+      actionKey: 'arcade_play',
+      target: 1,
+      icon: '🕹️',
+      title: 'RETRO CABINET CHALLENGER',
+      desc: 'Play any Arcade Cabinet in the Underground Concourse (Galaga, Pac-Lowlife, or Super Lowlife).',
+      xp: 75,
+      tokens: 50,
+      tapes: 1
+    },
+    {
+      id: 'bounty_casino',
+      actionKey: 'casino_spin',
+      target: 3,
+      icon: '🎰',
+      title: 'DISTRICT 84 HIGH ROLLER',
+      desc: 'Spin the Cyber Slots 3 times in the Retrocade East Casino Wing.',
+      xp: 65,
+      tokens: 45,
+      tapes: 1
+    },
+    {
+      id: 'bounty_combat',
+      actionKey: 'combat_kill',
+      target: 3,
+      icon: '⚔️',
+      title: 'WASTELAND ENFORCER',
+      desc: 'Eliminate 3 Hostiles (or 1 World Boss) in the Corruption or Horizon.',
+      xp: 100,
+      tokens: 75,
+      tapes: 2
+    }
+  ],
+
+  getTodayDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  },
+
+  checkDailyReset() {
+    const today = this.getTodayDateString();
+    if (this.userProfile.dailyDate !== today) {
+      this.userProfile.dailyDate = today;
+      this.userProfile.dailyLoginClaimed = false;
+      this.userProfile.dailyProgress = { arcade_play: 0, casino_spin: 0, music_switch: 0, combat_kill: 0 };
+      this.userProfile.dailyClaimed = [];
+      this.save();
+    }
+  },
+
+  claimDailyLoginBonus() {
+    this.checkDailyReset();
+    if (this.userProfile.dailyLoginClaimed) {
+      this.showToast("DAILY LOGIN DROP ALREADY CLAIMED TODAY ✓");
+      return;
+    }
+    this.userProfile.dailyLoginClaimed = true;
+    this.addTokens(50);
+    this.addRareTape();
+    this.addXp(40, "DAILY LOGIN SUPPLY DROP");
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
+    this.showToast("DAILY LOGIN DROP CLAIMED: +50🪙, +40 XP & +1📼! 🎁");
+    this.save();
+    if (typeof renderDailyBountiesUI === 'function') renderDailyBountiesUI();
+  },
+
+  recordDailyAction(actionKey, amount = 1) {
+    this.checkDailyReset();
+    this.userProfile.dailyProgress = this.userProfile.dailyProgress || {};
+    this.userProfile.dailyProgress[actionKey] = (this.userProfile.dailyProgress[actionKey] || 0) + amount;
+    this.save();
+    if (typeof renderDailyBountiesUI === 'function') renderDailyBountiesUI();
+  },
+
+  claimDailyBounty(bountyId) {
+    this.checkDailyReset();
+    const b = this.DAILY_BOUNTIES.find(item => item.id === bountyId);
+    if (!b) return;
+    if (this.userProfile.dailyClaimed.includes(bountyId)) return;
+
+    const prog = (this.userProfile.dailyProgress && this.userProfile.dailyProgress[b.actionKey]) || 0;
+    if (prog < b.target) {
+      this.showToast(`BOUNTY INCOMPLETE (${prog}/${b.target})!`);
+      return;
+    }
+
+    this.userProfile.dailyClaimed.push(bountyId);
+    this.addTokens(b.tokens);
+    for (let i = 0; i < b.tapes; i++) this.addRareTape();
+    this.addXp(b.xp, `BOUNTY: ${b.title}`);
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('win');
+    this.showToast(`BOUNTY CLAIMED: +${b.xp} XP, +${b.tokens}🪙 & +${b.tapes}📼! 🏆`);
+    this.save();
+    if (typeof renderDailyBountiesUI === 'function') renderDailyBountiesUI();
+  },
+
+  // =========================================================================
+  // BLACK VAN & PAYPHONE FAST-TRAVEL NETWORK
+  // =========================================================================
+  FAST_TRAVEL_NODES: [
+    {
+      id: 'ft_ug_hub',
+      name: 'UNDERGROUND // TUNING BAY & MERCH',
+      sub: 'Starting Safe Hub, Black Truck Merch & Target Dummies',
+      dim: 'underground',
+      x: 350,
+      y: 750,
+      icon: '🔧',
+      color: 'cyan'
+    },
+    {
+      id: 'ft_ug_arcade',
+      name: 'UNDERGROUND // NEO-ARCADE & STUDIO',
+      sub: '3 Playable Arcade Cabinets (Galaga, Pac-Man, Mario) & Mastering Vault',
+      dim: 'underground',
+      x: 1680,
+      y: 260,
+      icon: '🕹️',
+      color: 'purple'
+    },
+    {
+      id: 'ft_retrocade_floor',
+      name: 'DISTRICT 84 // RETROCADE DANCE FLOOR',
+      sub: 'Audio-Reactive Dance Floor, DJ Visualizer & Music Kiosk',
+      dim: 'retrocade',
+      x: 1200,
+      y: 750,
+      icon: '🪩',
+      color: 'pink'
+    },
+    {
+      id: 'ft_retrocade_casino',
+      name: 'DISTRICT 84 // HIGH-STAKES CASINO WING',
+      sub: 'Classic 3-Reel & 5-Lane High Roller Slot Machines',
+      dim: 'retrocade',
+      x: 1980,
+      y: 340,
+      icon: '🎰',
+      color: 'amber'
+    },
+    {
+      id: 'ft_wasteland_van',
+      name: 'WASTELAND // BLACK VAN DROPZONE',
+      sub: 'Western Badlands Entry & Blade-Zero Sector',
+      dim: 'wasteland',
+      x: 650,
+      y: 1100,
+      icon: '🚐',
+      color: 'emerald'
+    },
+    {
+      id: 'ft_wasteland_sanctuary',
+      name: 'WASTELAND // THE RUST SANCTUARY [SAFE ZONE]',
+      sub: 'Northern Protected Bio-Clinic (Free Full Heal & Passive HP Regen)',
+      dim: 'wasteland',
+      x: 2050,
+      y: 560,
+      icon: '💚',
+      color: 'emerald'
+    },
+    {
+      id: 'ft_wasteland_bonfire',
+      name: "WASTELAND // CONNER CADE'S BONFIRE [SAFE ZONE]",
+      sub: 'Central Creative Refuge near The Furnace & The Drain',
+      dim: 'wasteland',
+      x: 2300,
+      y: 2900,
+      icon: '🔥',
+      color: 'amber'
+    },
+    {
+      id: 'ft_wasteland_rift',
+      name: 'WASTELAND // 50-TAPE EXTRACTION RIFT',
+      sub: 'Northern Gateway to Chapter III: The Horizon',
+      dim: 'wasteland',
+      x: 3170,
+      y: 280,
+      icon: '🌌',
+      color: 'purple'
+    },
+    {
+      id: 'ft_horizon_citadel',
+      name: 'CHAPTER III // THE HORIZON CITADEL',
+      sub: 'Astral Sovereign Keep & Zero-G Mastering Sanctum (Requires 50📼)',
+      dim: 'horizon',
+      x: 1800,
+      y: 2050,
+      icon: '👑',
+      color: 'cyan',
+      requiresTapes: 50
+    }
+  ],
+
+  fastTravelTo(nodeId) {
+    const node = this.FAST_TRAVEL_NODES.find(n => n.id === nodeId);
+    if (!node) return;
+    if (node.requiresTapes && this.userProfile.collectedRareTapes < node.requiresTapes) {
+      this.showToast(`LOCKED: REQUIRES ${node.requiresTapes} BATTLE CASSETTES (${this.userProfile.collectedRareTapes}/${node.requiresTapes})! 📼`);
+      return;
+    }
+    if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') {
+      AudioEngine.playSfx('dash');
+    }
+    this.closeModals();
+    this.switchDimension(node.dim, node.x, node.y);
+    this.triggerScreenShake(8, 14);
+  },
+
+  // =========================================================================
+  // GLOBAL & SYNDICATE ARCADE + BOSS BOUNTY LEADERBOARDS
+  // =========================================================================
+  LEADERBOARD_RIVALS: {
+    voidInvaders: [
+      { handle: 'OMG_LOWLIFE', level: 12, score: 4850, badge: '👑 CREATOR' },
+      { handle: 'CONNER_CADE', level: 10, score: 3620, badge: '🔥 BONFIRE' },
+      { handle: 'MKE_414_VET', level: 9,  score: 2940, badge: '⚡ VANGUARD' },
+      { handle: 'SYNTH_GHOST', level: 7,  score: 2150, badge: '🕹️ ARCADE' },
+      { handle: 'RIVERWEST_OP', level: 6, score: 1480, badge: '📼 RUNNER' },
+      { handle: 'BAYVIEW_KID', level: 4,  score: 820,  badge: '🛡️ RECRUIT' }
+    ],
+    gridRunner: [
+      { handle: 'CONNER_CADE', level: 10, score: 4120, badge: '🔥 BONFIRE' },
+      { handle: 'OMG_LOWLIFE', level: 12, score: 3890, badge: '👑 CREATOR' },
+      { handle: '808_BASEMAN', level: 8,  score: 2760, badge: '🔊 SUB-100' },
+      { handle: 'THIRD_WARD',  level: 7,  score: 1950, badge: '💎 BROKER' },
+      { handle: 'CRT_STATIC',  level: 5,  score: 1240, badge: '📺 GLITCH' },
+      { handle: 'NIGHT_SHIFT', level: 3,  score: 640,  badge: '🛡️ RECRUIT' }
+    ],
+    lowlifeLeap: [
+      { handle: 'OMG_LOWLIFE', level: 12, score: 5400, badge: '👑 CREATOR' },
+      { handle: 'HOAN_GLIDER', level: 9,  score: 4250, badge: '🌉 RUNNER' },
+      { handle: 'CONNER_CADE', level: 10, score: 3480, badge: '🔥 BONFIRE' },
+      { handle: 'KK_TUNER_99', level: 6,  score: 2300, badge: '🔧 MECHANIC' },
+      { handle: 'WALKERS_PT',  level: 5,  score: 1520, badge: '👻 PHANTOM' },
+      { handle: 'ALLEY_CAT',   level: 3,  score: 780,  badge: '🛡️ RECRUIT' }
+    ],
+    bossBounties: [
+      { handle: 'OMG_LOWLIFE', level: 12, score: 18, badge: '👑 CREATOR' },
+      { handle: 'DAYWALKER_X', level: 11, score: 12, badge: '⚔️ SLAYER' },
+      { handle: 'CONNER_CADE', level: 10, score: 9,  badge: '🔥 BONFIRE' },
+      { handle: 'MKE_414_VET', level: 9,  score: 6,  badge: '⚡ VANGUARD' },
+      { handle: 'OMEGA_DRIFT', level: 7,  score: 4,  badge: '💀 HUNTER' },
+      { handle: 'RECRUIT_777', level: 4,  score: 1,  badge: '🛡️ RECRUIT' }
+    ]
+  },
+
+  recordArcadeScore(gameKey, score) {
+    const clean = Math.max(0, Math.floor(score || 0));
+    this.userProfile.arcadeHighScores = this.userProfile.arcadeHighScores || { voidInvaders: 0, gridRunner: 0, lowlifeLeap: 0 };
+    if (clean > (this.userProfile.arcadeHighScores[gameKey] || 0)) {
+      this.userProfile.arcadeHighScores[gameKey] = clean;
+      this.save();
+    }
+  },
+
+  getTotalBossKills() {
+    const counts = this.userProfile.bossKillCounts || {};
+    return Object.values(counts).reduce((sum, v) => sum + (Number(v) || 0), 0);
+  },
+
+  getLeaderboardEntries(category = 'voidInvaders') {
+    const rivals = (this.LEADERBOARD_RIVALS[category] || []).map(r => ({ ...r, isPlayer: false }));
+    let playerScore = 0;
+    if (category === 'bossBounties') {
+      playerScore = this.getTotalBossKills();
+    } else {
+      playerScore = (this.userProfile.arcadeHighScores && this.userProfile.arcadeHighScores[category]) || 0;
+    }
+
+    const playerEntry = {
+      handle: (this.userProfile.handle || 'YOU (OPERATIVE)').toUpperCase(),
+      level: this.userProfile.level || 1,
+      score: playerScore,
+      badge: '⚡ YOU',
+      isPlayer: true
+    };
+
+    const combined = [...rivals, playerEntry].sort((a, b) => b.score - a.score);
+    return combined.map((item, idx) => ({ ...item, rank: idx + 1 }));
+  },
+
+  // =========================================================================
+  // CUSTOM CYBERPUNK "PLAYER ID PASS" GENERATOR (600x800 HOLOGRAPHIC PNG)
+  // =========================================================================
+  renderPlayerIdCardCanvas(canvasEl) {
+    const c = canvasEl || document.getElementById('idPassCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    c.width = 600;
+    c.height = 780;
+
+    const skinId = this.userProfile.activeSkin || 'enforcer';
+    const skin = this.SKINS_DATA.find(s => s.id === skinId) || this.SKINS_DATA[0];
+    const handle = (this.userProfile.handle || 'OPERATIVE_777').toUpperCase();
+    const lvl = this.userProfile.level || 1;
+    const tapes = this.userProfile.collectedRareTapes || 0;
+    const tokens = this.userProfile.casinoTokens || 0;
+    const bossKills = this.getTotalBossKills();
+    const hs = this.userProfile.arcadeHighScores || { voidInvaders: 0, gridRunner: 0, lowlifeLeap: 0 };
+    const topArcade = Math.max(hs.voidInvaders || 0, hs.gridRunner || 0, hs.lowlifeLeap || 0);
+    const activeTrackCfg = (window.AudioEngine && AudioEngine.TRACK_CATALOG && AudioEngine.TRACK_CATALOG[AudioEngine.bgmVersion])
+      ? AudioEngine.TRACK_CATALOG[AudioEngine.bgmVersion]
+      : { title: '"DANCING" (8-BIT MASTER)' };
+
+    // 1. Deep Obsidian & Neon Gradient Background
+    const bgGrad = ctx.createLinearGradient(0, 0, 600, 780);
+    bgGrad.addColorStop(0, '#07090f');
+    bgGrad.addColorStop(0.5, '#111626');
+    bgGrad.addColorStop(1, '#090b12');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 600, 780);
+
+    // Subtle Cyber Grid
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.07)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < 600; x += 30) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 780); ctx.stroke();
+    }
+    for (let y = 0; y < 780; y += 30) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(600, y); ctx.stroke();
+    }
+
+    // Outer Holographic Frame
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(16, 16, 568, 748);
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(24, 24, 552, 732);
+
+    // Header Banner
+    ctx.fillStyle = '#0c1220';
+    ctx.fillRect(28, 28, 544, 82);
+    ctx.fillStyle = '#00f0ff';
+    ctx.font = 'bold 13px "Share Tech Mono", monospace';
+    ctx.fillText('CLUB LOWLIFE // WORLD.EXE II // OFFICIAL SYNDICATE PASS', 46, 56);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px "Chakra Petch", sans-serif';
+    ctx.fillText('OPERATIVE CREDENTIAL // 777', 46, 92);
+
+    // 2. Left Column: Pixel Character Portrait Box
+    ctx.fillStyle = '#06080e';
+    ctx.fillRect(44, 132, 180, 210);
+    ctx.strokeStyle = skin.visor || '#00f0ff';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(44, 132, 180, 210);
+
+    // Glow Halo behind character
+    const radGrad = ctx.createRadialGradient(134, 235, 10, 134, 235, 75);
+    radGrad.addColorStop(0, (skin.visor || '#00f0ff') + '44');
+    radGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = radGrad;
+    ctx.fillRect(46, 134, 176, 206);
+
+    // Draw Scaled Pixel Avatar
+    ctx.save();
+    ctx.translate(92, 168);
+    ctx.scale(3.2, 3.2);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.ellipse(13, 37, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skin.pants || '#0f172a';
+    ctx.fillRect(5, 26, 6, 11); ctx.fillRect(15, 26, 6, 11);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(4, 34, 7, 4); ctx.fillRect(15, 34, 7, 4);
+    ctx.fillStyle = skin.coat || '#090b10';
+    ctx.fillRect(3, 12, 20, 18);
+    ctx.fillStyle = skin.trim || '#00f0ff';
+    ctx.fillRect(3, 12, 3, 18); ctx.fillRect(20, 12, 3, 18);
+    ctx.fillStyle = '#090b10';
+    ctx.beginPath(); ctx.arc(13, 7, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skin.visor || '#00f0ff';
+    ctx.fillRect(8, 6, 10, 3);
+    ctx.restore();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 10px "Share Tech Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`RARITY: ${(skin.rarity || 'COMMON').toUpperCase()}`, 134, 330);
+    ctx.textAlign = 'left';
+
+    // 3. Right Column: Identity & Level Telemetry
+    ctx.fillStyle = '#00f0ff';
+    ctx.font = 'bold 12px "Share Tech Mono", monospace';
+    ctx.fillText('CALLSIGN // HANDLE', 246, 152);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px "Chakra Petch", sans-serif';
+    ctx.fillText(handle, 246, 184);
+
+    ctx.fillStyle = '#facc15';
+    ctx.font = 'bold 15px "Share Tech Mono", monospace';
+    ctx.fillText(`SECURITY CLEARANCE: LEVEL ${lvl}`, 246, 214);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px "Share Tech Mono", monospace';
+    ctx.fillText('EQUIPPED CHASSIS:', 246, 246);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 14px "Chakra Petch", sans-serif';
+    ctx.fillText(skin.name || 'THE NEW ERA ENFORCER', 246, 266);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px "Share Tech Mono", monospace';
+    ctx.fillText('ACTIVE SOUNDTRACK:', 246, 298);
+    ctx.fillStyle = '#ec4899';
+    ctx.font = 'bold 13px "Share Tech Mono", monospace';
+    ctx.fillText(activeTrackCfg.title, 246, 318);
+
+    // 4. Stats Matrix (4 Cards)
+    const stats = [
+      { label: 'BATTLE CASSETTES', val: `${tapes} / 50 📼`, col: '#facc15' },
+      { label: 'SOUND TOKENS', val: `${tokens} 🪙`, col: '#4ade80' },
+      { label: 'BOSSES VANQUISHED', val: `${bossKills} 💀`, col: '#ff003c' },
+      { label: 'TOP ARCADE SCORE', val: `${topArcade} PTS 🕹️`, col: '#00f0ff' }
+    ];
+
+    stats.forEach((st, idx) => {
+      const colIdx = idx % 2;
+      const rowIdx = Math.floor(idx / 2);
+      const bx = 44 + colIdx * 262;
+      const by = 366 + rowIdx * 96;
+
+      ctx.fillStyle = '#0c111d';
+      ctx.fillRect(bx, by, 248, 82);
+      ctx.strokeStyle = st.col;
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(bx, by, 248, 82);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 11px "Share Tech Mono", monospace';
+      ctx.fillText(st.label, bx + 16, by + 28);
+
+      ctx.fillStyle = st.col;
+      ctx.font = 'bold 22px "Chakra Petch", sans-serif';
+      ctx.fillText(st.val, bx + 16, by + 62);
+    });
+
+    // 5. Studio Hardware Relics & Streaming Badges
+    ctx.fillStyle = '#0c111d';
+    ctx.fillRect(44, 566, 512, 86);
+    ctx.strokeStyle = '#a855f7';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(44, 566, 512, 86);
+
+    ctx.fillStyle = '#c084fc';
+    ctx.font = 'bold 12px "Share Tech Mono", monospace';
+    ctx.fillText('UNLOCKED RELICS & STREAMING VERIFICATION', 60, 592);
+
+    const relicNames = (this.userProfile.unlockedRelics || []).map(rId => {
+      const rObj = this.STUDIO_GEAR_DATA.find(g => g.id === rId);
+      return rObj ? `${rObj.icon} ${rObj.name}` : rId;
+    });
+    const questCount = (this.userProfile.completedStreamingQuests || []).length;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px "Share Tech Mono", monospace';
+    ctx.fillText(
+      relicNames.length > 0 ? relicNames.slice(0, 2).join('  •  ') : 'NO HARDWARE RELICS MOUNTED YET',
+      60,
+      618
+    );
+    ctx.fillStyle = '#4ade80';
+    ctx.fillText(`VERIFIED STREAMING QUESTS: ${questCount} / ${this.STREAMING_QUESTS.length} COMPLETED`, 60, 640);
+
+    // 6. Footer Barcode & Share Link
+    ctx.fillStyle = '#00f0ff';
+    ctx.font = 'bold 14px "Chakra Petch", sans-serif';
+    ctx.fillText('PLAY & STREAM AT: CLUBLOWLIFE777.GITHUB.IO/CLUB-LOWLIFE-WORLD.EXE-II', 44, 695);
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 11px "Share Tech Mono", monospace';
+    ctx.fillText(`ISSUED: ${this.getTodayDateString()}  //  @OMGLOWLIFE  //  MILWAUKEE UNDERGROUND`, 44, 720);
+
+    // Barcode stripes
+    ctx.fillStyle = '#00f0ff';
+    for (let b = 0; b < 36; b++) {
+      const w = (b % 3 === 0) ? 4 : 2;
+      ctx.fillRect(410 + b * 4, 705, w, 24);
+    }
+  },
+
+  downloadPlayerIdCard() {
+    const c = document.getElementById('idPassCanvas');
+    if (!c) return;
+    this.renderPlayerIdCardCanvas(c);
+    try {
+      const link = document.createElement('a');
+      const handle = (this.userProfile.handle || 'OPERATIVE').toUpperCase();
+      link.download = `CLUB_LOWLIFE_ID_${handle}.png`;
+      link.href = c.toDataURL('image/png');
+      link.click();
+      this.showToast("DOWNLOADED HOLOGRAPHIC SYNDICATE ID PASS (.PNG)! 🪪✨");
+    } catch (e) {
+      this.showToast("RIGHT-CLICK OR LONG-PRESS CARD IMAGE TO SAVE! 🪪");
+    }
+  },
+
+  copyPlayerStatsFlex() {
+    const handle = (this.userProfile.handle || 'OPERATIVE_777').toUpperCase();
+    const lvl = this.userProfile.level || 1;
+    const tapes = this.userProfile.collectedRareTapes || 0;
+    const bossKills = this.getTotalBossKills();
+    const hs = this.userProfile.arcadeHighScores || {};
+    const topArcade = Math.max(hs.voidInvaders || 0, hs.gridRunner || 0, hs.lowlifeLeap || 0);
+    const text = `🪪 CLUB LOWLIFE // WORLD.EXE II\nOperative: ${handle} [LVL ${lvl}]\n📼 ${tapes}/50 Cassettes | 💀 ${bossKills} Bosses | 🕹️ ${topArcade} Arcade High Score\nEnter the world: https://clublowlife777.github.io/Club-Lowlife-World.EXE-II/`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.showToast("COPIED SYNDICATE FLEX TO CLIPBOARD! 📋⚡");
+      }).catch(() => {
+        this.showToast("STATS READY TO SHARE! ⚡");
+      });
+    } else {
+      this.showToast("STATS READY TO SHARE! ⚡");
     }
   }
 };

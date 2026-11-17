@@ -11,10 +11,12 @@ const VoidInvaders = {
   running: false,
   gameOver: false,
   rewardsPaid: false,
+  animId: null,
+  diveCooldown: 120,
   score: 0,
   wave: 1,
   fleetTime: 0,
-  player: { x: 284, y: 404, width: 28, height: 20, lives: 3, iFrames: 0, dualLaserTimer: 0 },
+  player: { x: 284, y: 404, width: 28, height: 20, lives: 4, iFrames: 0, dualLaserTimer: 0 },
   lasers: [],
   enemyLasers: [],
   enemies: [],
@@ -23,6 +25,10 @@ const VoidInvaders = {
   stars: [],
 
   start() {
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
     this.canvas = document.getElementById('arcadeCanvas');
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext('2d');
@@ -35,13 +41,17 @@ const VoidInvaders = {
     if (hint) hint.innerText = "[A/D / ◀▶] STEER  •  [SPACE / J / FIRE] SHOOT  •  25 PTS = +1 XP";
     const modal = document.getElementById('arcadeModal');
     if (modal) modal.classList.remove('hidden');
-    if (window.State) State.activeMiniGame = this;
+    if (window.State) {
+      State.activeMiniGame = this;
+      if (typeof State.recordDailyAction === 'function') State.recordDailyAction('arcade_play', 1);
+    }
 
     this.score = 0;
     this.wave = 1;
     this.gameOver = false;
     this.rewardsPaid = false;
-    this.player = { x: 286, y: 404, width: 28, height: 20, lives: 3, iFrames: 0, dualLaserTimer: 0 };
+    this.diveCooldown = 140;
+    this.player = { x: 286, y: 404, width: 28, height: 20, lives: 4, iFrames: 60, dualLaserTimer: 0 };
     this.lasers = [];
     this.enemyLasers = [];
     this.powerups = [];
@@ -74,11 +84,12 @@ const VoidInvaders = {
   spawnWave(waveNum) {
     this.enemies = [];
     this.fleetTime = 0;
+    this.diveCooldown = 150;
     const rows = [
       { type: 'commander', hp: 2, pts: 150, color: '#facc15', count: 4, startX: 165, spacing: 82, y: 52 },
-      { type: 'hornet',    hp: 1, pts: 80,  color: '#ff003c', count: 8, startX: 90,  spacing: 60, y: 92 },
-      { type: 'interceptor', hp: 1, pts: 60, color: '#00f0ff', count: 8, startX: 90, spacing: 60, y: 130 },
-      { type: 'drone',     hp: 1, pts: 50,  color: '#a855f7', count: 8, startX: 90,  spacing: 60, y: 168 }
+      { type: 'hornet',    hp: 1, pts: 80,  color: '#ff003c', count: 7, startX: 105, spacing: 62, y: 92 },
+      { type: 'interceptor', hp: 1, pts: 60, color: '#00f0ff', count: 7, startX: 105, spacing: 62, y: 130 },
+      { type: 'drone',     hp: 1, pts: 50,  color: '#a855f7', count: 7, startX: 105, spacing: 62, y: 168 }
     ];
 
     rows.forEach((r, rIdx) => {
@@ -99,9 +110,10 @@ const VoidInvaders = {
           color: r.color,
           alive: true,
           state: 'entering', // 'entering' | 'formation' | 'diving'
-          diveTimer: 90 + Math.random() * Math.max(80, 260 - waveNum * 30),
+          diveTimer: 180 + (rIdx * 45) + Math.random() * 280,
           divePhase: 0,
-          diveOriginX: homeX
+          diveOriginX: homeX,
+          firedOnDive: false
         });
       }
     });
@@ -109,6 +121,13 @@ const VoidInvaders = {
 
   stop() {
     this.running = false;
+    if (this.animId) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
+    if (window.State && typeof State.recordArcadeScore === 'function') {
+      State.recordArcadeScore('voidInvaders', this.score);
+    }
     if (!this.rewardsPaid && this.score > 0 && window.State && typeof State.awardArcadeRewards === 'function') {
       this.rewardsPaid = true;
       State.awardArcadeRewards("LOWLIFE GALAGA", this.score, this.wave > 1);
@@ -117,6 +136,9 @@ const VoidInvaders = {
 
   endGame(victory = false) {
     this.gameOver = true;
+    if (window.State && typeof State.recordArcadeScore === 'function') {
+      State.recordArcadeScore('voidInvaders', this.score);
+    }
     if (!this.rewardsPaid && window.State && typeof State.awardArcadeRewards === 'function') {
       this.rewardsPaid = true;
       this.lastRewards = State.awardArcadeRewards("LOWLIFE GALAGA", this.score, victory || this.wave > 1);
@@ -144,11 +166,12 @@ const VoidInvaders = {
       this.update();
     }
     this.draw();
-    requestAnimationFrame(() => this.loop());
+    this.animId = requestAnimationFrame(() => this.loop());
   },
 
   update() {
-    this.fleetTime += 0.04;
+    this.fleetTime += 0.032;
+    if (this.diveCooldown > 0) this.diveCooldown--;
     const p = this.player;
     if (p.iFrames > 0) p.iFrames--;
     if (p.dualLaserTimer > 0) p.dualLaserTimer--;
@@ -161,29 +184,29 @@ const VoidInvaders = {
 
     // Steer Ship (Keyboard + Mobile Touch D-Pad + Analog Joystick)
     const ax = (window.Input && Input.analogVector && Input.analogVector.active) ? Input.analogVector.x : 0;
-    if ((window.Input && Input.keys.left) || ax < -0.18) p.x = Math.max(14, p.x - 5.4);
-    if ((window.Input && Input.keys.right) || ax > 0.18) p.x = Math.min(558, p.x + 5.4);
+    if ((window.Input && Input.keys.left) || ax < -0.18) p.x = Math.max(14, p.x - 5.6);
+    if ((window.Input && Input.keys.right) || ax > 0.18) p.x = Math.min(558, p.x + 5.6);
 
     // Fire Plasma Bursts ([Space], [J], [W], [Up], or Mobile Fire Button)
     const wantsFire = window.Input && (Input.keys.fire || Input.keys.up || Input.keys.shift);
-    if (wantsFire && (!this.lastShot || Date.now() - this.lastShot > 190)) {
+    if (wantsFire && (!this.lastShot || Date.now() - this.lastShot > 145)) {
       if (p.dualLaserTimer > 0) {
-        this.lasers.push({ x: p.x + 3, y: p.y - 4, vy: -10.5, color: '#4ade80' });
-        this.lasers.push({ x: p.x + p.width - 7, y: p.y - 4, vy: -10.5, color: '#4ade80' });
+        this.lasers.push({ x: p.x + 3, y: p.y - 4, vy: -11.5, color: '#4ade80' });
+        this.lasers.push({ x: p.x + p.width - 7, y: p.y - 4, vy: -11.5, color: '#4ade80' });
       } else {
-        this.lasers.push({ x: p.x + 12, y: p.y - 4, vy: -10.5, color: '#facc15' });
+        this.lasers.push({ x: p.x + 12, y: p.y - 4, vy: -11.5, color: '#facc15' });
       }
       if (window.AudioEngine) AudioEngine.playSfx('laser');
       this.lastShot = Date.now();
     }
 
-    // Update Player Lasers
+    // Update Player Lasers (Generous Hitbox Forgiveness)
     for (let i = this.lasers.length - 1; i >= 0; i--) {
       const l = this.lasers[i];
       l.y += l.vy;
       let hit = false;
       for (let e of this.enemies) {
-        if (e.alive && l.x + 4 > e.x && l.x < e.x + e.width && l.y < e.y + e.height && l.y + 12 > e.y) {
+        if (e.alive && l.x + 7 > e.x - 3 && l.x - 3 < e.x + e.width + 3 && l.y < e.y + e.height + 2 && l.y + 14 > e.y - 2) {
           e.hp--;
           hit = true;
           if (e.hp <= 0) {
@@ -192,9 +215,9 @@ const VoidInvaders = {
             this.score += e.pts * diveBonus;
             this.spawnParticles(e.x + e.width / 2, e.y + e.height / 2, e.color, 12);
             if (window.AudioEngine) AudioEngine.playSfx('stomp');
-            // Command Cruisers can drop Twin-Synth Dual Blaster Powerup
-            if (e.type === 'commander' && Math.random() < 0.55) {
-              this.powerups.push({ x: e.x + 6, y: e.y, vy: 2.4, type: 'dual_laser' });
+            // Command Cruisers & Hornets can drop Twin-Synth Dual Blaster Powerup
+            if ((e.type === 'commander' && Math.random() < 0.70) || (e.type === 'hornet' && Math.random() < 0.18)) {
+              this.powerups.push({ x: e.x + 6, y: e.y, vy: 2.1, type: 'dual_laser' });
             }
           } else {
             // Damaged Command Cruiser turns Crimson
@@ -212,8 +235,8 @@ const VoidInvaders = {
     for (let i = this.powerups.length - 1; i >= 0; i--) {
       const pw = this.powerups[i];
       pw.y += pw.vy;
-      if (Math.hypot((pw.x + 8) - (p.x + 14), (pw.y + 8) - (p.y + 10)) < 22) {
-        p.dualLaserTimer = 600; // 10 seconds of Twin-Synth Blaster
+      if (Math.hypot((pw.x + 8) - (p.x + 14), (pw.y + 8) - (p.y + 10)) < 26) {
+        p.dualLaserTimer = 720; // 12 seconds of Twin-Synth Blaster
         this.score += 100;
         if (window.AudioEngine) AudioEngine.playSfx('win');
         this.powerups.splice(i, 1);
@@ -222,22 +245,23 @@ const VoidInvaders = {
       }
     }
 
-    // Update Galaga Fleet & Kamikaze Dive-Bombers
-    const swayOffset = Math.sin(this.fleetTime) * 34;
+    // Update Galaga Fleet & Controlled Dive-Bombers (Toned Down for Enjoyable Gameplay)
+    const swayOffset = Math.sin(this.fleetTime) * 30;
     let aliveCount = 0;
-    const activeDivers = this.enemies.filter(e => e.alive && e.state === 'diving').length;
-    const maxDivers = 2 + this.wave;
+    let activeDivers = this.enemies.filter(e => e.alive && e.state === 'diving').length;
+    const maxDivers = this.wave === 1 ? 1 : 2;
+    const maxEnemyLasers = 2 + this.wave; // Max 3 bullets on screen in Wave 1, 4 in Wave 2, 5 in Wave 3
 
     this.enemies.forEach(e => {
       if (!e.alive) return;
       aliveCount++;
 
       const targetHomeX = e.homeX + swayOffset;
-      const targetHomeY = e.homeY + Math.cos(this.fleetTime * 1.5 + e.homeX * 0.02) * 4;
+      const targetHomeY = e.homeY + Math.cos(this.fleetTime * 1.4 + e.homeX * 0.02) * 3;
 
       if (e.state === 'entering') {
-        e.x += (targetHomeX - e.x) * 0.12;
-        e.y += (targetHomeY - e.y) * 0.12;
+        e.x += (targetHomeX - e.x) * 0.11;
+        e.y += (targetHomeY - e.y) * 0.11;
         if (Math.hypot(targetHomeX - e.x, targetHomeY - e.y) < 3) {
           e.state = 'formation';
         }
@@ -245,29 +269,33 @@ const VoidInvaders = {
         e.x = targetHomeX;
         e.y = targetHomeY;
         e.diveTimer--;
-        if (e.diveTimer <= 0 && activeDivers < maxDivers) {
+        if (e.diveTimer <= 0 && activeDivers < maxDivers && this.diveCooldown <= 0) {
           e.state = 'diving';
           e.divePhase = 0;
           e.diveOriginX = e.x;
+          e.firedOnDive = false;
+          activeDivers++;
+          this.diveCooldown = Math.max(85, 165 - this.wave * 20);
         }
-        if (Math.random() < 0.004 + this.wave * 0.001) {
-          this.enemyLasers.push({ x: e.x + e.width / 2, y: e.y + e.height, vx: 0, vy: 4.5 + this.wave * 0.4 });
+        if (this.enemyLasers.length < maxEnemyLasers && Math.random() < (0.00055 + this.wave * 0.0002)) {
+          this.enemyLasers.push({ x: e.x + e.width / 2, y: e.y + e.height, vx: 0, vy: 3.1 + this.wave * 0.25 });
         }
       } else if (e.state === 'diving') {
-        e.divePhase += 0.055;
-        e.y += 3.2 + this.wave * 0.35;
-        e.x = e.diveOriginX + Math.sin(e.divePhase * 2.2) * 75 + ((p.x - e.diveOriginX) * 0.25);
+        e.divePhase += 0.042;
+        e.y += 1.75 + this.wave * 0.22;
+        e.x = Math.max(18, Math.min(554, e.diveOriginX + Math.sin(e.divePhase * 1.9) * 44 + ((p.x - e.diveOriginX) * 0.16)));
 
-        if (Math.floor(e.divePhase * 18) === 10) {
+        if (!e.firedOnDive && e.y > 140 && e.y < 230 && this.enemyLasers.length < maxEnemyLasers) {
+          e.firedOnDive = true;
           const aim = Math.atan2(p.y - e.y, p.x - e.x);
           this.enemyLasers.push({
             x: e.x + e.width / 2, y: e.y + e.height,
-            vx: Math.cos(aim) * 5.2, vy: Math.sin(aim) * 5.2
+            vx: Math.cos(aim) * 2.2, vy: Math.max(2.8, Math.sin(aim) * 3.4)
           });
         }
 
         // Kamikaze collision with player ship
-        if (p.iFrames <= 0 && Math.hypot((e.x + e.width / 2) - (p.x + 14), (e.y + e.height / 2) - (p.y + 10)) < 20) {
+        if (p.iFrames <= 0 && Math.hypot((e.x + e.width / 2) - (p.x + 14), (e.y + e.height / 2) - (p.y + 10)) < 17) {
           e.alive = false;
           this.damagePlayer();
         }
@@ -276,17 +304,18 @@ const VoidInvaders = {
         if (e.y > 465) {
           e.y = -30;
           e.state = 'entering';
-          e.diveTimer = 140 + Math.random() * 180;
+          e.diveTimer = 220 + Math.random() * 240;
+          e.firedOnDive = false;
         }
       }
     });
 
-    // Enemy Lasers Hit Check
+    // Enemy Lasers Hit Check (Smaller, Fairer Player Hitbox)
     for (let i = this.enemyLasers.length - 1; i >= 0; i--) {
       const el = this.enemyLasers[i];
       el.x += (el.vx || 0);
       el.y += el.vy;
-      if (p.iFrames <= 0 && Math.hypot(el.x - (p.x + 14), el.y - (p.y + 10)) < 15) {
+      if (p.iFrames <= 0 && Math.hypot(el.x - (p.x + 14), el.y - (p.y + 10)) < 11) {
         this.enemyLasers.splice(i, 1);
         this.damagePlayer();
       } else if (el.y > 460 || el.x < 0 || el.x > 600) {
