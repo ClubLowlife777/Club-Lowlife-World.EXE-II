@@ -53,6 +53,12 @@ const Input = {
       if ((code === 'KeyK' || key === 'k') && !e.repeat && window.Combat && typeof Combat.startSlashInput === 'function') {
         Combat.startSlashInput();
       }
+      if ((code === 'KeyZ' || key === 'z') && !e.repeat && (!window.State || !State.activeMiniGame) && window.camera && typeof window.camera.cycleZoomPreset === 'function') {
+        window.camera.cycleZoomPreset();
+      }
+      if ((code === 'KeyM' || key === 'm') && !e.repeat && (!window.State || !State.activeMiniGame) && window.camera && typeof window.camera.toggleRadarExpanded === 'function') {
+        window.camera.toggleRadarExpanded();
+      }
       if ((code === 'Escape' || key === 'escape') && window.State) State.closeModals();
     });
 

@@ -6,7 +6,70 @@
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const camera = { x: 0, y: 0, width: 800, height: 600 };
+const camera = {
+  x: 0,
+  y: 0,
+  width: 800,
+  height: 600,
+  zoom: 1.0,
+  zoomPreset: 'wide', // 'far' | 'wide' | 'normal' | 'close'
+  customZoom: null,
+  radarExpanded: false,
+  radarBounds: null,
+  zoomBtnBounds: null,
+  mapBtnBounds: null,
+
+  cycleZoomPreset() {
+    this.customZoom = null;
+    const order = ['wide', 'far', 'normal', 'close'];
+    const idx = order.indexOf(this.zoomPreset);
+    this.zoomPreset = order[(idx + 1) % order.length];
+    const labels = {
+      wide: 'WIDE FIELD OF VIEW (DEFAULT)',
+      far: 'TACTICAL FAR VIEW (MAX VISIBILITY)',
+      normal: 'BALANCED MID VIEW',
+      close: 'CLASSIC CLOSE-UP (1:1)'
+    };
+    if (window.State && typeof State.showToast === 'function') {
+      State.showToast(`CAMERA ZOOM: ${labels[this.zoomPreset]} 🔍`);
+    }
+  },
+
+  toggleRadarExpanded() {
+    this.radarExpanded = !this.radarExpanded;
+    if (window.State && typeof State.showToast === 'function') {
+      State.showToast(this.radarExpanded ? 'TACTICAL MAP: EXPANDED VIEW 🗺️' : 'TACTICAL MAP: COMPACT VIEW 🗺️');
+    }
+  }
+};
+window.camera = camera;
+
+function getEffectiveCameraZoom() {
+  if (camera.customZoom !== null) {
+    return Math.max(0.40, Math.min(1.15, camera.customZoom));
+  }
+  const shortSide = Math.min(canvas.width || 800, canvas.height || 600);
+  const isMobile = shortSide < 680 || canvas.width < 768;
+
+  if (isMobile) {
+    // Mobile zoom presets ensure wide visibility around the character so enemies never blindside from off-screen
+    const mobilePresets = {
+      far: 0.44,
+      wide: 0.56,
+      normal: 0.72,
+      close: 0.90
+    };
+    return mobilePresets[camera.zoomPreset] || 0.56;
+  } else {
+    const desktopPresets = {
+      far: 0.62,
+      wide: 0.78,
+      normal: 0.90,
+      close: 1.00
+    };
+    return desktopPresets[camera.zoomPreset] || 0.78;
+  }
+}
 
 // RAIN ENGINE STATE
 const rainDrops = [];
@@ -26,8 +89,10 @@ const playerEchoTrail = [];
 function resizeCanvas() {
   canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
   canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
-  camera.width = canvas.width;
-  camera.height = canvas.height;
+  const z = getEffectiveCameraZoom();
+  camera.zoom = z;
+  camera.width = canvas.width / z;
+  camera.height = canvas.height / z;
 }
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 120));
@@ -39,11 +104,83 @@ window.addEventListener('beforeunload', () => {
   if (window.State && typeof State.save === 'function') State.save();
 });
 
+function handleCanvasHudTap(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const cx = clientX - rect.left;
+  const cy = clientY - rect.top;
+
+  if (camera.zoomBtnBounds) {
+    const b = camera.zoomBtnBounds;
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      camera.cycleZoomPreset();
+      return true;
+    }
+  }
+  if (camera.mapBtnBounds) {
+    const b = camera.mapBtnBounds;
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      camera.toggleRadarExpanded();
+      return true;
+    }
+  }
+  if (camera.radarBounds) {
+    const b = camera.radarBounds;
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      camera.toggleRadarExpanded();
+      return true;
+    }
+  }
+  return false;
+}
+
+// Two-finger Pinch-to-Zoom on mobile canvas + Tap on Radar/Zoom HUD pills
+let pinchStartDist = null;
+let pinchStartZoom = 1.0;
+
+canvas.addEventListener('touchstart', (e) => {
+  if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
+  if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    pinchStartDist = Math.hypot(dx, dy);
+    pinchStartZoom = getEffectiveCameraZoom();
+    return;
+  }
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    if (handleCanvasHudTap(t.clientX, t.clientY)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2 && pinchStartDist && pinchStartDist > 20) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy);
+    const ratio = dist / pinchStartDist;
+    camera.customZoom = Math.max(0.40, Math.min(1.15, pinchStartZoom * ratio));
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  if (e.touches.length < 2) {
+    pinchStartDist = null;
+  }
+});
+
 canvas.addEventListener('mousedown', (e) => {
   if (window.AudioEngine && typeof AudioEngine.init === 'function') AudioEngine.init();
 
   if (document.activeElement && document.activeElement.tagName === 'INPUT') {
     document.activeElement.blur();
+  }
+
+  if (e.button === 0 && handleCanvasHudTap(e.clientX, e.clientY)) {
+    return;
   }
 
   if (e.button === 0 && window.Combat && typeof Combat.startSlashInput === 'function') {
@@ -69,6 +206,9 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
 
+  const zoom = getEffectiveCameraZoom();
+  camera.zoom = zoom;
+
   let shakeX = 0, shakeY = 0;
   if (window.State && State.screenShake && State.screenShake.duration > 0) {
     shakeX = (Math.random() - 0.5) * State.screenShake.intensity;
@@ -76,6 +216,7 @@ function draw() {
     State.screenShake.duration--;
   }
 
+  ctx.scale(zoom, zoom);
   ctx.translate(-Math.floor(camera.x) + shakeX, -Math.floor(camera.y) + shakeY);
 
   const dim = (window.State && State.currentDimension) ? State.currentDimension : 'underground';
@@ -89,6 +230,7 @@ function draw() {
   if (dim === 'wasteland') {
     drawRainOverlay();
   }
+  drawOffscreenThreatIndicators(dim);
   drawTacticalRadar(dim);
   drawCombatStyleHud();
 }
@@ -570,46 +712,285 @@ function drawHorizon() {
   drawPortalsAndEntities('horizon');
 }
 
+function drawOffscreenThreatIndicators(dim) {
+  if ((dim !== 'wasteland' && dim !== 'horizon') || !window.Entities || !Entities.player || !Entities.hostileNpcs) return;
+
+  const headerBottom = (document.querySelector('header')?.offsetHeight || 50) + 14;
+  const padX = 22;
+  const padTop = headerBottom + 10;
+  const padBottom = canvas.width < 640 ? 150 : 28;
+  const centerScreenX = canvas.width / 2;
+  const centerScreenY = canvas.height / 2;
+  const zoom = camera.zoom || 1.0;
+
+  ctx.save();
+  Entities.hostileNpcs.forEach(n => {
+    if (!n.alive || (n.dim || 'wasteland') !== dim) return;
+    const cx = n.x + (n.width || 24) / 2;
+    const cy = n.y + (n.height || 36) / 2;
+    const dist = Math.hypot(cx - Entities.player.x, cy - Entities.player.y);
+
+    // Show indicator if enemy is aggroed or a boss within 850px, and currently outside the visible camera box
+    const isRelevant = n.state === 'aggro' || (n.tier === 'boss' && dist < 850);
+    if (!isRelevant) return;
+
+    const screenX = (cx - camera.x) * zoom;
+    const screenY = (cy - camera.y) * zoom;
+
+    const isOffscreen = (
+      screenX < 12 ||
+      screenX > canvas.width - 12 ||
+      screenY < headerBottom ||
+      screenY > canvas.height - 12
+    );
+    if (!isOffscreen) return;
+
+    const angle = Math.atan2(screenY - centerScreenY, screenX - centerScreenX);
+    const ix = Math.max(padX, Math.min(canvas.width - padX, screenX));
+    const iy = Math.max(padTop, Math.min(canvas.height - padBottom, screenY));
+
+    const col = n.tier === 'boss' ? '#ff003c' : (n.tier === 'mid' ? '#f97316' : '#f43f5e');
+    const pulse = 0.75 + Math.sin(Date.now() * 0.012) * 0.25;
+
+    ctx.save();
+    ctx.translate(ix, iy);
+    ctx.rotate(angle);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = col;
+    ctx.shadowColor = col;
+    ctx.shadowBlur = 8;
+
+    const sz = n.tier === 'boss' ? 9 : 6.5;
+    ctx.beginPath();
+    ctx.moveTo(sz, 0);
+    ctx.lineTo(-sz, -sz * 0.75);
+    ctx.lineTo(-sz * 0.45, 0);
+    ctx.lineTo(-sz, sz * 0.75);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
 function drawTacticalRadar(dim) {
-  if (dim !== 'wasteland' && dim !== 'horizon') return;
   if (!window.Entities || !Entities.player) return;
 
   const isMobile = canvas.width < 640;
   const headerBottom = (document.querySelector('header')?.offsetHeight || 50) + 6;
-  const mapW = dim === 'horizon' ? 3600 : 6400;
-  const mapH = dim === 'horizon' ? 2400 : 4800;
-  const radarW = isMobile ? 108 : 148;
-  const radarH = Math.round(radarW * (mapH / mapW));
+  const dimCfg = (window.State && State.DIMENSIONS && State.DIMENSIONS[dim])
+    ? State.DIMENSIONS[dim]
+    : { width: 2400, height: 1200, name: dim.toUpperCase() };
+
+  const mapW = dimCfg.width || 2400;
+  const mapH = dimCfg.height || 1200;
+
+  const baseW = isMobile ? 118 : 156;
+  const expandedW = isMobile ? Math.min(236, canvas.width - 20) : 276;
+  const radarW = camera.radarExpanded ? expandedW : baseW;
+  const radarH = Math.max(camera.radarExpanded ? 110 : 64, Math.round(radarW * (mapH / mapW)));
   const rx = canvas.width - radarW - 8;
   const ry = headerBottom;
 
+  camera.radarBounds = { x: rx, y: ry, w: radarW, h: radarH };
+
+  const themeColors = {
+    underground: '#00f0ff',
+    retrocade: '#ec4899',
+    wasteland: '#00f0ff',
+    horizon: '#a855f7'
+  };
+  const borderCol = themeColors[dim] || '#00f0ff';
+
   ctx.save();
-  ctx.fillStyle = 'rgba(7, 10, 18, 0.85)';
+  ctx.fillStyle = 'rgba(7, 10, 18, 0.90)';
   ctx.fillRect(rx, ry, radarW, radarH);
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.55)';
+  ctx.strokeStyle = borderCol;
   ctx.lineWidth = 1.5;
   ctx.strokeRect(rx, ry, radarW, radarH);
 
   const sx = radarW / mapW;
   const sy = radarH / mapH;
 
-  // Draw Obstacles on Minimap
-  const obs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') ? Dimensions.getActiveObstacles() : [];
-  ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
-  obs.forEach(o => {
-    ctx.fillRect(rx + o.x * sx, ry + o.y * sy, Math.max(1, o.width * sx), Math.max(1, o.height * sy));
-  });
+  // Subtle Grid Inside Radar
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+  ctx.lineWidth = 0.5;
+  for (let gx = 1; gx < 4; gx++) {
+    ctx.beginPath();
+    ctx.moveTo(rx + (radarW * gx) / 4, ry);
+    ctx.lineTo(rx + (radarW * gx) / 4, ry + radarH);
+    ctx.stroke();
+  }
+  for (let gy = 1; gy < 3; gy++) {
+    ctx.beginPath();
+    ctx.moveTo(rx, ry + (radarH * gy) / 3);
+    ctx.lineTo(rx + radarW, ry + (radarH * gy) / 3);
+    ctx.stroke();
+  }
 
-  // Draw Safe Zones on Minimap (Green)
-  if (dim === 'wasteland') {
+  // 1. Dimension-Specific Zone Highlights & Portals
+  if (dim === 'underground') {
+    // Tuning Bay / Merch
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.16)';
+    ctx.fillRect(rx + 35 * sx, ry + 35 * sy, 600 * sx, 415 * sy);
+    // Mastering Suite
+    ctx.fillStyle = 'rgba(14, 165, 233, 0.20)';
+    ctx.fillRect(rx + 800 * sx, ry + 35 * sy, 500 * sx, 320 * sy);
+    // Neo-Arcade Concourse
+    ctx.fillStyle = 'rgba(192, 132, 252, 0.18)';
+    ctx.fillRect(rx + 1450 * sx, ry + 35 * sy, 915 * sx, 445 * sy);
+    // Generator Annex
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.14)';
+    ctx.fillRect(rx + 1450 * sx, ry + 505 * sy, 915 * sx, 660 * sy);
+
+    // 3 Arcade Cabinets (Gold markers)
+    ctx.fillStyle = '#facc15';
+    [1650, 1800, 1950].forEach(ax => {
+      ctx.fillRect(rx + ax * sx, ry + 120 * sy, Math.max(2.5, 70 * sx), Math.max(2.5, 70 * sy));
+    });
+
+    // Trunk Merch & Mastering Console
+    ctx.fillStyle = '#ff003c';
+    ctx.fillRect(rx + 180 * sx, ry + 200 * sy, Math.max(3, 150 * sx), Math.max(2.5, 75 * sy));
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(rx + 880 * sx, ry + 120 * sy, Math.max(3, 160 * sx), Math.max(2.5, 90 * sy));
+
+    // Warp Portal to Retrocade (2200, 900)
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(rx + 2240 * sx, ry + 940 * sy, 3.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (camera.radarExpanded) {
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.85)';
+      ctx.font = 'bold 7px "Share Tech Mono"';
+      ctx.fillText('MERCH', rx + 80 * sx, ry + 160 * sy);
+      ctx.fillText('STUDIO', rx + 880 * sx, ry + 105 * sy);
+      ctx.fillText('ARCADE', rx + 1660 * sx, ry + 105 * sy);
+      ctx.fillStyle = '#ec4899';
+      ctx.fillText('WARP', rx + 2060 * sx, ry + 945 * sy);
+    }
+  } else if (dim === 'retrocade') {
+    // West Lounge
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.16)';
+    ctx.fillRect(rx + 35 * sx, ry + 35 * sy, 645 * sx, 1130 * sy);
+    // Dance Floor (Center)
+    ctx.fillStyle = 'rgba(236, 72, 153, 0.28)';
+    ctx.fillRect(rx + 980 * sx, ry + 420 * sy, 420 * sx, 320 * sy);
+    // DJ Stage
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.26)';
+    ctx.fillRect(rx + 920 * sx, ry + 120 * sy, 560 * sx, 145 * sy);
+    // East Casino Wing
+    ctx.fillStyle = 'rgba(250, 204, 21, 0.16)';
+    ctx.fillRect(rx + 1750 * sx, ry + 35 * sy, 615 * sx, 1130 * sy);
+
+    // Slot Machines & Music Kiosk
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(rx + 1880 * sx, ry + 180 * sy, Math.max(3, 130 * sx), Math.max(2.5, 70 * sy));
+    ctx.fillRect(rx + 2120 * sx, ry + 180 * sy, Math.max(3, 150 * sx), Math.max(2.5, 70 * sy));
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillRect(rx + 260 * sx, ry + 220 * sy, Math.max(3, 160 * sx), Math.max(2.5, 100 * sy));
+
+    // Portals: Underground (800, 1050) & Wasteland (1520, 1050)
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(rx + 840 * sx, ry + 1090 * sy, 3.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ff003c';
+    ctx.beginPath();
+    ctx.arc(rx + 1560 * sx, ry + 1090 * sy, 3.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (camera.radarExpanded) {
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.85)';
+      ctx.font = 'bold 7px "Share Tech Mono"';
+      ctx.fillText('LOUNGE', rx + 180 * sx, ry + 560 * sy);
+      ctx.fillText('DANCE', rx + 1060 * sx, ry + 600 * sy);
+      ctx.fillText('CASINO', rx + 1880 * sx, ry + 560 * sy);
+    }
+  } else if (dim === 'wasteland') {
+    // Safe Zones (Green)
     ctx.fillStyle = 'rgba(74, 222, 128, 0.35)';
     ctx.fillRect(rx + 1650 * sx, ry + 260 * sy, 900 * sx, 560 * sy);
     ctx.beginPath();
     ctx.arc(rx + 2300 * sx, ry + 2900 * sy, 180 * sx, 0, Math.PI * 2);
     ctx.fill();
+
+    // Destructible Doors (Orange)
+    if (window.Dimensions && Dimensions.destructibleDoors) {
+      ctx.fillStyle = '#f97316';
+      Dimensions.destructibleDoors.forEach(d => {
+        if (!d.shattered) {
+          ctx.fillRect(rx + d.x * sx - 1, ry + d.y * sy - 1, Math.max(2.5, d.width * sx), Math.max(2.5, d.height * sy));
+        }
+      });
+    }
+
+    // Portals: Retrocade Return (650, 1020) & 50-Tape Horizon Gate (3120, 150)
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(rx + 690 * sx, ry + 1060 * sy, 3.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#a855f7';
+    ctx.beginPath();
+    ctx.arc(rx + 3210 * sx, ry + 200 * sy, 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (camera.radarExpanded) {
+      ctx.fillStyle = '#4ade80';
+      ctx.font = 'bold 7px "Share Tech Mono"';
+      ctx.fillText('SANCTUARY', rx + 1720 * sx, ry + 580 * sy);
+      ctx.fillText('BONFIRE', rx + 2050 * sx, ry + 2700 * sy);
+      ctx.fillStyle = '#c084fc';
+      ctx.fillText('RIFT', rx + 3320 * sx, ry + 260 * sy);
+    }
+  } else if (dim === 'horizon') {
+    // Astral Keep, Zero-G Sanctum, Archive Bastion
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.20)';
+    ctx.fillRect(rx + 1200 * sx, ry + 200 * sy, 1200 * sx, 750 * sy);
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
+    ctx.fillRect(rx + 250 * sx, ry + 750 * sy, 750 * sx, 750 * sy);
+    ctx.fillStyle = 'rgba(236, 72, 153, 0.18)';
+    ctx.fillRect(rx + 2600 * sx, ry + 750 * sy, 750 * sx, 750 * sy);
+
+    // Return Portals (1760, 2180 & 1520, 2180)
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(rx + 1800 * sx, ry + 2220 * sy, 3.5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = '#ec4899';
+    ctx.beginPath();
+    ctx.arc(rx + 1560 * sx, ry + 2220 * sy, 3.5, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
-  // Draw Unopened Chests (Gold dots)
+  // 2. Obstacles / Walls
+  const obs = (window.Dimensions && typeof Dimensions.getActiveObstacles === 'function') ? Dimensions.getActiveObstacles() : [];
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.42)';
+  obs.forEach(o => {
+    ctx.fillRect(rx + o.x * sx, ry + o.y * sy, Math.max(1, o.width * sx), Math.max(1, o.height * sy));
+  });
+
+  // 3. Undiscovered Lore Tapes (Amber dots)
+  if (window.State && Array.isArray(State.loreTapes)) {
+    ctx.fillStyle = '#f59e0b';
+    State.loreTapes.forEach(t => {
+      if (t.dim === dim) {
+        const isFound = State.userProfile && State.userProfile.discoveredLoreTapes && State.userProfile.discoveredLoreTapes.includes(t.id);
+        if (!isFound) {
+          ctx.fillRect(rx + t.x * sx - 1.5, ry + t.y * sy - 1.5, 3, 3);
+        }
+      }
+    });
+  }
+
+  // 4. Unopened Chests (Gold dots)
   const chests = (window.Dimensions && typeof Dimensions.getActiveChests === 'function') ? Dimensions.getActiveChests() : [];
   ctx.fillStyle = '#facc15';
   chests.forEach(c => {
@@ -618,8 +999,16 @@ function drawTacticalRadar(dim) {
     }
   });
 
-  // Draw Hostiles & World Bosses
-  if (Entities.hostileNpcs) {
+  // 5. Friendly NPCs (Emerald dots)
+  if (Entities.friendlyNpcs && Entities.friendlyNpcs[dim]) {
+    ctx.fillStyle = '#4ade80';
+    Entities.friendlyNpcs[dim].forEach(fn => {
+      ctx.fillRect(rx + fn.x * sx - 1.5, ry + fn.y * sy - 1.5, 3, 3);
+    });
+  }
+
+  // 6. Hostiles & World Bosses
+  if (Entities.hostileNpcs && (dim === 'wasteland' || dim === 'horizon')) {
     Entities.hostileNpcs.forEach(n => {
       if (!n.alive || (n.dim || 'wasteland') !== dim) return;
       if (n.tier === 'boss') {
@@ -628,24 +1017,79 @@ function drawTacticalRadar(dim) {
         ctx.arc(rx + n.x * sx, ry + n.y * sy, 3.5, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        ctx.fillStyle = n.tier === 'mid' ? '#f97316' : 'rgba(244, 63, 94, 0.65)';
+        ctx.fillStyle = n.tier === 'mid' ? '#f97316' : 'rgba(244, 63, 94, 0.72)';
         ctx.fillRect(rx + n.x * sx - 1, ry + n.y * sy - 1, 2, 2);
       }
     });
   }
 
-  // Draw Player Position (Pulsing Cyan Dot)
+  // 7. Current Camera Viewport Box on Minimap
+  const vx = Math.max(rx, rx + camera.x * sx);
+  const vy = Math.max(ry, ry + camera.y * sy);
+  const vw = Math.min(radarW - (vx - rx), camera.width * sx);
+  const vh = Math.min(radarH - (vy - ry), camera.height * sy);
+  if (vw > 2 && vh > 2) {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.32)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(vx, vy, vw, vh);
+  }
+
+  // 8. Player Position & Direction Indicator
+  const px = rx + Entities.player.x * sx;
+  const py = ry + Entities.player.y * sy;
   ctx.fillStyle = '#00f0ff';
   ctx.beginPath();
-  ctx.arc(rx + Entities.player.x * sx, ry + Entities.player.y * sy, 3.5, 0, Math.PI * 2);
+  ctx.arc(px, py, 3.5, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
   ctx.stroke();
 
+  // Map Title Overlay
+  const mapLabels = {
+    underground: 'MAP // UNDERGROUND',
+    retrocade: 'MAP // RETROCADE 84',
+    wasteland: 'MAP // WASTELAND',
+    horizon: 'MAP // THE HORIZON'
+  };
+  ctx.fillStyle = 'rgba(7, 10, 18, 0.75)';
+  ctx.fillRect(rx + 2, ry + radarH - 12, radarW - 4, 10);
+  ctx.fillStyle = borderCol;
+  ctx.font = 'bold 7.5px "Share Tech Mono"';
+  ctx.fillText(mapLabels[dim] || 'TACTICAL MAP', rx + 5, ry + radarH - 4);
+
+  // 9. Interactive Zoom & Map Expand Control Pills Below Radar
+  const btnY = ry + radarH + 4;
+  const btnH = isMobile ? 20 : 18;
+  const halfW = Math.floor((radarW - 4) / 2);
+
+  camera.zoomBtnBounds = { x: rx, y: btnY, w: halfW, h: btnH };
+  camera.mapBtnBounds = { x: rx + halfW + 4, y: btnY, w: radarW - halfW - 4, h: btnH };
+
+  // Zoom Pill
+  ctx.fillStyle = 'rgba(11, 15, 25, 0.92)';
+  ctx.fillRect(camera.zoomBtnBounds.x, camera.zoomBtnBounds.y, camera.zoomBtnBounds.w, camera.zoomBtnBounds.h);
+  ctx.strokeStyle = '#00f0ff';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(camera.zoomBtnBounds.x, camera.zoomBtnBounds.y, camera.zoomBtnBounds.w, camera.zoomBtnBounds.h);
+
+  const zoomTag = camera.customZoom !== null
+    ? `${Math.round(camera.zoom * 100)}%`
+    : camera.zoomPreset.toUpperCase();
   ctx.fillStyle = '#00f0ff';
-  ctx.font = 'bold 8px "Share Tech Mono"';
-  ctx.fillText(dim === 'horizon' ? "RADAR // HORIZON" : "RADAR // 6 BOSSES", rx + 5, ry + radarH - 4);
+  ctx.font = 'bold 7.5px "Share Tech Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText(`🔍 ${zoomTag}`, camera.zoomBtnBounds.x + camera.zoomBtnBounds.w / 2, btnY + btnH - 5);
+
+  // Map Expand Pill
+  ctx.fillStyle = 'rgba(11, 15, 25, 0.92)';
+  ctx.fillRect(camera.mapBtnBounds.x, camera.mapBtnBounds.y, camera.mapBtnBounds.w, camera.mapBtnBounds.h);
+  ctx.strokeStyle = borderCol;
+  ctx.strokeRect(camera.mapBtnBounds.x, camera.mapBtnBounds.y, camera.mapBtnBounds.w, camera.mapBtnBounds.h);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillText(camera.radarExpanded ? '🗺️ MIN [-]' : '🗺️ MAP [+]', camera.mapBtnBounds.x + camera.mapBtnBounds.w / 2, btnY + btnH - 5);
+
+  ctx.textAlign = 'left';
   ctx.restore();
 }
 
@@ -1435,13 +1879,30 @@ function gameLoop() {
   if (window.State && State.DIMENSIONS && State.currentDimension) {
     const cfg = State.DIMENSIONS[State.currentDimension];
     if (cfg && typeof Entities !== 'undefined' && Entities.player) {
-      const targetX = Entities.player.x - camera.width / 2;
-      const targetY = Entities.player.y - camera.height / 2;
+      const zoom = getEffectiveCameraZoom();
+      camera.zoom = zoom;
+      camera.width = canvas.width / zoom;
+      camera.height = canvas.height / zoom;
 
-      camera.x += (targetX - camera.x) * 0.12;
-      camera.y += (targetY - camera.y) * 0.12;
-      camera.x = Math.max(0, Math.min(cfg.width - camera.width, camera.x));
-      camera.y = Math.max(0, Math.min(cfg.height - camera.height, camera.y));
+      const isMobilePortrait = canvas.width < 640 && canvas.height > canvas.width;
+      const verticalBias = isMobilePortrait ? 0.43 : 0.50;
+
+      const targetX = (Entities.player.x + (Entities.player.width || 26) / 2) - camera.width * 0.50;
+      const targetY = (Entities.player.y + (Entities.player.height || 38) / 2) - camera.height * verticalBias;
+
+      if (camera.width >= cfg.width) {
+        camera.x = (cfg.width - camera.width) / 2;
+      } else {
+        camera.x += (targetX - camera.x) * 0.14;
+        camera.x = Math.max(0, Math.min(cfg.width - camera.width, camera.x));
+      }
+
+      if (camera.height >= cfg.height) {
+        camera.y = (cfg.height - camera.height) / 2;
+      } else {
+        camera.y += (targetY - camera.y) * 0.14;
+        camera.y = Math.max(0, Math.min(cfg.height - camera.height, camera.y));
+      }
     }
   }
 

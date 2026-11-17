@@ -332,6 +332,18 @@ const Entities = {
     return false;
   },
 
+  isNpcOnScreen(n, margin = 20) {
+    if (!window.camera) return true;
+    const cx = n.x + (n.width || 24) / 2;
+    const cy = n.y + (n.height || 36) / 2;
+    return (
+      cx >= window.camera.x + margin &&
+      cx <= window.camera.x + window.camera.width - margin &&
+      cy >= window.camera.y + margin &&
+      cy <= window.camera.y + window.camera.height - margin
+    );
+  },
+
   spawnWastelandCombatant(force = false, targetDim = 'wasteland') {
     if (!force && (!window.State || State.currentDimension !== targetDim)) return;
 
@@ -749,9 +761,10 @@ const Entities = {
       if (!n.alive || (n.dim || 'wasteland') !== activeDim) return;
       if (n.hitFlash > 0) n.hitFlash--;
       const dist = Math.hypot(p.x - n.x, p.y - n.y);
-      const aggroRange = n.tier === 'boss' ? 560 : n.tier === 'mid' ? 380 : 270;
+      const onScreen = this.isNpcOnScreen(n, 22);
+      const aggroRange = n.tier === 'boss' ? 480 : n.tier === 'mid' ? 330 : 250;
 
-      if (dist < aggroRange && n.state === 'peaceful' && !playerInSafeZone) {
+      if (dist < aggroRange && onScreen && n.state === 'peaceful' && !playerInSafeZone) {
         n.state = 'aggro';
         n.aggroTimer = 350;
       }
@@ -804,8 +817,8 @@ const Entities = {
         if (n.tier === 'boss') {
           const scaledBossProjDmg = Math.round(24 * enemyDmgScale * bossMarkDmgMult);
 
-          // Signature Boss Special Attacks (Telegraphed AoE / Spiral Nova / Shadow Lunge)
-          if (dist < 440 && n.specialCooldown <= 0) {
+          // Signature Boss Special Attacks (Only when visible on player screen)
+          if (onScreen && dist < 440 && n.specialCooldown <= 0) {
             n.specialCooldown = 190;
             if (n.id === 'boss_drone_queen' && window.Combat && Combat.enemyProjectiles) {
               // 10-Way 360° Spiral EMP Nova
@@ -835,7 +848,7 @@ const Entities = {
             }
           }
 
-          if (dist < 360 && n.attackCooldown <= 0) {
+          if (onScreen && dist < 350 && n.attackCooldown <= 0) {
             n.attackCooldown = 52;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
             for (let spread = -0.25; spread <= 0.25; spread += 0.25) {
@@ -849,7 +862,7 @@ const Entities = {
             }
           }
         } else if (n.tier === 'mid') {
-          if (dist < 270 && n.attackCooldown <= 0) {
+          if (onScreen && dist < 260 && n.attackCooldown <= 0) {
             n.attackCooldown = 68;
             if (window.AudioEngine && typeof AudioEngine.playSfx === 'function') AudioEngine.playSfx('laser');
             const scaledMidProjDmg = Math.round(18 * enemyDmgScale);
